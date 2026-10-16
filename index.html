@@ -320,6 +320,18 @@ button { cursor: pointer; }
 .ig-legenda { padding: 8px 14px 14px; background: #0b0b0d; font-size: 13px; color: rgba(255,255,255,.85); white-space: pre-line; max-height: 240px; overflow: auto; }
 .ig-legenda b { color: #fff; }
 .ig-legenda .tags { margin-top: 8px; display: block; }
+.ig-slide video.foto { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ig.vertical { max-width: 340px; }
+.ig.vertical .ig-slide { aspect-ratio: 9 / 16; }
+.ig.vertical .ig-slide .titulo { font-size: 9cqw; }
+.ig-slide .tag-video { position: absolute; left: 6cqw; bottom: 3cqw; font-size: 2.8cqw; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.ig[data-al="centro"] .conteudo { text-align: center; justify-items: center; }
+.ig[data-al="direita"] .conteudo { text-align: right; justify-items: end; }
+.ig[data-pos="topo"] .ig-slide .conteudo { top: 16cqw; bottom: auto; }
+.ig[data-pos="meio"] .ig-slide .conteudo { top: 50%; bottom: auto; transform: translateY(-50%); }
+.ig[data-pos="base"] .ig-slide .conteudo { top: auto; bottom: 10cqw; }
+.ig[data-pos="topo"] .ig-slide .veu { background: linear-gradient(0deg, rgba(10,12,21,.10) 0%, rgba(10,12,21,.25) 40%, rgba(10,12,21,.94) 100%); }
+.ig[data-pos="meio"] .ig-slide .veu { background: rgba(10,12,21,.55); }
 .ig-aviso { font-size: 11px; color: var(--ink-faint); padding: 0 14px 12px; background: #0b0b0d; }
 
 /* login */
@@ -362,6 +374,31 @@ body.travado .wrap { visibility: hidden; }
   .cal-head { display: none; }
   .day.fora, .day.sem-post:not(.today) { display: none; }
 }
+
+/* logos e mood board */
+.logos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 520px) { .logos { grid-template-columns: 1fr; } }
+.logo-slot { border: 1px solid var(--line); border-radius: 6px; background: var(--card-soft); padding: 10px; display: grid; gap: 8px; }
+.logo-slot .amostra { height: 64px; border-radius: 4px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--line); }
+.logo-slot .amostra.escuro { background: #0A0C15; }
+.logo-slot .amostra.claro { background: #F4F4F6; }
+.logo-slot .amostra img { max-height: 44px; max-width: 80%; object-fit: contain; }
+.logo-slot .amostra span { font-size: 11px; color: var(--ink-faint); }
+.logo-slot .amostra.claro span { color: #8A8D9C; }
+.logo-slot b { font-size: 12px; }
+.logo-slot small { display: block; font-size: 11px; color: var(--ink-faint); }
+.logo-slot .actions .btn { padding: 6px 10px; font-size: 12px; }
+.mood { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.mood figure { margin: 0; position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: var(--card-soft); }
+.mood img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mood button { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 999px; border: 0; background: rgba(3,4,8,.75); color: #fff; font-size: 12px; line-height: 1; }
+.arquivo-oculto { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+/* diagramação */
+.diag { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--card-soft); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { border: 1px solid var(--line); background: var(--card); color: var(--ink-soft); border-radius: 6px; padding: 7px 11px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.seg button[aria-pressed="true"] { border-color: transparent; background: var(--grad); color: #fff; }
+.seg svg { width: 14px; height: 14px; }
 
 /* ---------- celular e tablet ---------- */
 @media (max-width: 760px) {
@@ -426,7 +463,7 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .track .step, .track .play { display: none; }
 .side-pe { margin-top: auto; border-top: 1px solid var(--line); padding: 14px 18px 0; display: grid; gap: 4px; }
 .side-pe .quem { margin-bottom: 8px; }
-.side-pe .btn { justify-content: flex-start; width: 100%; padding: 8px 0; border: 0; background: none; color: var(--ink-soft); font-weight: 500; }
+.side-pe .btn, .side-pe .btn.quiet { justify-content: flex-start; width: 100%; padding: 8px 0; border: 0; background: none; color: var(--ink-soft); font-weight: 500; }
 .side-pe .btn:hover { color: #fff; background: none; }
 .side-pe .notice { font-size: 11px; }
 .quem .av { width: 30px; height: 30px; border-radius: 6px; background: var(--grad); font-size: 11px; font-weight: 800; }
@@ -698,7 +735,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, link: r.LinkPublicado || "",
-    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [],
+    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { try { return Object.assign({ alinhar: "esquerda", posicao: "auto" }, JSON.parse(r.Diagramacao || "{}")); } catch (e) { return { alinhar: "esquerda", posicao: "auto" }; } })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -965,7 +1002,7 @@ function detalhePost() {
   else if (["Planejado", "Erro"].includes(p.status)) {
     acao = M.modo === "web"
       ? `<div class="actions"><button class="btn primary" data-act="criar-post" data-id="${p.id}">${p.status === "Erro" ? "Tentar criar de novo" : "Criar este post"}</button></div>
-         <p class="small" style="margin:0">${video ? "A IA escreve a legenda e o roteiro das cenas e manda no Telegram." : "A IA escreve a legenda e os slides e gera as imagens. Depois o post vai para a Revisão."}</p>`
+         <p class="small" style="margin:0">${video ? "A IA escreve a legenda e as cenas, e o Magnific gera os clipes. Depois o post vai para a Revisão." : "A IA escreve a legenda e os slides e gera as imagens. Depois o post vai para a Revisão."}</p>`
       : `<div class="msg">Para mandar a IA criar este post, abra o painel pelo link do GitHub.</div>`;
   } else if (["EmRevisao", "Ajustes"].includes(p.status)) acao = `<div class="actions"><button class="btn primary" data-act="ver-revisao" data-id="${p.id}">Ver na Revisão</button></div>`;
   else if (p.link) acao = `<div class="actions"><a class="btn" href="${esc(p.link)}" target="_blank" rel="noopener">Ver post publicado</a></div>`;
@@ -1004,7 +1041,31 @@ function coresMarca() {
   const c = lerCores(M.marca && M.marca.Cores);
   return { bg: (c[0] && c[0].hex) || "#0A0C15", acc: (c[1] && c[1].hex) || "#F8395A" };
 }
-function logoMarca() { const a = ((M.marca && M.marca.Logo) || [])[0]; return a ? urlArq(a) : ""; }
+// Quatro versões: Logo (light, para fundo escuro), LogoDark (para fundo claro) e os símbolos light e dark.
+const anexoMarca = (campo, cheio) => { const a = ((M.marca && M.marca[campo]) || [])[0]; return a ? (cheio ? urlCheia(a) : urlArq(a)) : ""; };
+const VERSOES = { light: "Logo", dark: "LogoDark", simLight: "SimboloLight", simDark: "SimboloDark" };
+function urlsLogos(cheio) { const o = {}; for (const [k, c] of Object.entries(VERSOES)) o[k] = anexoMarca(c, cheio); return o; }
+function ordemLogos(fundoClaro, simbolo) {
+  if (simbolo) return fundoClaro ? ["simDark", "dark", "simLight", "light"] : ["simLight", "light", "simDark", "dark"];
+  return fundoClaro ? ["dark", "simDark", "light", "simLight"] : ["light", "simLight", "dark", "simDark"];
+}
+function escolherLogo(opcoes, fundoClaro, simbolo) { for (const k of ordemLogos(fundoClaro, simbolo)) if (opcoes[k]) return opcoes[k]; return null; }
+function luminanciaHex(hex) {
+  const h = String(hex || "#000").replace("#", ""); const n = parseInt(h.length === 3 ? h.split("").map(c => c + c).join("") : h, 16) || 0;
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+// Mede o fundo atrás do logo no canvas para escolher a versão clara ou escura.
+function fundoClaroEm(ctx, x, y, w, h) {
+  try {
+    const d = ctx.getImageData(Math.max(0, x | 0), Math.max(0, y | 0), Math.max(1, w | 0), Math.max(1, h | 0)).data;
+    let soma = 0, q = 0;
+    for (let i = 0; i < d.length; i += 4 * 9) { soma += (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255; q++; }
+    return q ? soma / q > 0.6 : false;
+  } catch (e) { return false; }
+}
+function logoMarca() { return escolherLogo(urlsLogos(false), false, false) || ""; }
+function simboloMarca(fundoHex) { return escolherLogo(urlsLogos(false), luminanciaHex(fundoHex) > 0.45, true) || ""; }
 // Liga cada slide à sua imagem. Se há uma arte por slide (Canva), a imagem já é o slide pronto.
 function imagensDoPost(p) {
   const mapa = {};
@@ -1023,6 +1084,15 @@ function fotosCheias(p) {
   const fotos = p.fotos.length ? p.fotos : p.arquivos;
   const mapa = {};
   Object.keys(p.imagensSlides || {}).map(Number).sort((a, b) => a - b).forEach((n, i) => { if (fotos[i]) mapa[n] = urlCheia(fotos[i]); });
+  return mapa;
+}
+
+const ehVideoFmt = p => ["Reels", "Stories"].includes(p.formato);
+const ehArqVideo = a => !!a && (String(a.type || "").startsWith("video/") || /\.mp4(\?|$)/i.test(String(a.filename || a.url || "")));
+// Liga cada cena (Reels) ou slide (carrossel) ao seu clipe: a ordem das chaves de ClipesSlides bate com a ordem de Clipes.
+function clipesDoPost(p) {
+  const mapa = {};
+  Object.keys(p.clipesSlides || {}).map(Number).sort((a, b) => a - b).forEach((n, i) => { const c = (p.clipes || [])[i]; if (c && c.url) mapa[n] = c.url; });
   return mapa;
 }
 
@@ -1051,14 +1121,17 @@ function quebrar(ctx, texto, largura) {
   if (atual) linhas.push(atual);
   return linhas;
 }
-function capa(ctx, im) {
-  const r = Math.max(ARTE_L / im.width, ARTE_A / im.height);
-  const w = im.width * r, h = im.height * r;
-  ctx.drawImage(im, (ARTE_L - w) / 2, (ARTE_A - h) / 2, w, h);
+function capa(ctx, im, W = ARTE_L, H = ARTE_A) {
+  const w0 = im.videoWidth || im.naturalWidth || im.width, h0 = im.videoHeight || im.naturalHeight || im.height;
+  if (!w0 || !h0) return;
+  const r = Math.max(W / w0, H / h0);
+  const w = w0 * r, h = h0 * r;
+  ctx.drawImage(im, (W - w) / 2, (H - h) / 2, w, h);
 }
-function desenharSlide(sl, i, total, foto, logo, cores, nome) {
-  const cv = document.createElement("canvas");
-  cv.width = ARTE_L; cv.height = ARTE_A;
+function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
+  diag = diag || { alinhar: "esquerda", posicao: "auto" };
+  const cv = alvo || document.createElement("canvas");
+  if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
   const ctx = cv.getContext("2d");
   const ultimo = i === total - 1 && total > 1;
   const cta = ultimo && !foto;
@@ -1070,14 +1143,19 @@ function desenharSlide(sl, i, total, foto, logo, cores, nome) {
     g.addColorStop(0, hexRgba(cores.acc, 0.28)); g.addColorStop(1, hexRgba(cores.acc, 0));
     ctx.fillStyle = g; ctx.fillRect(0, 0, ARTE_L, ARTE_A);
   }
+  const pos = diag.posicao === "auto" ? (foto ? "base" : "topo") : diag.posicao;
   if (foto) {
     capa(ctx, foto);
-    const v = ctx.createLinearGradient(0, 0, 0, ARTE_A);
-    v.addColorStop(0, hexRgba(cores.bg, 0.10)); v.addColorStop(0.4, hexRgba(cores.bg, 0.25)); v.addColorStop(1, hexRgba(cores.bg, 0.94));
-    ctx.fillStyle = v; ctx.fillRect(0, 0, ARTE_L, ARTE_A);
+    if (pos === "meio") { ctx.fillStyle = hexRgba(cores.bg, 0.55); ctx.fillRect(0, 0, ARTE_L, ARTE_A); }
+    else {
+      const v = pos === "topo" ? ctx.createLinearGradient(0, ARTE_A, 0, 0) : ctx.createLinearGradient(0, 0, 0, ARTE_A);
+      v.addColorStop(0, hexRgba(cores.bg, 0.10)); v.addColorStop(0.4, hexRgba(cores.bg, 0.25)); v.addColorStop(1, hexRgba(cores.bg, 0.94));
+      ctx.fillStyle = v; ctx.fillRect(0, 0, ARTE_L, ARTE_A);
+    }
   }
-  // logo ou nome da marca
+  // logo (versão clara ou escura conforme o fundo) ou nome da marca
   const lx = 6 * CQ, ly = 5 * CQ, lh = 6.5 * CQ;
+  const logo = logos && (logos.width ? logos : escolherLogo(logos, fundoClaroEm(ctx, lx, ly, ARTE_L * 0.4, lh), false));
   if (logo) {
     const lw = logo.width * (lh / logo.height);
     ctx.drawImage(logo, lx, ly, Math.min(lw, ARTE_L * 0.5), lh);
@@ -1104,17 +1182,21 @@ function desenharSlide(sl, i, total, foto, logo, cores, nome) {
   const linhasTxt = quebrar(ctx, sl.x, largTit * 0.92);
   const altBarra = 1.4 * CQ, gap = 3 * CQ, lhTit = tamTit * 1.05, lhTxt = tamTxt * 1.35;
   const altura = altBarra + gap + linhasTit.length * lhTit + (linhasTxt.length ? gap + linhasTxt.length * lhTxt : 0);
-  let y = foto ? ARTE_A - 8 * CQ - altura : 22 * CQ;
+  let y = pos === "base" ? ARTE_A - 10 * CQ - altura : pos === "meio" ? (ARTE_A - altura) / 2 : (foto ? 16 : 22) * CQ;
+  const al = diag.alinhar, xTxt = al === "centro" ? ARTE_L / 2 : al === "direita" ? ARTE_L - 6 * CQ : esq;
+  const xBarra = al === "centro" ? ARTE_L / 2 - 6 * CQ : al === "direita" ? ARTE_L - 18 * CQ : esq;
   ctx.fillStyle = cta ? "#fff" : cores.acc;
-  ctx.beginPath(); ctx.roundRect(esq, y, 12 * CQ, altBarra, altBarra / 2); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(xBarra, y, 12 * CQ, altBarra, altBarra / 2); ctx.fill();
   y += altBarra + gap;
+  ctx.textAlign = al === "centro" ? "center" : al === "direita" ? "right" : "left";
   ctx.fillStyle = "#fff"; ctx.font = `700 ${tamTit}px Poppins, sans-serif`;
-  for (const l of linhasTit) { y += lhTit; ctx.fillText(l, esq, y - lhTit * 0.18); }
+  for (const l of linhasTit) { y += lhTit; ctx.fillText(l, xTxt, y - lhTit * 0.18); }
   if (linhasTxt.length) {
     y += gap;
     ctx.fillStyle = "rgba(255,255,255,.88)"; ctx.font = `400 ${tamTxt}px Poppins, sans-serif`;
-    for (const l of linhasTxt) { y += lhTxt; ctx.fillText(l, esq, y - lhTxt * 0.22); }
+    for (const l of linhasTxt) { y += lhTxt; ctx.fillText(l, xTxt, y - lhTxt * 0.22); }
   }
+  ctx.textAlign = "left";
   if (total > 1 && !ultimo) {
     ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.font = `600 ${3.2 * CQ}px Poppins, sans-serif`; ctx.textAlign = "right";
     ctx.fillText("arraste →", ARTE_L - 6 * CQ, ARTE_A - 6 * CQ); ctx.textAlign = "left";
@@ -1125,6 +1207,123 @@ const paraBase64 = cv => new Promise((ok, falha) => cv.toBlob(b => {
   if (!b) return falha(new Error("não consegui exportar a arte"));
   const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(b);
 }, "image/jpeg", 0.9));
+/* ---------- vídeo: grava o canvas em MP4 enquanto os clipes tocam ---------- */
+const MIME_MP4 = (() => { try { return ["video/mp4;codecs=avc1.42E01E", "video/mp4;codecs=avc1", "video/mp4"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || ""; } catch (e) { return ""; } })();
+const carregarVideo = url => new Promise((ok, falha) => {
+  const v = document.createElement("video");
+  v.crossOrigin = "anonymous"; v.muted = true; v.playsInline = true; v.preload = "auto";
+  v.oncanplay = () => { v.oncanplay = null; ok(v); };
+  v.onerror = () => falha(new Error("não consegui carregar um clipe"));
+  v.src = url; v.load();
+});
+async function tocar(v, desenhar, maxMs) {
+  v.currentTime = 0;
+  await v.play();
+  const t0 = performance.now();
+  await new Promise(ok => {
+    const passo = () => {
+      desenhar(performance.now() - t0);
+      if (v.ended || performance.now() - t0 >= maxMs) { v.pause(); ok(); } else requestAnimationFrame(passo);
+    };
+    requestAnimationFrame(passo);
+  });
+}
+async function gravarCanvas(cv, bps, tocarTudo) {
+  if (!MIME_MP4) throw new Error("este navegador não grava vídeo MP4. Use o Chrome ou o Edge atualizados");
+  const stream = cv.captureStream(30);
+  const rec = new MediaRecorder(stream, { mimeType: MIME_MP4, videoBitsPerSecond: bps });
+  const partes = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) partes.push(e.data); };
+  const fim = new Promise(r => (rec.onstop = r));
+  rec.start(250);
+  try { await tocarTudo(); } finally { rec.stop(); await fim; stream.getTracks().forEach(t => t.stop()); }
+  return new Blob(partes, { type: "video/mp4" });
+}
+const blobBase64 = b => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(b); });
+// Uma cena do Reels em 720 × 1280: clipe de fundo, véu, logo e o texto da cena.
+function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag) {
+  diag = diag || { alinhar: "esquerda", posicao: "auto" };
+  const pos = diag.posicao === "auto" ? "base" : diag.posicao;
+  const U = W / 100;
+  ctx.fillStyle = cores.bg; ctx.fillRect(0, 0, W, H);
+  capa(ctx, v, W, H);
+  if (pos === "meio") { ctx.fillStyle = hexRgba(cores.bg, 0.45); ctx.fillRect(0, 0, W, H); }
+  else {
+    const g = pos === "topo" ? ctx.createLinearGradient(0, H * 0.55, 0, 0) : ctx.createLinearGradient(0, H * 0.45, 0, H);
+    g.addColorStop(0, hexRgba(cores.bg, 0)); g.addColorStop(1, hexRgba(cores.bg, 0.9));
+    ctx.fillStyle = g; pos === "topo" ? ctx.fillRect(0, 0, W, H * 0.55) : ctx.fillRect(0, H * 0.45, W, H * 0.55);
+  }
+  const lx = 6 * U, ly = 6 * U, lh = 7 * U;
+  const logo = logos && (logos.width ? logos : escolherLogo(logos, fundoClaroEm(ctx, lx, ly, W * 0.4, lh), false));
+  if (logo) ctx.drawImage(logo, lx, ly, Math.min(logo.width * (lh / logo.height), W * 0.45), lh);
+  else { ctx.fillStyle = "#fff"; ctx.font = `700 ${4.2 * U}px Poppins, sans-serif`; ctx.textBaseline = "middle"; ctx.fillText(nome, lx, ly + lh / 2); }
+  if (!texto) return;
+  const a = Math.min(1, (t || 0) / 350); // o texto entra suave no começo da cena
+  ctx.globalAlpha = a;
+  const tam = 7.4 * U, lhT = tam * 1.1, esq = 7 * U;
+  ctx.font = `800 ${tam}px Poppins, sans-serif`; ctx.textBaseline = "alphabetic";
+  const linhas = quebrar(ctx, texto, W - 14 * U);
+  const alt = linhas.length * lhT;
+  let y = pos === "topo" ? 22 * U : pos === "meio" ? (H - alt) / 2 : H - 16 * U - alt;
+  const al = diag.alinhar, xT = al === "centro" ? W / 2 : al === "direita" ? W - esq : esq;
+  const xB = al === "centro" ? W / 2 - 7 * U : al === "direita" ? W - esq - 14 * U : esq;
+  ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.roundRect(xB, y - 4 * U, 14 * U, 1.6 * U, 0.8 * U); ctx.fill();
+  ctx.textAlign = al === "centro" ? "center" : al === "direita" ? "right" : "left";
+  ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = 2 * U;
+  for (const l of linhas) { y += lhT; ctx.fillText(l, xT, y - lhT * 0.18); }
+  ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.textAlign = "left";
+}
+async function gerarVideoFinal(p, logo, cores, nome) {
+  const W = 720, H = 1280;
+  const clipes = clipesDoPost(p);
+  const cenas = p.slides.filter(c => clipes[c.n]);
+  if (!cenas.length) throw new Error("os clipes das cenas ainda não foram gerados");
+  toast("Carregando os clipes…");
+  const vids = [];
+  for (const c of cenas) vids.push(await carregarVideo(clipes[c.n]));
+  const total = vids.reduce((soma, v) => soma + (v.duration || 5), 0);
+  const bps = Math.max(700000, Math.min(2500000, Math.floor(4.2e6 * 8 / total)));
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d");
+  desenharCena(ctx, W, H, vids[0], cenas[0].x || cenas[0].t, logo, cores, nome, 0, p.diag);
+  const blob = await gravarCanvas(cv, bps, async () => {
+    for (let k = 0; k < vids.length; k++) {
+      toast(`Gravando a cena ${k + 1} de ${vids.length}. Deixe esta aba aberta.`);
+      await tocar(vids[k], t => desenharCena(ctx, W, H, vids[k], cenas[k].x || cenas[k].t, logo, cores, nome, t, p.diag), (vids[k].duration || 10) * 1000 + 150);
+    }
+  });
+  const b64 = await blobBase64(blob);
+  if (b64.length > 6900000) throw new Error("o vídeo passou de 5 MB. Peça um ajuste com cenas mais curtas");
+  return [{ tipo: "video/mp4", base64: b64 }];
+}
+async function gravarSlideVideo(sl, i, total, url, logo, cores, nome, diag) {
+  const v = await carregarVideo(url);
+  const cv = document.createElement("canvas"); cv.width = ARTE_L; cv.height = ARTE_A;
+  desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag);
+  const blob = await gravarCanvas(cv, 2500000, () => tocar(v, () => desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag), Math.min(10, v.duration || 5) * 1000 + 150));
+  const b64 = await blobBase64(blob);
+  if (b64.length > 6900000) throw new Error("um slide em vídeo passou de 5 MB");
+  return { tipo: "video/mp4", base64: b64 };
+}
+let timerDiag = null;
+function mudarDiagramacao(p, k, v) {
+  if (p.diag[k] === v) return;
+  p.diag[k] = v;
+  const refazer = p.artesProntas;
+  if (refazer) { p.artesProntas = false; toast("Diagramação mudou. Gere " + (ehVideoFmt(p) ? "o vídeo final" : "as artes finais") + " de novo para aplicar."); }
+  render();
+  clearTimeout(timerDiag);
+  timerDiag = setTimeout(async () => {
+    try {
+      if (M.modo === "web") await api({ acao: "salvarDiagramacao", id: p.id, diagramacao: p.diag, refazer });
+      else {
+        const f = { [AT.cal.f.Diagramacao]: JSON.stringify(p.diag) };
+        if (refazer) f[AT.cal.f.ArtesProntas] = false;
+        await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.cal.table, records: [{ id: p.id, fields: f }] });
+      }
+    } catch (e) { toast("Não deu para salvar a diagramação: " + textoErro(e)); }
+  }, 500);
+}
 let gerandoArtes = null, ajusteAberto = null, revisando = null, timersRevisao = [];
 async function revisarPost(p, acao, comentario) {
   if (revisando) return;
@@ -1152,19 +1351,28 @@ async function gerarArtes(p) {
   try {
     await Promise.all([document.fonts.load(`700 ${10 * CQ}px Poppins`), document.fonts.load(`400 ${4.4 * CQ}px Poppins`), document.fonts.load(`600 ${3 * CQ}px Poppins`)]).catch(() => {});
     const cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
-    const urlLogo = (() => { const a = ((M.marca && M.marca.Logo) || [])[0]; return a ? urlCheia(a) : ""; })();
-    const logo = urlLogo ? await carregarImg(urlLogo).catch(() => null) : null;
-    const fotos = fotosCheias(p);
-    const slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
-    const artes = [];
-    for (let i = 0; i < slides.length; i++) {
-      toast(`Gerando arte ${i + 1} de ${slides.length}…`);
-      const foto = fotos[slides[i].n] ? await carregarImg(fotos[slides[i].n]) : null;
-      artes.push({ tipo: "image/jpeg", base64: await paraBase64(desenharSlide(slides[i], i, slides.length, foto, logo, cores, nome)) });
+    // Carrega as quatro versões do logo; cada arte escolhe a que contrasta com o fundo.
+    const urls = urlsLogos(true), logo = {};
+    for (const [k, u] of Object.entries(urls)) logo[k] = u ? await carregarImg(u).catch(() => null) : null;
+    let artes = [];
+    if (ehVideoFmt(p)) artes = await gerarVideoFinal(p, logo, cores, nome);
+    else {
+      const fotos = fotosCheias(p), clipes = clipesDoPost(p);
+      const slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
+      for (let i = 0; i < slides.length; i++) {
+        if (clipes[slides[i].n]) {
+          toast(`Gravando o slide ${i + 1} de ${slides.length} (vídeo). Deixe esta aba aberta.`);
+          artes.push(await gravarSlideVideo(slides[i], i, slides.length, clipes[slides[i].n], logo, cores, nome, p.diag));
+          continue;
+        }
+        toast(`Gerando arte ${i + 1} de ${slides.length}…`);
+        const foto = fotos[slides[i].n] ? await carregarImg(fotos[slides[i].n]) : null;
+        artes.push({ tipo: "image/jpeg", base64: await paraBase64(desenharSlide(slides[i], i, slides.length, foto, logo, cores, nome, null, p.diag)) });
+      }
     }
-    toast("Salvando as artes no Airtable…");
+    toast("Salvando no Airtable…");
     await api({ acao: "salvarArtes", id: p.id, artes });
-    toast(`Pronto: ${artes.length} arte${artes.length > 1 ? "s" : ""} salva${artes.length > 1 ? "s" : ""}. Agora é só aprovar.`);
+    toast(ehVideoFmt(p) ? "Pronto: vídeo final salvo. Agora é só aprovar." : `Pronto: ${artes.length} arte${artes.length > 1 ? "s" : ""} salva${artes.length > 1 ? "s" : ""}. Agora é só aprovar.`);
     gerandoArtes = null;
     await carregarPauta();
   } catch (e) {
@@ -1173,11 +1381,15 @@ async function gerarArtes(p) {
   }
 }
 const cssUrl = u => "url('" + String(u).replace(/['\\()]/g, encodeURIComponent) + "')";
-function slidePost(sl, i, total, img, prontas, logo, nome) {
+function slidePost(sl, i, total, img, prontas, logo, nome, video) {
   const ultimo = i === total - 1 && total > 1;
-  const classes = ["ig-slide", img ? "" : "sem-foto", prontas && img ? "arte" : "", ultimo && !img ? "cta" : ""].join(" ");
+  const temFundo = !!(img || video);
+  if (!temFundo) { const c = coresMarca(); logo = escolherLogo(urlsLogos(false), luminanciaHex(ultimo ? c.acc : c.bg) > 0.45, false) || logo; }
+  const classes = ["ig-slide", temFundo ? "" : "sem-foto", prontas && temFundo ? "arte" : "", ultimo && !temFundo ? "cta" : ""].join(" ");
   return `<div class="${classes}">
-    ${img ? `<div class="foto" style="background-image:${cssUrl(img)}"></div>` : ""}
+    ${video ? `<video class="foto" src="${esc(video)}" ${img ? `poster="${esc(img)}"` : ""} muted loop autoplay playsinline ${prontas ? "controls" : ""}></video>`
+      : img ? `<div class="foto" style="background-image:${cssUrl(img)}"></div>` : ""}
+    ${video && !prontas ? `<span class="tag-video">clipe do Magnific</span>` : ""}
     <div class="veu"></div>
     <div class="marca-agua">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.replaceWith(document.createTextNode('${esc(nome).replace(/'/g, "")}'))">` : esc(nome)}</div>
     ${total > 1 ? `<span class="contador">${i + 1}/${total}</span>` : ""}
@@ -1187,19 +1399,38 @@ function slidePost(sl, i, total, img, prontas, logo, nome) {
 }
 function cardRev(p) {
   const cores = coresMarca(), logo = logoMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
-  const { mapa, prontas } = imagensDoPost(p);
-  const slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
-  const html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome)).join("");
-  const pontos = slides.length > 1 ? `<div class="ig-pontos" aria-hidden="true">${slides.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
-  const ehVideo = ["Reels", "Stories"].includes(p.formato);
-  let artes = "";
-  if (!ehVideo && p.status !== "Ajustes") {
-    if (M.modo !== "web") artes = `<div class="msg">Para gerar as artes finais, abra o painel pelo link do GitHub. No claude.ai as fotos ficam bloqueadas.</div>`;
-    else if (gerandoArtes === p.id) artes = `<div class="working"><span class="dot"></span>Gerando as artes finais…</div>`;
-    else artes = `<div class="actions"><button class="btn ${prontas ? "" : "primary"}" data-act="gerar-artes" data-id="${p.id}" ${gerandoArtes ? "disabled" : ""}>${prontas ? "Refazer artes finais" : "Gerar artes finais"}</button></div>
-      <p class="small" style="margin:0">${prontas ? "Artes finais prontas: são elas que vão para a publicação." : "Coloca o texto e o logo sobre as fotos e salva as imagens que serão publicadas."}</p>`;
+  const ehVideo = ehVideoFmt(p);
+  const clipes = clipesDoPost(p);
+  const temClipes = Object.keys(clipes).length > 0;
+  let { mapa, prontas } = imagensDoPost(p);
+  let slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
+  let html;
+  if (ehVideo) {
+    const final = p.artesProntas ? p.arquivos.find(ehArqVideo) : null;
+    prontas = !!final;
+    html = final
+      ? slidePost({ n: 1, t: "", x: "" }, 0, 1, final.thumbnails && final.thumbnails.large ? final.thumbnails.large.url : "", true, logo, nome, final.url)
+      : slides.map((sl, i) => slidePost({ n: sl.n, t: sl.x || sl.t, x: "" }, i, slides.length, "", false, logo, nome, clipes[sl.n])).join("");
+    if (final) slides = [slides[0] || { n: 1 }];
+  } else {
+    const videosProntos = {};
+    if (prontas) slides.forEach((sl, i) => { const a = p.arquivos[i]; if (ehArqVideo(a)) videosProntos[sl.n] = a.url; });
+    html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome, prontas ? videosProntos[sl.n] : clipes[sl.n])).join("");
   }
-  const falta = !ehVideo && !prontas;
+  const pontos = slides.length > 1 ? `<div class="ig-pontos" aria-hidden="true">${slides.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
+  const nomeArte = ehVideo ? "vídeo final" : "artes finais";
+  let artes = "";
+  if (p.status !== "Ajustes" && (!ehVideo || temClipes || prontas)) {
+    if (M.modo !== "web") artes = `<div class="msg">Para gerar as ${ehVideo ? "o vídeo final" : "artes finais"}, abra o painel pelo link do GitHub. No claude.ai as fotos e os vídeos ficam bloqueados.</div>`;
+    else if (gerandoArtes === p.id) artes = `<div class="working"><span class="dot"></span>${ehVideo || temClipes ? "Gravando… deixe esta aba aberta e visível." : "Gerando as artes finais…"}</div>`;
+    else if (ehVideo && !temClipes) artes = "";
+    else artes = `<div class="actions"><button class="btn ${prontas ? "" : "primary"}" data-act="gerar-artes" data-id="${p.id}" ${gerandoArtes ? "disabled" : ""}>${prontas ? "Refazer " + nomeArte : "Gerar " + nomeArte}</button></div>
+      <p class="small" style="margin:0">${prontas ? (ehVideo ? "Vídeo final pronto: é ele que vai para a publicação." : "Artes finais prontas: são elas que vão para a publicação.")
+        : ehVideo ? "Junta os clipes do Magnific com o texto de cada cena e o logo, e salva o vídeo que será publicado. A gravação leva o tempo do vídeo."
+        : temClipes ? "Coloca o texto e o logo sobre as fotos e os clipes, e salva o que será publicado. Os slides em vídeo levam alguns segundos cada."
+        : "Coloca o texto e o logo sobre as fotos e salva as imagens que serão publicadas."}</p>`;
+  }
+  const falta = !prontas;
   let decisao;
   if (M.modo !== "web") decisao = `<div class="msg">Para aprovar ou pedir ajuste pelo painel, abra o link do GitHub. Aqui no claude.ai, use os botões do bot no Telegram.</div>`;
   else if (revisando === p.id) decisao = `<div class="working"><span class="dot"></span>Enviando…</div>`;
@@ -1208,21 +1439,28 @@ function cardRev(p) {
       <div class="actions"><button class="btn primary" data-act="ajuste-enviar" data-id="${p.id}">Enviar ajuste</button><button class="btn quiet" data-act="ajuste-cancelar">Cancelar</button></div></div>`;
   else decisao = `<div class="actions"><button class="btn primary" data-act="post-aprovar" data-id="${p.id}" ${falta || revisando ? "disabled" : ""}>Aprovar e agendar</button>
       <button class="btn" data-act="post-ajustar" data-id="${p.id}" ${revisando ? "disabled" : ""}>Pedir ajuste</button></div>
-      ${falta ? `<p class="small" style="margin:0">Gere as artes finais antes de aprovar.</p>` : ""}`;
+      ${falta ? `<p class="small" style="margin:0">${ehVideo && !temClipes ? "Os clipes ainda não chegaram do Magnific. Se não aparecerem, peça um ajuste." : "Gere " + (ehVideo ? "o vídeo final" : "as artes finais") + " antes de aprovar."}</p>` : ""}`;
+  const ic = { esquerda: "M4 6h16M4 10h10M4 14h16M4 18h10", centro: "M4 6h16M7 10h10M4 14h16M7 18h10", direita: "M4 6h16M10 10h10M4 14h16M10 18h10" };
+  const segA = ["esquerda", "centro", "direita"].map(a => `<button data-act="diag" data-id="${p.id}" data-k="alinhar" data-v="${a}" aria-pressed="${p.diag.alinhar === a}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="${ic[a]}"/></svg>${a === "centro" ? "Centro" : a[0].toUpperCase() + a.slice(1)}</button>`).join("");
+  const segP = [["auto", "Automática"], ["topo", "Topo"], ["meio", "Meio"], ["base", "Base"]].map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="posicao" data-v="${v}" aria-pressed="${p.diag.posicao === v}">${t}</button>`).join("");
+  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação do texto</span>
+      <div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
+      <div class="seg" role="group" aria-label="Posição do texto">${segP}</div>
+      <p class="small" style="margin:0">A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.</p></div>`;
   const acoes = p.status === "Ajustes"
     ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui e no Telegram em 1 ou 2 minutos.</div>`
-    : `${artes}${decisao}`;
+    : `${diag}${artes}${decisao}`;
   return `<article class="rcard glass" id="rev-${p.id}">
-    <div class="ig" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
-      <div class="ig-top"><span class="ig-avatar">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
+    <div class="ig ${ehVideo ? "vertical" : ""}" data-al="${esc(p.diag.alinhar)}" data-pos="${esc(p.diag.posicao)}" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
+      <div class="ig-top"><span class="ig-avatar">${simboloMarca(cores.bg) ? `<img src="${esc(simboloMarca(cores.bg))}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
         <span><div class="ig-nome">${esc(nome)}</div><div class="ig-sub">${esc(p.rede)} · ${esc(p.formato)}</div></span></div>
       <div class="ig-trilho" data-trilho="${p.id}" tabindex="0" aria-label="Slides do post">${html}</div>
       ${pontos}
       <div class="ig-legenda"><b>${esc(nome)}</b> ${esc(p.legenda || "Legenda ainda não gerada.")}<span class="tags">${esc(p.hashtags || "")}</span></div>
-      ${!prontas && Object.keys(mapa).length ? `<div class="ig-aviso">Prévia montada pelo painel: as fotos são do Magnific e o texto entra por cima. Clique em Gerar artes finais para salvar as imagens que serão publicadas.</div>` : ""}
+      ${!prontas && (Object.keys(mapa).length || temClipes) ? `<div class="ig-aviso">Prévia montada pelo painel: ${ehVideo ? "os clipes" : "as fotos" + (temClipes ? " e clipes" : "")} são do Magnific e o texto entra por cima. Clique em Gerar ${nomeArte} para salvar o que será publicado.</div>` : ""}
     </div>
     <div class="rside">
-      <div class="meta">${chip(p.status)}${prontas ? `<span class="chip ok">Artes prontas</span>` : ""}<span class="chip plain">v${p.versao}</span><span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span></div>
+      <div class="meta">${chip(p.status)}${prontas ? `<span class="chip ok">${ehVideo ? "Vídeo pronto" : "Artes prontas"}</span>` : ""}<span class="chip plain">v${p.versao}</span><span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span></div>
       <h3>${esc(p.titulo)}</h3>
       <div class="small">Publicação: <b>${fmtData(p.data)}</b></div>
       ${acoes}
@@ -1297,6 +1535,7 @@ document.addEventListener("click", e => {
 
   if (act === "ir-marca") return ir("marca");
   if (act === "gerar-artes" && post) return gerarArtes(post);
+  if (act === "diag" && post) return mudarDiagramacao(post, b.dataset.k, b.dataset.v);
   if (act === "buscar-ideias") return buscarIdeias();
   if (act === "criar-post" && post) return criarPost(post);
   if (act === "fechar-det") { calAberto = null; return render(); }
@@ -1332,9 +1571,9 @@ document.addEventListener("click", e => {
 const AT = {
   server: "Airtable",
   base: "app0V0dEQB4ksFTUV",
-  marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", Idioma: "fldfVHS529DWsxlKE" } },
+  marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", LogoDark: "fldyR5igpxNIOGKc0", SimboloLight: "fldWdkZXOjQgWGN7y", SimboloDark: "fld5Om4WDErIKRmuW", MoodBoard: "fldWw8Y4MDFLk1jwY", Idioma: "fldfVHS529DWsxlKE" } },
   ideias: { table: "tblkX69MsS5z1MT1v", f: { Titulo: "fldIaygmjuLsE1WFq", Resumo: "fld5lBu8N6tApcJVb", Formato: "fldR8DJtJIF19rmw0", Rede: "fldhnBFmYjiaKU2bw", Pilar: "fldyZHHZuM1mMLby5", Score: "fldN5rkaOAcnBJLsr", PorQueFunciona: "flddAuWW90gQPrvYZ", Status: "fldk2hxweVnMId1U1", MotivoDescarte: "fldM7FdKuv09zIrsE", Referencias: "fldQESoyFaJNIancX", Calendario: "fldPMgJAavbChgFoH" } },
-  cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT", Arquivos: "fld0XuKmLrlR77Kl1", ImagensSlides: "fldinvYLBv5a7Lv35", Fotos: "fldyADExC0MK0ZS1S", ArtesProntas: "fldBEUCyMlEcAcljW", Ideia: "fldhYQFuaqkueq9yk", Clipes: "fldOIRvNezYeao3Pd" } },
+  cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT", Arquivos: "fld0XuKmLrlR77Kl1", ImagensSlides: "fldinvYLBv5a7Lv35", Fotos: "fldyADExC0MK0ZS1S", ArtesProntas: "fldBEUCyMlEcAcljW", Ideia: "fldhYQFuaqkueq9yk", Clipes: "fldOIRvNezYeao3Pd", ClipesSlides: "fldJ2R6RO0mYS5d7u", Diagramacao: "fldnB7tLHQFNm89vK" } },
   fontes: { table: "tbl8L7CHTLKOfsuj3", f: { Nome: "fldEtApljYo1QPZ1Y", Tipo: "fldX64mLZhKNzixzA", Categoria: "fld1ee1spLYITJKQA", Rede: "fldQeCH8AftrYahdd", URL: "fldaJvN3bK4W64tZT", Peso: "fld2Mrr5M6bBJgdhb", Ativa: "fldtvwIISCKUv2wVC" } },
 };
 const OPC = {
@@ -1353,6 +1592,32 @@ const linhaCor = c => `<div class="cor">
   <input class="hex" value="${esc(c.hex)}" aria-label="Código da cor" maxlength="7">
   <input class="nome" value="${esc(c.nome || "")}" placeholder="Nome (ex.: Vermelho principal)" aria-label="Nome da cor">
   <button type="button" class="btn quiet" data-m="rm-cor" aria-label="Remover cor">✕</button></div>`;
+function slotLogo(m, campo, titulo, sub, fundo) {
+  const a = (m[campo] || [])[0];
+  const web = M.modo === "web";
+  return `<div class="logo-slot">
+    <div class="amostra ${fundo}">${a ? `<img src="${esc(urlArq(a))}" alt="${esc(titulo)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${esc(a.filename || "arquivo salvo").replace(/'/g, "")}'}))">` : `<span>Sem arquivo</span>`}</div>
+    <div><b>${esc(titulo)}</b><small>${esc(sub)}</small></div>
+    <div class="actions">${web ? `<label class="btn">${a ? "Trocar" : "Enviar"}<input type="file" class="arquivo-oculto" data-arquivo="${campo}" accept="image/png,image/svg+xml,image/webp,image/jpeg"></label>` : ""}${a ? `<button type="button" class="btn quiet" data-m="logo-rm" data-id="${campo}">Remover</button>` : ""}</div>
+  </div>`;
+}
+const arquivoBase64 = f => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(f); });
+document.addEventListener("change", async e => {
+  const inp = e.target.closest("[data-arquivo]"); if (!inp || !inp.files || !inp.files.length) return;
+  const campo = inp.dataset.arquivo, arquivos = [...inp.files];
+  if (!M.marca || !M.marca.id) { toast("Salve a marca primeiro (pelo menos o nome)."); inp.value = ""; return; }
+  try {
+    for (let i = 0; i < arquivos.length; i++) {
+      const f = arquivos[i];
+      if (f.size > 5 * 1024 * 1024) { toast(`"${f.name}" passa de 5 MB.`); continue; }
+      toast(arquivos.length > 1 ? `Enviando ${i + 1} de ${arquivos.length}…` : "Enviando…");
+      await api({ acao: "enviarArquivoMarca", id: M.marca.id, campo, tipo: f.type, nome: f.name, base64: await arquivoBase64(f) });
+    }
+    toast("Arquivo salvo na marca.");
+    await carregarWeb(); renderMarca();
+  } catch (err) { toast("Não deu para enviar: " + textoErro(err)); }
+  inp.value = "";
+});
 function logoAtual(anexos) {
   const a = (anexos || [])[0];
   if (!a) return "Nenhum logo salvo ainda.";
@@ -1820,10 +2085,13 @@ function renderMarca() {
           <div class="paleta" id="m-paleta" aria-hidden="true">${lerCores(m.Cores).map(c => `<i style="background:${c.hex}"></i>`).join("")}</div>
           <div class="cores" id="m-cores">${lerCores(m.Cores).map(linhaCor).join("")}</div>
           <span class="actions"><button type="button" class="btn quiet" data-m="add-cor">+ Adicionar cor</button></span></div>
-        <div class="field full"><span>Logo</span>
-          <div class="logo-atual">${logoAtual(m.Logo)}</div>
-          <input id="m-logo" placeholder="Para enviar ou trocar: cole o link público do arquivo (https://…)">
-          <p class="hint" style="margin:0">Ou arraste o arquivo direto no campo <b>Logo</b> da tabela Marca, no Airtable.</p></div>
+        <div class="field full"><span>Logos</span>
+          <div class="logos">${slotLogo(m, "Logo", "Logo light", "Para fundos escuros", "escuro")}${slotLogo(m, "LogoDark", "Logo dark", "Para fundos claros", "claro")}${slotLogo(m, "SimboloLight", "Símbolo light", "Só o símbolo, fundos escuros", "escuro")}${slotLogo(m, "SimboloDark", "Símbolo dark", "Só o símbolo, fundos claros", "claro")}</div>
+          <p class="hint" style="margin:0">Nas artes, o painel usa a versão que contrasta com o fundo de cada imagem. PNG ou SVG com fundo transparente, até 5 MB.</p></div>
+        <div class="field full"><span>Mood board (opcional)</span>
+          <div class="mood">${(m.MoodBoard || []).map(a => `<figure><img src="${esc(urlArq(a))}" alt="" onerror="this.style.display='none'"><button type="button" data-m="mood-rm" data-id="${esc(a.id)}" aria-label="Remover imagem">✕</button></figure>`).join("")}</div>
+          <span class="actions"><label class="btn quiet" ${M.modo === "web" ? "" : "hidden"}>+ Adicionar imagens<input type="file" class="arquivo-oculto" data-arquivo="MoodBoard" accept="image/png,image/jpeg,image/webp" multiple></label></span>
+          <p class="hint" style="margin:0">Referências visuais da marca: fotos, texturas, paletas. A IA usa como direção de arte ao criar as fotos e os vídeos.${M.modo === "web" ? "" : " Para enviar arquivos, abra pelo link do GitHub ou arraste no campo MoodBoard do Airtable."}</p></div>
         <label class="field full"><span>O que evitar</span><textarea id="m-evitar" placeholder="Assuntos, palavras e estilos proibidos">${esc(m.Evitar || "")}</textarea></label>
         <label class="field"><span>Posts por semana</span><input id="m-freq" type="number" min="0" max="50" value="${m.FrequenciaSemanal ?? ""}"></label>
         <label class="field full"><span>Exemplos de posts que representam a marca (links)</span><textarea id="m-exemplos">${esc(m.ExemplosBons || "")}</textarea></label>
@@ -1860,6 +2128,12 @@ document.addEventListener("click", async e => {
   if (a === "add-cor") { document.getElementById("m-cores").insertAdjacentHTML("beforeend", linhaCor({ hex: "#FF3347", nome: "" })); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
   if (a === "rm-cor") { b.closest(".cor").remove(); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
   if (a === "salvar-marca") return salvarMarca();
+  if (a === "logo-rm") { if (await executar("salvarMarca", { id: M.marca.id, campos: { [id]: [] } }, "Arquivo removido.")) renderMarca(); return; }
+  if (a === "mood-rm") {
+    const resto = (M.marca.MoodBoard || []).filter(x => x.id !== id).map(x => ({ id: x.id }));
+    if (await executar("salvarMarca", { id: M.marca.id, campos: { MoodBoard: resto } }, "Imagem removida do mood board.")) renderMarca();
+    return;
+  }
   if (a === "tentar") return tentarDeNovo();
   if (a === "nova-fonte") { M.editando = "novo"; M.remover = null; renderFontes(); return document.getElementById("f-nome")?.focus(); }
   if (a === "editar") { M.editando = id; M.remover = null; renderFontes(); return document.getElementById("f-nome")?.focus(); }
