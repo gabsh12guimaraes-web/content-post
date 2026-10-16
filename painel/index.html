@@ -328,7 +328,7 @@ button { cursor: pointer; }
 <div class="wrap">
   <header class="top">
     <div class="actions">
-      <span class="notice">Aprovação dos posts pelo bot do Telegram.</span>
+      <span class="notice">Aprove ou peça ajustes na aba Revisão ou pelo Telegram.</span>
     </div>
   </header>
 
@@ -393,7 +393,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, link: r.LinkPublicado || "",
-    arquivos: r.Arquivos || [], imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
+    arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
 function receberPauta(ideias, posts) {
@@ -500,7 +500,7 @@ function cardPost(p) {
 /* ---------- Revisão ---------- */
 function renderRev() {
   const el = document.getElementById("p-rev");
-  const head = `<div class="panel-head"><p>Posts prontos esperando seu olhar. A aprovação e os pedidos de ajuste são feitos pela mensagem do bot no Telegram.</p></div>`;
+  const head = `<div class="panel-head"><p>Posts prontos esperando seu olhar. Aprove ou peça ajuste aqui mesmo. Os botões do bot no Telegram continuam funcionando.</p></div>`;
   if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
   const lista = state.posts.filter(p => p.status === "EmRevisao" || p.status === "Ajustes").sort((a, b) => new Date(a.data) - new Date(b.data));
   el.innerHTML = head + (lista.length ? `<div class="review">${lista.map(cardRev).join("")}</div>`
@@ -514,12 +514,170 @@ function coresMarca() {
 function logoMarca() { const a = ((M.marca && M.marca.Logo) || [])[0]; return a ? urlArq(a) : ""; }
 // Liga cada slide à sua imagem. Se há uma arte por slide (Canva), a imagem já é o slide pronto.
 function imagensDoPost(p) {
-  const arq = p.arquivos || [];
   const mapa = {};
-  const prontas = arq.length > 0 && arq.length === p.slides.length && Object.keys(p.imagensSlides || {}).length !== arq.length;
-  if (prontas) p.slides.forEach((sl, i) => (mapa[sl.n] = urlArq(arq[i])));
-  else Object.keys(p.imagensSlides || {}).map(Number).sort((a, b) => a - b).forEach((n, i) => { if (arq[i]) mapa[n] = urlArq(arq[i]); });
-  return { mapa, prontas };
+  // Artes finais já geradas: uma imagem pronta por slide, em Arquivos.
+  if (p.artesProntas && p.arquivos.length) {
+    p.slides.forEach((sl, i) => { if (p.arquivos[i]) mapa[sl.n] = urlArq(p.arquivos[i]); });
+    return { mapa, prontas: true };
+  }
+  // Senão, as fotos sem texto: a ordem das chaves de ImagensSlides bate com a ordem de Fotos.
+  const fotos = p.fotos.length ? p.fotos : p.arquivos;
+  Object.keys(p.imagensSlides || {}).map(Number).sort((a, b) => a - b).forEach((n, i) => { if (fotos[i]) mapa[n] = urlArq(fotos[i]); });
+  return { mapa, prontas: false };
+}
+const urlCheia = a => (a && a.thumbnails && a.thumbnails.full && a.thumbnails.full.url) || (a && a.url) || "";
+function fotosCheias(p) {
+  const fotos = p.fotos.length ? p.fotos : p.arquivos;
+  const mapa = {};
+  Object.keys(p.imagensSlides || {}).map(Number).sort((a, b) => a - b).forEach((n, i) => { if (fotos[i]) mapa[n] = urlCheia(fotos[i]); });
+  return mapa;
+}
+
+/* ---------- artes finais: desenha cada slide em 1080 × 1350 ---------- */
+const ARTE_L = 1080, ARTE_A = 1350, CQ = ARTE_L / 100;
+const carregarImg = url => new Promise((ok, falha) => {
+  const im = new Image();
+  im.crossOrigin = "anonymous";
+  im.onload = () => ok(im);
+  im.onerror = () => falha(new Error("não consegui carregar uma imagem"));
+  im.src = url;
+});
+function hexRgba(hex, a) {
+  const h = String(hex || "#000000").replace("#", "");
+  const n = parseInt(h.length === 3 ? h.split("").map(c => c + c).join("") : h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function quebrar(ctx, texto, largura) {
+  const palavras = String(texto || "").split(/\s+/).filter(Boolean);
+  const linhas = [];
+  let atual = "";
+  for (const p of palavras) {
+    const teste = atual ? atual + " " + p : p;
+    if (ctx.measureText(teste).width > largura && atual) { linhas.push(atual); atual = p; } else atual = teste;
+  }
+  if (atual) linhas.push(atual);
+  return linhas;
+}
+function capa(ctx, im) {
+  const r = Math.max(ARTE_L / im.width, ARTE_A / im.height);
+  const w = im.width * r, h = im.height * r;
+  ctx.drawImage(im, (ARTE_L - w) / 2, (ARTE_A - h) / 2, w, h);
+}
+function desenharSlide(sl, i, total, foto, logo, cores, nome) {
+  const cv = document.createElement("canvas");
+  cv.width = ARTE_L; cv.height = ARTE_A;
+  const ctx = cv.getContext("2d");
+  const ultimo = i === total - 1 && total > 1;
+  const cta = ultimo && !foto;
+  // fundo
+  ctx.fillStyle = cta ? cores.acc : cores.bg;
+  ctx.fillRect(0, 0, ARTE_L, ARTE_A);
+  if (!cta) {
+    const g = ctx.createRadialGradient(ARTE_L * 0.85, 0, 0, ARTE_L * 0.85, 0, ARTE_L * 1.0);
+    g.addColorStop(0, hexRgba(cores.acc, 0.28)); g.addColorStop(1, hexRgba(cores.acc, 0));
+    ctx.fillStyle = g; ctx.fillRect(0, 0, ARTE_L, ARTE_A);
+  }
+  if (foto) {
+    capa(ctx, foto);
+    const v = ctx.createLinearGradient(0, 0, 0, ARTE_A);
+    v.addColorStop(0, hexRgba(cores.bg, 0.10)); v.addColorStop(0.4, hexRgba(cores.bg, 0.25)); v.addColorStop(1, hexRgba(cores.bg, 0.94));
+    ctx.fillStyle = v; ctx.fillRect(0, 0, ARTE_L, ARTE_A);
+  }
+  // logo ou nome da marca
+  const lx = 6 * CQ, ly = 5 * CQ, lh = 6.5 * CQ;
+  if (logo) {
+    const lw = logo.width * (lh / logo.height);
+    ctx.drawImage(logo, lx, ly, Math.min(lw, ARTE_L * 0.5), lh);
+  } else {
+    ctx.fillStyle = "#fff"; ctx.font = `700 ${3.4 * CQ}px Poppins, sans-serif`; ctx.textBaseline = "middle";
+    ctx.fillText(nome, lx, ly + lh / 2);
+  }
+  // contador
+  if (total > 1) {
+    const txt = `${i + 1}/${total}`;
+    ctx.font = `600 ${3 * CQ}px Poppins, sans-serif`;
+    const w = ctx.measureText(txt).width + 5.2 * CQ, h = 5.6 * CQ, x = ARTE_L - 6 * CQ - w, y = 5 * CQ;
+    ctx.fillStyle = "rgba(0,0,0,.45)";
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * CQ, y + h / 2);
+  }
+  // texto
+  const esq = 6 * CQ, largTit = ARTE_L - 12 * CQ;
+  const tamTit = (foto ? 8.6 : 10) * CQ, tamTxt = 4.4 * CQ;
+  ctx.textBaseline = "alphabetic";
+  ctx.font = `700 ${tamTit}px Poppins, sans-serif`;
+  const linhasTit = quebrar(ctx, sl.t, largTit);
+  ctx.font = `400 ${tamTxt}px Poppins, sans-serif`;
+  const linhasTxt = quebrar(ctx, sl.x, largTit * 0.92);
+  const altBarra = 1.4 * CQ, gap = 3 * CQ, lhTit = tamTit * 1.05, lhTxt = tamTxt * 1.35;
+  const altura = altBarra + gap + linhasTit.length * lhTit + (linhasTxt.length ? gap + linhasTxt.length * lhTxt : 0);
+  let y = foto ? ARTE_A - 8 * CQ - altura : 22 * CQ;
+  ctx.fillStyle = cta ? "#fff" : cores.acc;
+  ctx.beginPath(); ctx.roundRect(esq, y, 12 * CQ, altBarra, altBarra / 2); ctx.fill();
+  y += altBarra + gap;
+  ctx.fillStyle = "#fff"; ctx.font = `700 ${tamTit}px Poppins, sans-serif`;
+  for (const l of linhasTit) { y += lhTit; ctx.fillText(l, esq, y - lhTit * 0.18); }
+  if (linhasTxt.length) {
+    y += gap;
+    ctx.fillStyle = "rgba(255,255,255,.88)"; ctx.font = `400 ${tamTxt}px Poppins, sans-serif`;
+    for (const l of linhasTxt) { y += lhTxt; ctx.fillText(l, esq, y - lhTxt * 0.22); }
+  }
+  if (total > 1 && !ultimo) {
+    ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.font = `600 ${3.2 * CQ}px Poppins, sans-serif`; ctx.textAlign = "right";
+    ctx.fillText("arraste →", ARTE_L - 6 * CQ, ARTE_A - 6 * CQ); ctx.textAlign = "left";
+  }
+  return cv;
+}
+const paraBase64 = cv => new Promise((ok, falha) => cv.toBlob(b => {
+  if (!b) return falha(new Error("não consegui exportar a arte"));
+  const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(b);
+}, "image/jpeg", 0.9));
+let gerandoArtes = null, ajusteAberto = null, revisando = null, timersRevisao = [];
+async function revisarPost(p, acao, comentario) {
+  if (revisando) return;
+  revisando = p.id; render();
+  try {
+    await api({ acao: acao === "aprovar" ? "aprovarPost" : "ajustarPost", id: p.id, comentario: comentario || "" });
+    revisando = null; ajusteAberto = null;
+    if (acao === "aprovar") {
+      p.status = "Agendado"; flashId = p.id; render();
+      toast(`Aprovado. Publica em ${fmtData(p.data)}.`);
+    } else {
+      p.status = "Ajustes"; render();
+      toast("Ajuste enviado. A IA está refazendo o post.");
+      timersRevisao.forEach(clearTimeout);
+      timersRevisao = [60, 120, 210].map(seg => setTimeout(() => carregarPauta(), seg * 1000));
+    }
+  } catch (e) {
+    revisando = null; render();
+    toast("Não deu para enviar: " + textoErro(e));
+  }
+}
+async function gerarArtes(p) {
+  if (gerandoArtes) return;
+  gerandoArtes = p.id; render();
+  try {
+    await Promise.all([document.fonts.load(`700 ${10 * CQ}px Poppins`), document.fonts.load(`400 ${4.4 * CQ}px Poppins`), document.fonts.load(`600 ${3 * CQ}px Poppins`)]).catch(() => {});
+    const cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
+    const urlLogo = (() => { const a = ((M.marca && M.marca.Logo) || [])[0]; return a ? urlCheia(a) : ""; })();
+    const logo = urlLogo ? await carregarImg(urlLogo).catch(() => null) : null;
+    const fotos = fotosCheias(p);
+    const slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
+    const artes = [];
+    for (let i = 0; i < slides.length; i++) {
+      toast(`Gerando arte ${i + 1} de ${slides.length}…`);
+      const foto = fotos[slides[i].n] ? await carregarImg(fotos[slides[i].n]) : null;
+      artes.push({ tipo: "image/jpeg", base64: await paraBase64(desenharSlide(slides[i], i, slides.length, foto, logo, cores, nome)) });
+    }
+    toast("Salvando as artes no Airtable…");
+    await api({ acao: "salvarArtes", id: p.id, artes });
+    toast(`Pronto: ${artes.length} arte${artes.length > 1 ? "s" : ""} salva${artes.length > 1 ? "s" : ""}. Agora é só aprovar.`);
+    gerandoArtes = null;
+    await carregarPauta();
+  } catch (e) {
+    gerandoArtes = null; render();
+    toast("Não deu para gerar as artes: " + textoErro(e));
+  }
 }
 const cssUrl = u => "url('" + String(u).replace(/['\\()]/g, encodeURIComponent) + "')";
 function slidePost(sl, i, total, img, prontas, logo, nome) {
@@ -540,9 +698,27 @@ function cardRev(p) {
   const slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
   const html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome)).join("");
   const pontos = slides.length > 1 ? `<div class="ig-pontos" aria-hidden="true">${slides.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
+  const ehVideo = ["Reels", "Stories"].includes(p.formato);
+  let artes = "";
+  if (!ehVideo && p.status !== "Ajustes") {
+    if (M.modo !== "web") artes = `<div class="msg">Para gerar as artes finais, abra o painel pelo link do GitHub. No claude.ai as fotos ficam bloqueadas.</div>`;
+    else if (gerandoArtes === p.id) artes = `<div class="working"><span class="dot"></span>Gerando as artes finais…</div>`;
+    else artes = `<div class="actions"><button class="btn ${prontas ? "" : "primary"}" data-act="gerar-artes" data-id="${p.id}" ${gerandoArtes ? "disabled" : ""}>${prontas ? "Refazer artes finais" : "Gerar artes finais"}</button></div>
+      <p class="small" style="margin:0">${prontas ? "Artes finais prontas: são elas que vão para a publicação." : "Coloca o texto e o logo sobre as fotos e salva as imagens que serão publicadas."}</p>`;
+  }
+  const falta = !ehVideo && !prontas;
+  let decisao;
+  if (M.modo !== "web") decisao = `<div class="msg">Para aprovar ou pedir ajuste pelo painel, abra o link do GitHub. Aqui no claude.ai, use os botões do bot no Telegram.</div>`;
+  else if (revisando === p.id) decisao = `<div class="working"><span class="dot"></span>Enviando…</div>`;
+  else if (ajusteAberto === p.id) decisao = `<div class="reason"><label class="small" for="ajuste-${p.id}">O que você quer mudar?</label>
+      <textarea id="ajuste-${p.id}" rows="4" maxlength="2000" placeholder="Ex.: deixe o título do slide 2 mais curto e troque a foto da capa por algo mais claro"></textarea>
+      <div class="actions"><button class="btn primary" data-act="ajuste-enviar" data-id="${p.id}">Enviar ajuste</button><button class="btn quiet" data-act="ajuste-cancelar">Cancelar</button></div></div>`;
+  else decisao = `<div class="actions"><button class="btn primary" data-act="post-aprovar" data-id="${p.id}" ${falta || revisando ? "disabled" : ""}>Aprovar e agendar</button>
+      <button class="btn" data-act="post-ajustar" data-id="${p.id}" ${revisando ? "disabled" : ""}>Pedir ajuste</button></div>
+      ${falta ? `<p class="small" style="margin:0">Gere as artes finais antes de aprovar.</p>` : ""}`;
   const acoes = p.status === "Ajustes"
-    ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste…</div>`
-    : `<div class="msg">Para aprovar ou pedir ajuste, use os botões na mensagem do bot no Telegram.</div>`;
+    ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui e no Telegram em 1 ou 2 minutos.</div>`
+    : `${artes}${decisao}`;
   return `<article class="rcard glass" id="rev-${p.id}">
     <div class="ig" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
       <div class="ig-top"><span class="ig-avatar">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
@@ -550,10 +726,10 @@ function cardRev(p) {
       <div class="ig-trilho" data-trilho="${p.id}" tabindex="0" aria-label="Slides do post">${html}</div>
       ${pontos}
       <div class="ig-legenda"><b>${esc(nome)}</b> ${esc(p.legenda || "Legenda ainda não gerada.")}<span class="tags">${esc(p.hashtags || "")}</span></div>
-      ${!prontas && Object.keys(mapa).length ? `<div class="ig-aviso">Prévia montada pelo painel: as fotos são do Freepik e o texto entra por cima. Com o Canva ligado, aqui aparecem as artes finais.</div>` : ""}
+      ${!prontas && Object.keys(mapa).length ? `<div class="ig-aviso">Prévia montada pelo painel: as fotos são do Magnific e o texto entra por cima. Clique em Gerar artes finais para salvar as imagens que serão publicadas.</div>` : ""}
     </div>
     <div class="rside">
-      <div class="meta">${chip(p.status)}<span class="chip plain">v${p.versao}</span><span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span></div>
+      <div class="meta">${chip(p.status)}${prontas ? `<span class="chip ok">Artes prontas</span>` : ""}<span class="chip plain">v${p.versao}</span><span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span></div>
       <h3>${esc(p.titulo)}</h3>
       <div class="small">Publicação: <b>${fmtData(p.data)}</b></div>
       ${acoes}
@@ -600,6 +776,15 @@ document.addEventListener("click", e => {
   const post = state.posts.find(p => p.id === id);
 
   if (act === "ir-marca") return ir("marca");
+  if (act === "gerar-artes" && post) return gerarArtes(post);
+  if (act === "post-aprovar" && post) return revisarPost(post, "aprovar");
+  if (act === "post-ajustar" && post) { ajusteAberto = id; render(); document.getElementById("ajuste-" + id)?.focus(); return; }
+  if (act === "ajuste-cancelar") { ajusteAberto = null; return render(); }
+  if (act === "ajuste-enviar" && post) {
+    const txt = (document.getElementById("ajuste-" + id)?.value || "").trim();
+    if (!txt) { toast("Escreva o que você quer mudar."); return; }
+    return revisarPost(post, "ajustar", txt);
+  }
   if (act === "recarregar-pauta") { pauta.erro = null; render(); return M.modo === "web" ? carregarPauta() : recarregar(); }
   if (act === "aprovar") return mudarIdeia(ideia, { Status: "Aprovada" }, "Ideia aprovada. Ela entra no calendário na próxima rodada do fluxo 02.");
   if (act === "guardar") return mudarIdeia(ideia, { Status: "Guardada" }, "Ideia guardada para depois.");
@@ -624,7 +809,7 @@ const AT = {
   base: "app0V0dEQB4ksFTUV",
   marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", Idioma: "fldfVHS529DWsxlKE" } },
   ideias: { table: "tblkX69MsS5z1MT1v", f: { Titulo: "fldIaygmjuLsE1WFq", Resumo: "fld5lBu8N6tApcJVb", Formato: "fldR8DJtJIF19rmw0", Rede: "fldhnBFmYjiaKU2bw", Pilar: "fldyZHHZuM1mMLby5", Score: "fldN5rkaOAcnBJLsr", PorQueFunciona: "flddAuWW90gQPrvYZ", Status: "fldk2hxweVnMId1U1", MotivoDescarte: "fldM7FdKuv09zIrsE", Referencias: "fldQESoyFaJNIancX", Calendario: "fldPMgJAavbChgFoH" } },
-  cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT", Arquivos: "fld0XuKmLrlR77Kl1", ImagensSlides: "fldinvYLBv5a7Lv35" } },
+  cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT", Arquivos: "fld0XuKmLrlR77Kl1", ImagensSlides: "fldinvYLBv5a7Lv35", Fotos: "fldyADExC0MK0ZS1S", ArtesProntas: "fldBEUCyMlEcAcljW" } },
   fontes: { table: "tbl8L7CHTLKOfsuj3", f: { Nome: "fldEtApljYo1QPZ1Y", Tipo: "fldX64mLZhKNzixzA", Categoria: "fld1ee1spLYITJKQA", Rede: "fldQeCH8AftrYahdd", URL: "fldaJvN3bK4W64tZT", Peso: "fld2Mrr5M6bBJgdhb", Ativa: "fldtvwIISCKUv2wVC" } },
 };
 const OPC = {

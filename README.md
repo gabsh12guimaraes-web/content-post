@@ -1,6 +1,6 @@
 # content-post — Pauta de Conteúdo
 
-Plataforma de criação e publicação de posts: **Fontes → Ideias (você escolhe) → Calendário → Criação (Claude + Freepik + Canva) → Revisão no Telegram → Publicação automática (Ayrshare)**.
+Plataforma de criação e publicação de posts: **Fontes → Ideias (você escolhe) → Calendário → Criação (Claude + Magnific) → Revisão no painel ou no Telegram → Publicação automática (Ayrshare)**.
 
 ## O que tem aqui
 
@@ -18,7 +18,7 @@ A aba **Marca e fontes** grava no Airtable de dois jeitos:
 - **No claude.ai:** pelo conector do Airtable da sua conta.
 - **Fora do claude.ai (GitHub Pages, celular):** pelo fluxo **07 - API do painel** do n8n. O painel pede a senha de acesso, que é a da credencial **Senha do painel** no n8n (cabeçalho `x-pauta-senha`). O fluxo 07 precisa estar ativo.
 
-Todas as abas (Marca e fontes, Ideias, Calendário e Revisão) leem o Airtable. A aprovação de ideias é feita no painel; a revisão dos posts, pelo Telegram.
+Todas as abas (Marca e fontes, Ideias, Calendário e Revisão) leem o Airtable. A aprovação de ideias é feita no painel. Os posts podem ser aprovados ou ajustados no painel (aba Revisão, pelo link do GitHub) ou pelo bot do Telegram. As artes finais (texto + logo sobre as fotos) também são geradas no painel.
 
 ## Atualizar o site depois de mudar o painel
 
