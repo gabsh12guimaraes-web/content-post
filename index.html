@@ -7,34 +7,40 @@
 <title>Pauta de Conteúdo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Poppins:wght@400;500;600;700;800&display=swap">
 <style>
-/* Identidade do print de referência: fundo quase preto com brilho vermelho, vidro avermelhado,
-   cartões em gradiente (vermelho-rosa e laranja), números grandes, botões em pílula, título em serifa.
-   Tema único escuro, por escolha. */
+/* Identidade do admin da Easypeasy Pay: navy quase preto, cartões chapados com borda de 1px,
+   acento vermelho-rosa em gradiente, Poppins + IBM Plex Mono, rótulos pequenos em caixa alta,
+   etiquetas contornadas, menu lateral com trilho tracejado. Tema único escuro. */
 :root {
   color-scheme: dark;
-  --bg: #0c0607;
-  --glow: #8e0f17;
+  --bg: #0A0C15;
+  --card: #191B25;
+  --card-soft: #15171F;
+  --glow: #F8395A;
   --ink: #ffffff;
-  --ink-soft: rgba(255, 255, 255, 0.62);
-  --ink-faint: rgba(255, 255, 255, 0.38);
-  --glass: rgba(255, 255, 255, 0.05);
-  --glass-red: rgba(255, 60, 70, 0.10);
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.18);
-  --red: #ff3347;
-  --red-deep: #c10f22;
-  --pink: #ff5a6e;
-  --orange: #ff8a1e;
-  --orange-deep: #f2560c;
-  --ok: #4ade80;
-  --warn: #fbbf24;
-  --info: #7cb4ff;
-  --bad: #ff6b6b;
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
-  --font-body: "Poppins", "Segoe UI", system-ui, sans-serif;
-  --radius: 22px;
+  --ink-body: #c8cad3;
+  --ink-soft: #8A8D9C;
+  --ink-faint: #5D6070;
+  --glass: #191B25;
+  --glass-red: #191B25;
+  --line: #2A2C38;
+  --line-strong: #353846;
+  --red: #F8395A;
+  --red-deep: #C8102E;
+  --pink: #F8395A;
+  --pink-soft: #FF8FA3;
+  --orange: #FFB84D;
+  --orange-deep: #F59E0B;
+  --ok: #3EDDAE;
+  --warn: #FFB84D;
+  --info: #8A8D9C;
+  --bad: #F8395A;
+  --grad: linear-gradient(140deg, #FF5F7A, #F8395A 55%, #C8102E);
+  --font-display: "Poppins", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "Poppins", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
+  --radius: 9px;
 }
 * { box-sizing: border-box; }
 html { background: var(--bg); }
@@ -316,6 +322,47 @@ button { cursor: pointer; }
 .ig-legenda .tags { margin-top: 8px; display: block; }
 .ig-aviso { font-size: 11px; color: var(--ink-faint); padding: 0 14px 12px; background: #0b0b0d; }
 
+/* login */
+.auth { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; overflow: auto; background: var(--bg); }
+.auth-card { width: 100%; max-width: 420px; padding: 28px; display: grid; gap: 16px; }
+.auth-card h1 { font-family: var(--font-display); font-size: 28px; font-weight: 700; }
+.auth-card .hint { margin: 0; }
+.auth-card .btn.primary { width: 100%; min-height: 44px; }
+.auth-marca { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.auth-marca img { height: 32px; width: auto; }
+body.travado .wrap { visibility: hidden; }
+.quem { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.quem .av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 12px; background: linear-gradient(180deg, var(--red), var(--red-deep)); }
+.quem small { display: block; color: var(--ink-faint); font-size: 11px; }
+/* diálogos */
+.dlg { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; padding: 24px; color: var(--ink); border: 1px solid var(--line-strong); }
+.dlg::backdrop { background: rgba(0, 0, 0, 0.6); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.dlg h2 { font-size: 20px; margin-bottom: 4px; }
+.dlg form { display: grid; gap: 14px; }
+.dlg .actions { justify-content: flex-end; }
+.users { display: grid; gap: 8px; }
+.urow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line); }
+.urow .un { font-weight: 600; }
+.urow .ue { font-size: 12px; color: var(--ink-faint); overflow-wrap: anywhere; }
+.urow.off { opacity: 0.55; }
+/* calendário mensal */
+.cal-nav { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-nav h3 { font-size: 20px; font-weight: 600; min-width: 170px; }
+.cal-nav .actions { gap: 6px; }
+.ano { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px; padding-bottom: 2px; }
+.ano::-webkit-scrollbar { display: none; }
+.ano button { flex: none; border: 1px solid var(--line); background: var(--glass); color: var(--ink-soft); border-radius: 12px; padding: 6px 12px; font-size: 12px; display: grid; justify-items: center; gap: 2px; text-transform: capitalize; min-width: 58px; }
+.ano button b { font-size: 15px; color: var(--ink); font-weight: 600; }
+.ano button[aria-pressed="true"] { border-color: var(--pink); color: var(--ink); box-shadow: 0 0 0 1px var(--pink); }
+.ano button.vazio b { color: var(--ink-faint); }
+.cal-head { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 0 6px; margin-bottom: 4px; font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .06em; }
+.day.fora { opacity: 0.3; }
+.day .add { justify-self: start; }
+@media (max-width: 760px) {
+  .cal-head { display: none; }
+  .day.fora, .day.sem-post:not(.today) { display: none; }
+}
+
 /* ---------- celular e tablet ---------- */
 @media (max-width: 760px) {
   .wrap { padding-inline: 16px; padding-block: 16px 56px; }
@@ -346,29 +393,263 @@ button { cursor: pointer; }
 @media (max-width: 340px) { .track { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .switch::after { transition: none; } }
 @media (prefers-reduced-motion: reduce) { .dot, .post.flash { animation: none; } .track button { transition: none; } }
+
+/* ================= Identidade do admin Easypeasy Pay ================= */
+html, body { margin: 0; background: var(--bg); }
+body { background: var(--bg); font-size: 13px; color: var(--ink); }
+::placeholder { color: var(--ink-faint); }
+* { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.lbl, .field > span, .grupo, .cal-head, .dlabel { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
+
+/* casca */
+.app { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; }
+.side { position: sticky; top: 0; height: 100vh; background: var(--card-soft); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 22px 0 14px; overflow-y: auto; z-index: 40; }
+.side-logo { padding: 0 18px 16px; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.wm { font-weight: 800; font-size: 19px; letter-spacing: -.02em; line-height: 1; display: inline-flex; align-items: center; }
+.wm img { height: 26px; width: auto; max-width: 170px; object-fit: contain; }
+.adm { font-size: 9.5px; font-weight: 700; letter-spacing: .28em; color: var(--ink-soft); }
+.grupo { padding: 18px 18px 6px; color: var(--ink-faint); }
+.track { display: block; position: relative; margin: 0; padding: 2px 0; grid-template-columns: none; }
+.trilho::before { content: ""; position: absolute; left: 22px; top: 4px; bottom: 4px; border-left: 1.5px dashed rgba(255, 255, 255, .13); }
+.track button, .track button[class] { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 0; padding: 9px 18px 9px 38px; border: 0; border-radius: 0; background: none !important; box-shadow: none !important; color: var(--ink-soft); font-size: 13px; font-weight: 500; opacity: 1; transform: none; overflow: visible; position: relative; text-align: left; }
+.track button::after { display: none; }
+.track button:hover { color: rgba(255, 255, 255, .78); }
+.track button:hover::before { content: ""; position: absolute; left: 22px; top: 0; height: 50%; width: 10px; border-left: 1.5px dashed rgba(255, 255, 255, .32); border-bottom: 1.5px dashed rgba(255, 255, 255, .32); border-bottom-left-radius: 9px; }
+.track button[aria-selected="true"] { color: #fff; font-weight: 700; }
+.track button[aria-selected="true"]::before { content: ""; position: absolute; left: 22px; top: 0; height: 50%; width: 10px; border-left: 1.5px dashed var(--red); border-bottom: 1.5px dashed var(--red); border-bottom-left-radius: 9px; }
+.track .name { font-size: 13px; margin: 0; font-weight: inherit; }
+.track .count { font: 600 11px var(--mono); color: var(--ink-faint); line-height: 1; }
+.track button[aria-selected="true"] .count { color: var(--red); }
+.track .step, .track .play { display: none; }
+.side-pe { margin-top: auto; border-top: 1px solid var(--line); padding: 14px 18px 0; display: grid; gap: 4px; }
+.side-pe .quem { margin-bottom: 8px; }
+.side-pe .btn { justify-content: flex-start; width: 100%; padding: 8px 0; border: 0; background: none; color: var(--ink-soft); font-weight: 500; }
+.side-pe .btn:hover { color: #fff; background: none; }
+.side-pe .notice { font-size: 11px; }
+.quem .av { width: 30px; height: 30px; border-radius: 6px; background: var(--grad); font-size: 11px; font-weight: 800; }
+.quem { font-weight: 700; font-size: 12.5px; }
+.quem small { font-weight: 500; font-size: 10.5px; color: var(--ink-faint); }
+.mtop { display: none; }
+.veu-menu { position: fixed; inset: 0; background: rgba(3, 4, 8, .74); z-index: 39; }
+
+/* conteúdo */
+.wrap { max-width: 1500px; margin: 0; padding: 22px 26px 64px; }
+.pg { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-end; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+.crumb { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
+.crumb b { color: #fff; font-weight: 600; }
+.pg h1 { font-family: var(--font-body); font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+.pg p { margin: 4px 0 0; font-size: 12.5px; color: var(--ink-soft); max-width: 72ch; }
+.pg p:empty { display: none; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+.kpi { text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 14px; display: grid; gap: 6px; color: #fff; }
+.kpi:hover { border-color: var(--line-strong); }
+.kpi b { font-size: 22px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.kpi small { font-size: 11px; color: var(--ink-faint); }
+.kpi[aria-current="true"] { border-color: var(--red); }
+.kpi[aria-current="true"] b { color: var(--red); }
+.panel { margin-top: 0; }
+.panel-head { margin-bottom: 14px; }
+.panel-head p { font-size: 12.5px; color: var(--ink-soft); }
+
+/* superfícies chapadas, sem vidro */
+.glass { background: var(--card); border: 1px solid var(--line); border-radius: 9px; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.box, .rcard { position: relative; }
+.box h2 { font-family: var(--font-body); font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+.box .hint, .hint { color: var(--ink-faint); font-size: 11px; }
+.rside h3, .pdet h3, .auth-card h1 { font-family: var(--font-body); font-weight: 800; letter-spacing: -.02em; }
+.rside h3 { font-size: 18px; }
+.pdet h3 { font-size: 16px; }
+.idea h3 { font-size: 14.5px; font-weight: 700; }
+.idea p { color: var(--ink-body); font-size: 13px; }
+.idea .why, .msg, .fonte, .urow, .caption, .hist div { background: var(--card-soft); border: 1px solid var(--line); border-radius: 6px; }
+.msg { color: var(--ink-body); font-size: 12.5px; }
+.msg.erro { border-color: rgba(248, 57, 90, .45); color: #ffc2cd; background: rgba(248, 57, 90, .05); }
+.msg.ok { border-color: rgba(62, 221, 174, .4); color: #b8f5e2; background: rgba(62, 221, 174, .05); }
+.empty { color: var(--ink-soft); font-size: 13px; padding: 24px; }
+
+/* luz corrente discreta na borda dos painéis */
+@property --ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.box::before, .rcard::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: conic-gradient(from var(--ang), transparent 0 72%, rgba(248, 57, 90, .34) 80%, rgba(255, 255, 255, .62) 86%, rgba(62, 221, 174, .30) 92%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: luz 7s linear infinite; }
+@keyframes luz { to { --ang: 360deg; } }
+
+/* botões */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 10px 16px; font-weight: 700; font-size: 13px; color: #fff; }
+.btn:hover { background: rgba(255, 255, 255, .04); }
+.btn.primary { border: 0; background: var(--grad); box-shadow: none; padding: 11px 16px; }
+.btn.primary:hover { background: var(--grad); filter: brightness(1.08); }
+.btn.quiet { border: 1px solid var(--line); background: var(--card); color: var(--ink-soft); }
+.btn.quiet:hover { color: #fff; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.linkbtn { color: var(--ink-soft); }
+
+/* filtros = botões pequenos */
+.filters { background: none; border: 0; padding: 0; gap: 6px; border-radius: 0; }
+.filters button { border: 1px solid var(--line); background: var(--card); color: var(--ink-soft); border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 700; }
+.filters button[aria-pressed="true"] { border-color: transparent; background: var(--grad); color: #fff; box-shadow: none; }
+
+/* etiquetas contornadas */
+.chip { background: transparent; border: 1px solid currentColor; color: var(--ink-soft); font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 2px 9px; }
+.chip::before { display: none; }
+.chip.plain { color: var(--ink-soft); border-color: var(--line); }
+.chip.warn { color: var(--warn); background: rgba(245, 158, 11, .14); border-color: rgba(245, 158, 11, .35); }
+.chip.ok { color: var(--ok); }
+.chip.bad, .chip.acc { color: var(--red); }
+.chip.info { color: #fff; border-color: var(--line-strong); }
+.score .pill { background: rgba(248, 57, 90, .1); border: 1px solid rgba(248, 57, 90, .5); color: var(--red); box-shadow: none; border-radius: 999px; font-weight: 700; }
+.score .pill strong { font-family: var(--mono); }
+.score .pill.low { background: transparent; border-color: var(--line); color: var(--ink-soft); }
+.bar { background: var(--card-soft); border: 1px solid var(--line); }
+.bar i { background: linear-gradient(90deg, var(--red), var(--pink-soft)); }
+
+/* campos */
+.field input, .field textarea, .field select, .reason input, textarea, .auth-card input { background: var(--card-soft); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none; }
+.field input:focus, .field textarea:focus, .field select:focus, .reason input:focus, textarea:focus { border-color: var(--red); }
+.field select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%), linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 30px; }
+.field select option { background: var(--card-soft); }
+.field input[type="date"], .field input[type="time"] { color-scheme: dark; font-family: var(--mono); }
+.toggles button { border: 1px solid var(--line); background: var(--card-soft); border-radius: 6px; color: var(--ink-soft); font-weight: 600; }
+.toggles button[aria-pressed="true"] { background: rgba(248, 57, 90, .12); border-color: var(--red); color: var(--red); }
+.switch { width: 40px; height: 22px; background: var(--card-soft); border: 1px solid var(--line); }
+.switch::after { top: 2px; left: 2px; background: var(--ink-soft); }
+.switch[aria-checked="true"] { background: rgba(248, 57, 90, .2); border-color: var(--red); }
+.switch[aria-checked="true"]::after { background: var(--red); transform: translateX(18px); }
+.cor input[type="color"] { border-radius: 6px; background: var(--card-soft); border-color: var(--line); }
+.paleta { border-radius: 4px; }
+.live { background: var(--card); border-color: var(--line); color: var(--ink-soft); border-radius: 999px; font-size: 11px; font-weight: 600; }
+.live.on::before { background: var(--ok); box-shadow: none; }
+.live.off::before { background: var(--red); box-shadow: none; }
+
+/* calendário */
+.cal { padding: 8px; }
+.day { background: var(--card-soft); border: 1px solid var(--line); border-radius: 6px; min-height: 112px; }
+.day.today { background: rgba(248, 57, 90, .06); box-shadow: none; border-color: var(--red); }
+.day.today .dlabel { color: var(--red); }
+.dlabel span:last-child { font-family: var(--mono); font-weight: 500; letter-spacing: 0; }
+.post { background: var(--card); border: 1px solid var(--line); border-radius: 6px; }
+.post .pm { font-family: var(--mono); font-size: 10px; }
+.post.sel { border-color: var(--red); box-shadow: none; }
+.post.s-Agendado::before, .post.s-Aprovado::before { background: #fff; }
+.post.s-EmCriacao::before { background: var(--red); }
+.cal-nav h3 { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+.ano button { border-radius: 6px; background: var(--card); border-color: var(--line); font-weight: 600; }
+.ano button b { font-family: var(--mono); font-size: 14px; }
+.ano button[aria-pressed="true"] { border-color: var(--red); box-shadow: none; color: #fff; }
+.ano button[aria-pressed="true"] b { color: var(--red); }
+.legend .chip { font-size: 9.5px; }
+
+/* revisão, ideias, detalhe */
+.rrow { border-radius: 9px; }
+.rrow .rm { font-family: var(--mono); font-size: 11px; }
+.rrow[aria-expanded="true"] { border-color: var(--red); }
+.rrow[aria-expanded="true"] .seta { color: var(--red); }
+.ig { border-radius: 9px; border-color: var(--line); }
+.working { color: var(--warn); font-weight: 600; font-size: 12.5px; }
+.tags { color: var(--pink-soft); }
+
+/* toast e diálogos */
+.toast { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 12px 18px; font-size: 13px; font-weight: 600; box-shadow: 0 12px 30px rgba(0, 0, 0, .5); -webkit-backdrop-filter: none; backdrop-filter: none; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); }
+.dlg { background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 18px; width: min(480px, calc(100vw - 28px)); box-shadow: none; }
+.dlg[open] { animation: entra .2s ease-out; }
+@keyframes entra { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+.dlg::backdrop { background: rgba(3, 4, 8, .74); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.dlg h2 { font-size: 15px; font-weight: 800; padding-bottom: 12px; margin: -2px 0 12px; border-bottom: 1px solid var(--line); }
+.dlg .glass.box { background: var(--card); }
+.urow { border-radius: 6px; }
+
+/* login em duas colunas, como no admin */
+.auth { background: var(--bg); padding: 0; place-items: stretch; }
+.auth-wrap { min-height: 100vh; display: grid; grid-template-columns: 1fr; }
+.auth-form { display: grid; place-items: center; padding: 28px 20px; }
+.auth-card { background: none; border: 0; max-width: 380px; padding: 0; gap: 14px; }
+.auth-card .btn.primary { padding: 14px 0; }
+.auth-card .btn.quiet { width: 100%; }
+.auth-card h1 { font-size: 18px; margin-top: 6px; }
+.auth-card .hint { font-size: 12px; color: var(--ink-soft); }
+.auth-marca { display: grid; gap: 8px; justify-items: start; }
+.auth-marca .wm { font-size: 30px; }
+.auth-marca .wm img { height: 44px; max-width: 300px; }
+.auth-marca .adm { font-size: 11px; letter-spacing: .34em; }
+.vitrine { display: none; }
+@media (min-width: 900px) {
+  .auth-wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .vitrine { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 24px; height: 100vh; position: sticky; top: 0; overflow: hidden;
+    -webkit-mask: linear-gradient(transparent, #000 12%, #000 88%, transparent); mask: linear-gradient(transparent, #000 12%, #000 88%, transparent); }
+  .vitrine .col { display: grid; gap: 12px; align-content: start; animation: sobe 38s linear infinite; }
+  .vitrine .col.b { animation-name: desce; animation-duration: 46s; }
+  .vitrine .tile { aspect-ratio: 4 / 5; border-radius: 9px; padding: 16px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; color: #fff; border: 1px solid var(--line);
+    background: linear-gradient(135deg, #F8395A, #2a1220); }
+  .vitrine .tile:nth-child(3n+2) { background: linear-gradient(160deg, #191B25, #0A0C15 60%, #3a0d1b); }
+  .vitrine .tile:nth-child(3n) { background: linear-gradient(200deg, #FF8FA3, #C8102E 55%, #1a0b12); }
+  .vitrine .tile b { font-size: 18px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+  .vitrine .tile span { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; opacity: .8; }
+}
+@keyframes sobe { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+@keyframes desce { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+
+/* tablet e celular */
+@media (max-width: 1079px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 719px) {
+  .app { grid-template-columns: 1fr; }
+  .side { position: fixed; left: 0; top: 0; bottom: 0; width: 258px; height: auto; transform: translateX(-100%); transition: transform .2s ease-out; }
+  body.menu-aberto .side { transform: none; }
+  .mtop { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 30; background: var(--bg); padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .mtop .adm { margin-left: auto; }
+  .mtop .wm img { height: 24px; }
+  .menu { width: 36px; height: 36px; display: grid; place-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: #fff; }
+  .wrap { padding: 18px 14px 56px; }
+  .kpis { gap: 8px; }
+  .kpi { padding: 12px; }
+  .kpi b { font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .box::before, .rcard::before, .vitrine .col, .dlg[open] { animation: none; } .side { transition: none; } }
 </style>
+
+<div class="app">
+  <aside class="side" id="side">
+    <div class="side-logo"><span class="wm" data-wm>Pauta</span><span class="adm">C O N T E Ú D O</span></div>
+    <div class="grupo">Pauta</div>
+    <nav class="track trilho" role="tablist" aria-label="Etapas">
+      <button role="tab" class="t-marca" id="tab-marca" data-tab="marca"><span class="name">Marca e fontes</span><span class="count" id="c-marca">–</span></button>
+      <button role="tab" class="t-ideias" id="tab-ideias" data-tab="ideias"><span class="name">Ideias</span><span class="count" id="c-ideias">0</span></button>
+      <button role="tab" class="t-cal" id="tab-cal" data-tab="cal"><span class="name">Calendário</span><span class="count" id="c-cal">0</span></button>
+      <button role="tab" class="t-rev" id="tab-rev" data-tab="rev"><span class="name">Revisão</span><span class="count" id="c-rev">0</span></button>
+    </nav>
+    <div class="side-pe" id="usuario"></div>
+  </aside>
+  <div class="main">
+    <div class="mtop">
+      <button class="menu" data-menu aria-label="Abrir menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <span class="wm" data-wm>Pauta</span><span class="adm">CONTEÚDO</span>
+    </div>
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
-    <div class="actions">
-      <span class="notice">Aprove ou peça ajustes na aba Revisão ou pelo Telegram.</span>
+      <header class="pg">
+        <div><div class="crumb"><span>Pauta</span> / <b id="pg-crumb">Ideias</b></div><h1 id="pg-titulo">Ideias</h1><p id="pg-sub"></p></div>
+      </header>
+      <div class="kpis">
+        <button class="kpi" data-tab="marca"><span class="lbl">Fontes ativas</span><b id="k-marca">–</b><small>Base da marca</small></button>
+        <button class="kpi" data-tab="ideias"><span class="lbl">Ideias para decidir</span><b id="k-ideias">0</b><small>Etapa 0 · Ideação</small></button>
+        <button class="kpi" data-tab="cal"><span class="lbl">Posts na pauta</span><b id="k-cal">0</b><small>Etapa 1 · Calendário</small></button>
+        <button class="kpi" data-tab="rev"><span class="lbl">Esperando você</span><b id="k-rev">0</b><small>Etapa 4 · Revisão</small></button>
+      </div>
+      <section class="panel" id="p-marca" role="tabpanel" aria-labelledby="tab-marca" hidden></section>
+      <section class="panel" id="p-ideias" role="tabpanel" aria-labelledby="tab-ideias"></section>
+      <section class="panel" id="p-cal" role="tabpanel" aria-labelledby="tab-cal" hidden></section>
+      <section class="panel" id="p-rev" role="tabpanel" aria-labelledby="tab-rev" hidden></section>
     </div>
-  </header>
-
-  <nav class="track" role="tablist" aria-label="Etapas">
-    <button role="tab" class="t-marca" id="tab-marca" data-tab="marca"><span class="step">Base · Airtable</span><span class="name">Marca e fontes</span><span class="count" id="c-marca">–</span><span class="play" aria-hidden="true"></span></button>
-    <button role="tab" class="t-ideias" id="tab-ideias" data-tab="ideias"><span class="step">Etapa 0 · Ideação</span><span class="name">Ideias para decidir</span><span class="count" id="c-ideias">0</span><span class="play" aria-hidden="true"></span></button>
-    <button role="tab" class="t-cal" id="tab-cal" data-tab="cal"><span class="step">Etapa 1 · Calendário</span><span class="name">Posts na pauta</span><span class="count" id="c-cal">0</span><span class="play" aria-hidden="true"></span></button>
-    <button role="tab" class="t-rev" id="tab-rev" data-tab="rev"><span class="step">Etapa 4 · Revisão</span><span class="name">Esperando você</span><span class="count" id="c-rev">0</span><span class="play" aria-hidden="true"></span></button>
-  </nav>
-
-  <section class="panel" id="p-marca" role="tabpanel" aria-labelledby="tab-marca" hidden></section>
-  <section class="panel" id="p-ideias" role="tabpanel" aria-labelledby="tab-ideias"></section>
-  <section class="panel" id="p-cal" role="tabpanel" aria-labelledby="tab-cal" hidden></section>
-  <section class="panel" id="p-rev" role="tabpanel" aria-labelledby="tab-rev" hidden></section>
+  </div>
 </div>
+<div class="veu-menu" data-menu hidden></div>
 <div class="toast" id="toast" hidden></div>
+<div class="auth" id="auth" hidden></div>
+<dialog class="dlg glass" id="dlg"></dialog>
 
 <script>
 const KEY = "pauta-painel-v3";
@@ -391,7 +672,7 @@ const STATUS = {
 const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const fmtData = iso => { if (!iso) return "sem data"; const d = new Date(iso); return `${DIAS[d.getDay()]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} · ${String(d.getHours()).padStart(2, "0")}h`; };
+const fmtData = iso => { if (!iso) return "sem data"; const d = new Date(iso); return `${DIAS[d.getDay()]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} · ${String(d.getHours()).padStart(2, "0")}h${d.getMinutes() ? String(d.getMinutes()).padStart(2, "0") : ""}`; };
 const chip = s => { const [txt, cls] = STATUS[s] || [s || "—", ""]; return `<span class="chip ${cls}">${esc(txt)}</span>`; };
 
 function toast(msg) {
@@ -417,6 +698,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, link: r.LinkPublicado || "",
+    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [],
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -438,9 +720,7 @@ async function carregarPauta() {
   }
 }
 function semPauta() {
-  if (M.modo === "web" && M.conexao === "login") {
-    return `<div class="glass empty">Entre com a senha para ver a pauta.<div class="actions" style="justify-content:center;margin-top:12px"><button class="btn primary" data-act="ir-marca">Entrar</button></div></div>`;
-  }
+  if (M.modo === "web" && M.conexao === "login") return `<div class="glass empty">Entre com seu usuário para ver a pauta.</div>`;
   if (pauta.erro) {
     return `<div class="msg erro"><span>${esc(textoErro(pauta.erro))}</span><button class="btn" data-act="recarregar-pauta">Tentar de novo</button></div>`;
   }
@@ -499,6 +779,77 @@ function criarPost(p) {
   });
 }
 
+/* ---------- Agendar ideia e remover post ---------- */
+const doisDig = n => String(n).padStart(2, "0");
+function proximoDiaLivre() {
+  const ocupados = new Set(state.posts.map(p => ymd(new Date(p.data))));
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || ocupados.has(ymd(d)));
+  return d;
+}
+function abrirAgenda(i, erro, valores) {
+  const d = proximoDiaLivre();
+  const data = (valores && valores.data) || ymd(d), hora = (valores && valores.hora) || "18:00";
+  const noDia = state.posts.filter(p => ymd(new Date(p.data)) === data);
+  abrirDlg(`<h2>Levar para o calendário</h2>
+    <p class="hint">${esc(i.titulo)}</p>
+    <form onsubmit="return false">
+      <div class="fgrid">
+        <label class="field"><span>Data</span><input id="ag-data" type="date" min="${ymd(new Date())}" value="${data}"></label>
+        <label class="field"><span>Horário</span><input id="ag-hora" type="time" step="900" value="${hora}"></label>
+      </div>
+      <p class="small" id="ag-aviso" style="margin:0">${noDia.length ? `Já tem ${noDia.length} post neste dia: ${noDia.map(p => esc(p.titulo)).join(", ")}.` : "Dia livre."}</p>
+      ${erro ? `<div class="msg erro">${esc(erro)}</div>` : ""}
+      <div class="actions"><button class="btn quiet" type="button" data-u="fechar">Cancelar</button><button class="btn primary" data-u="agendar-ok" data-id="${i.id}">Agendar</button></div>
+    </form>`);
+}
+document.addEventListener("change", e => {
+  if (e.target.id !== "ag-data") return;
+  const noDia = state.posts.filter(p => ymd(new Date(p.data)) === e.target.value);
+  const av = document.getElementById("ag-aviso");
+  if (av) av.textContent = noDia.length ? `Já tem ${noDia.length} post neste dia: ${noDia.map(p => p.titulo).join(", ")}.` : "Dia livre.";
+});
+async function confirmarAgenda(id) {
+  const i = state.ideias.find(x => x.id === id); if (!i) return fecharDlg();
+  const data = document.getElementById("ag-data").value, hora = document.getElementById("ag-hora").value;
+  if (!data || !hora) return abrirAgenda(i, "Escolha a data e o horário.", { data, hora });
+  const quando = new Date(data + "T" + hora + ":00");
+  if (!(quando > new Date(Date.now() + 10 * 60000))) return abrirAgenda(i, "Escolha uma data e um horário no futuro.", { data, hora });
+  try {
+    if (M.modo === "web") {
+      await api({ acao: "agendarIdeia", id, data: quando.toISOString(), titulo: i.titulo, rede: i.rede, formato: i.formato, pilar: i.pilar });
+    } else {
+      const c = AT.cal.f;
+      await M.mcp.callTool(AT.server, "create_records_for_table", { baseId: AT.base, tableId: AT.cal.table, typecast: true, records: [{ fields: {
+        [c.Titulo]: i.titulo, [c.Ideia]: [id], [c.DataPublicacao]: quando.toISOString(), [c.Rede]: i.rede || null, [c.Formato]: i.formato || null, [c.Pilar]: i.pilar || null, [c.Status]: "Planejado", [c.Versao]: 1 } }] });
+      await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.ideias.table, typecast: true, records: [{ id, fields: { [AT.ideias.f.Status]: "Aprovada" } }] });
+    }
+    fecharDlg();
+    i.status = "Aprovada";
+    toast(`Agendado para ${fmtData(quando.toISOString())}.`);
+    if (M.modo === "web") await carregarPauta(); else recarregar();
+  } catch (e) { abrirAgenda(i, textoErro(e), { data, hora }); }
+}
+function pedirRemocao(p) {
+  abrirDlg(`<h2>Remover do calendário?</h2>
+    <p class="hint">"${esc(p.titulo)}" sai do calendário${p.legenda ? " junto com o texto e as artes já criados" : ""}. A ideia volta para <b>Guardadas</b>, e você pode agendar de novo depois.</p>
+    <div class="actions"><button class="btn quiet" data-u="fechar">Cancelar</button><button class="btn primary" data-u="remover-post-ok" data-id="${p.id}">Remover</button></div>`);
+}
+async function confirmarRemocao(id) {
+  const p = state.posts.find(x => x.id === id); if (!p) return fecharDlg();
+  try {
+    if (M.modo === "web") await api({ acao: "removerPost", id, ideia: p.ideia });
+    else {
+      if (p.ideia) await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.ideias.table, typecast: true, records: [{ id: p.ideia, fields: { [AT.ideias.f.Status]: "Guardada" } }] });
+      await M.mcp.callTool(AT.server, "delete_records_for_table", { baseId: AT.base, tableId: AT.cal.table, recordIds: [id] });
+    }
+    fecharDlg(); calAberto = null;
+    state.posts = state.posts.filter(x => x.id !== id); render();
+    toast("Post removido do calendário. A ideia está em Guardadas.");
+    if (M.modo === "web") carregarPauta(); else recarregar();
+  } catch (e) { fecharDlg(); toast("Não deu para remover: " + textoErro(e)); }
+}
+
 /* ---------- Ideias ---------- */
 function renderIdeias() {
   const el = document.getElementById("p-ideias");
@@ -526,7 +877,7 @@ function cardIdeia(i) {
            <button class="btn quiet" data-act="descartar" data-id="${i.id}">Descartar</button></div>`;
   } else if (i.status === "Aprovada") {
     const p = state.posts.find(x => i.posts.includes(x.id));
-    rodape = `<div class="decided">${p ? `No calendário para <b>${fmtData(p.data)}</b>.` : "Aprovada. Entra no calendário na próxima rodada do fluxo 02."}</div>`;
+    rodape = `<div class="decided">${p ? `No calendário para <b>${fmtData(p.data)}</b>.` : "Aprovada. Entra no calendário em até 15 minutos, no próximo dia livre."}</div>`;
   } else {
     rodape = `<div class="actions"><span class="decided">Descartada${i.motivo ? `: “${esc(i.motivo)}”` : ""}</span><button class="btn quiet" data-act="restaurar" data-id="${i.id}">Desfazer</button></div>`;
   }
@@ -542,34 +893,62 @@ function cardIdeia(i) {
 }
 
 /* ---------- Calendário ---------- */
+const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+let mesVisto = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })();
 function renderCal() {
   const el = document.getElementById("p-cal");
-  const head = `<div class="panel-head"><p>Posts que vêm das ideias aprovadas. Clique em um post para ver os detalhes e mandar a IA criar.</p></div>`;
+  const head = `<div class="panel-head"><p>Posts que vêm das ideias aprovadas. Clique em um post para ver os detalhes, mandar a IA criar ou tirar do calendário.</p></div>`;
   if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
-  const hoje = new Date();
-  const inicio = new Date(hoje); inicio.setHours(0, 0, 0, 0); inicio.setDate(inicio.getDate() - ((inicio.getDay() + 6) % 7)); // segunda
-  const fim = new Date(inicio); fim.setDate(fim.getDate() + 21);
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const ano = mesVisto.getFullYear(), mes = mesVisto.getMonth();
+  const doMes = (a, m) => state.posts.filter(p => { const d = new Date(p.data); return d.getFullYear() === a && d.getMonth() === m; });
+  const tiraAno = MESES.map((n, m) => {
+    const q = doMes(ano, m).length;
+    return `<button data-cal-mes="${m}" aria-pressed="${m === mes}" class="${q ? "" : "vazio"}">${n.slice(0, 3)}<b>${q}</b></button>`;
+  }).join("");
+  const inicio = new Date(ano, mes, 1); inicio.setDate(1 - ((inicio.getDay() + 6) % 7)); // segunda da 1ª semana
+  const fimMes = new Date(ano, mes + 1, 0);
   const semanas = [];
-  for (let w = 0; w < 3; w++) {
+  for (let w = 0; w < 6; w++) {
+    const seg = new Date(inicio); seg.setDate(inicio.getDate() + w * 7);
+    if (w > 3 && seg > fimMes) break;
     let dias = "";
     for (let d = 0; d < 7; d++) {
-      const dia = new Date(inicio); dia.setDate(inicio.getDate() + w * 7 + d);
+      const dia = new Date(seg); dia.setDate(seg.getDate() + d);
       const key = ymd(dia);
       const posts = state.posts.filter(p => ymd(new Date(p.data)) === key).sort((a, b) => new Date(a.data) - new Date(b.data));
-      const cls = key === ymd(hoje) ? "today" : dia < hoje ? "past" : "";
-      dias += `<div class="day ${cls}"><div class="dlabel"><span>${DIAS[dia.getDay()]}</span><span>${String(dia.getDate()).padStart(2, "0")}/${String(dia.getMonth() + 1).padStart(2, "0")}${cls === "today" ? " · hoje" : ""}</span></div>
+      const cls = [key === ymd(hoje) ? "today" : dia < hoje ? "past" : "", dia.getMonth() !== mes ? "fora" : "", posts.length ? "" : "sem-post"].join(" ");
+      dias += `<div class="day ${cls}"><div class="dlabel"><span>${DIAS[dia.getDay()]}</span><span>${doisDig(dia.getDate())}/${doisDig(dia.getMonth() + 1)}${key === ymd(hoje) ? " · hoje" : ""}</span></div>
         <div class="list">${posts.map(cardPost).join("")}</div></div>`;
     }
     semanas.push(`<div class="cal-week">${dias}</div>`);
   }
-  const depois = state.posts.filter(p => new Date(p.data) >= fim);
+  const doMesAtual = doMes(ano, mes);
   el.innerHTML = head + `
-    ${state.posts.length ? "" : `<div class="msg" style="margin-bottom:12px">Ainda não há posts no calendário. Aprove uma ideia na aba Ideias.</div>`}
-    <div class="cal glass">${semanas.join("")}</div>
+    ${state.posts.length ? "" : `<div class="msg" style="margin-bottom:12px">Ainda não há posts no calendário. Leve uma ideia para o calendário na aba Ideias.</div>`}
+    <div class="cal-nav">
+      <h3>${MESES[mes][0].toUpperCase() + MESES[mes].slice(1)} de ${ano}</h3>
+      <div class="actions"><button class="btn" data-cal="ant" aria-label="Mês anterior">‹</button><button class="btn" data-cal="hoje">Hoje</button><button class="btn" data-cal="prox" aria-label="Próximo mês">›</button></div>
+    </div>
+    <div class="ano" role="group" aria-label="Meses de ${ano}">${tiraAno}</div>
+    <div class="cal glass">
+      <div class="cal-head">${["seg", "ter", "qua", "qui", "sex", "sáb", "dom"].map(d => `<span>${d}</span>`).join("")}</div>
+      ${semanas.join("")}
+      ${doMesAtual.length ? "" : `<p class="small" style="padding:10px 6px;margin:0">Nenhum post em ${MESES[mes]}.</p>`}
+    </div>
     ${detalhePost()}
-    ${depois.length ? `<p class="small">Mais adiante: ${depois.map(p => `${esc(p.titulo)} (${fmtData(p.data)})`).join(" · ")}</p>` : ""}
     <div class="legend">${["Planejado", "EmCriacao", "EmRevisao", "Agendado", "Publicado", "Erro"].map(chip).join("")}</div>`;
 }
+document.addEventListener("click", e => {
+  const m = e.target.closest("[data-cal-mes]");
+  const n = e.target.closest("[data-cal]");
+  if (!m && !n) return;
+  if (m) mesVisto = new Date(mesVisto.getFullYear(), Number(m.dataset.calMes), 1);
+  else if (n.dataset.cal === "ant") mesVisto = new Date(mesVisto.getFullYear(), mesVisto.getMonth() - 1, 1);
+  else if (n.dataset.cal === "prox") mesVisto = new Date(mesVisto.getFullYear(), mesVisto.getMonth() + 1, 1);
+  else { const d = new Date(); mesVisto = new Date(d.getFullYear(), d.getMonth(), 1); }
+  renderCal();
+});
 function cardPost(p) {
   return `<button class="post s-${esc(p.status)} ${flashId === p.id ? "flash" : ""} ${calAberto === p.id ? "sel" : ""}" data-act="abrir" data-id="${p.id}" aria-expanded="${calAberto === p.id}">
     <span class="pt">${esc(p.titulo)}</span>
@@ -590,6 +969,7 @@ function detalhePost() {
       : `<div class="msg">Para mandar a IA criar este post, abra o painel pelo link do GitHub.</div>`;
   } else if (["EmRevisao", "Ajustes"].includes(p.status)) acao = `<div class="actions"><button class="btn primary" data-act="ver-revisao" data-id="${p.id}">Ver na Revisão</button></div>`;
   else if (p.link) acao = `<div class="actions"><a class="btn" href="${esc(p.link)}" target="_blank" rel="noopener">Ver post publicado</a></div>`;
+  if (p.status !== "Publicado" && !criando(p.id)) acao += `<div class="actions" style="justify-content:flex-start"><button class="btn quiet" data-act="remover-post" data-id="${p.id}">Remover do calendário</button></div>`;
   return `<section class="pdet glass" id="det-${p.id}">
     <div class="top"><h3>${esc(p.titulo)}</h3><button class="btn quiet" data-act="fechar-det" aria-label="Fechar">✕</button></div>
     <div class="meta">${chip(p.status)}<span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span>${p.pilar ? `<span class="chip plain">${esc(p.pilar.split(":")[0])}</span>` : ""}</div>
@@ -867,8 +1247,35 @@ function render() {
   document.getElementById("c-rev").textContent = n(state.posts.filter(p => p.status === "EmRevisao").length);
   renderIdeias(); renderCal(); renderRev();
   flashId = null;
+  sincronizarCasca();
 }
-function ir(t) { tab = t; try { localStorage.setItem(KEY + ":tab", t); } catch (e) {} render(); }
+function ir(t) { tab = t; try { localStorage.setItem(KEY + ":tab", t); } catch (e) {} document.body.classList.remove("menu-aberto"); const v = document.querySelector(".veu-menu"); if (v) v.hidden = true; render(); window.scrollTo({ top: 0 }); }
+const PAGINAS = {
+  marca: ["Marca e fontes", "Perfil da marca e fontes que a IA usa em todas as etapas."],
+  ideias: ["Ideias", "Sugestões da IA a partir das fontes. Escolha o que vai para o calendário."],
+  cal: ["Calendário", "Posts agendados, mês a mês."],
+  rev: ["Revisão", "Posts prontos esperando seu olhar."],
+};
+function sincronizarCasca() {
+  const [t, sub] = PAGINAS[tab] || PAGINAS.ideias;
+  const h = document.getElementById("pg-titulo"); if (h) h.textContent = t;
+  const c = document.getElementById("pg-crumb"); if (c) c.textContent = t;
+  const p = document.getElementById("pg-sub"); if (p) p.textContent = sub;
+  for (const k of ["marca", "ideias", "cal", "rev"]) {
+    const de = document.getElementById("c-" + k), para = document.getElementById("k-" + k);
+    if (de && para) para.textContent = de.textContent;
+  }
+  document.querySelectorAll(".kpi").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab));
+  const logo = typeof logoMarca === "function" && M.marca ? logoMarca() : "";
+  document.querySelectorAll("[data-wm]").forEach(w => {
+    if (logo && w.dataset.logo !== logo) { w.dataset.logo = logo; w.innerHTML = `<img src="${esc(logo)}" alt="Pauta" onerror="this.replaceWith('Pauta')">`; }
+  });
+}
+document.addEventListener("click", e => {
+  if (!e.target.closest("[data-menu]")) return;
+  const aberto = document.body.classList.toggle("menu-aberto");
+  const v = document.querySelector(".veu-menu"); if (v) v.hidden = !aberto;
+});
 
 async function mudarIdeia(ideia, campos, ok) {
   const antes = { status: ideia.status, motivo: ideia.motivo };
@@ -881,7 +1288,7 @@ async function mudarIdeia(ideia, campos, ok) {
 }
 
 document.addEventListener("click", e => {
-  const tabBtn = e.target.closest(".track button"); if (tabBtn) return ir(tabBtn.dataset.tab);
+  const tabBtn = e.target.closest(".track button, .kpi"); if (tabBtn) return ir(tabBtn.dataset.tab);
   const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; return render(); }
   const b = e.target.closest("[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
@@ -893,6 +1300,7 @@ document.addEventListener("click", e => {
   if (act === "buscar-ideias") return buscarIdeias();
   if (act === "criar-post" && post) return criarPost(post);
   if (act === "fechar-det") { calAberto = null; return render(); }
+  if (act === "remover-post" && post) return pedirRemocao(post);
   if (act === "ver-revisao" && post) { revAberto = post.id; ir("rev"); document.getElementById("rev-" + post.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "rev-abrir") { revAberto = revAberto === id ? null : id; ajusteAberto = null; render(); if (revAberto) document.getElementById("rev-" + id)?.scrollIntoView({ behavior: "smooth", block: "nearest" }); return; }
   if (act === "post-aprovar" && post) return revisarPost(post, "aprovar");
@@ -904,7 +1312,7 @@ document.addEventListener("click", e => {
     return revisarPost(post, "ajustar", txt);
   }
   if (act === "recarregar-pauta") { pauta.erro = null; render(); return M.modo === "web" ? carregarPauta() : recarregar(); }
-  if (act === "aprovar") return mudarIdeia(ideia, { Status: "Aprovada" }, "Ideia aprovada. Ela entra no calendário na próxima rodada do fluxo 02.");
+  if (act === "aprovar" && ideia) return abrirAgenda(ideia);
   if (act === "guardar") return mudarIdeia(ideia, { Status: "Guardada" }, "Ideia guardada para depois.");
   if (act === "descartar") { abertoDescarte = id; render(); document.getElementById("motivo-" + id)?.focus(); return; }
   if (act === "descartar-cancel") { abertoDescarte = null; return render(); }
@@ -926,7 +1334,7 @@ const AT = {
   base: "app0V0dEQB4ksFTUV",
   marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", Idioma: "fldfVHS529DWsxlKE" } },
   ideias: { table: "tblkX69MsS5z1MT1v", f: { Titulo: "fldIaygmjuLsE1WFq", Resumo: "fld5lBu8N6tApcJVb", Formato: "fldR8DJtJIF19rmw0", Rede: "fldhnBFmYjiaKU2bw", Pilar: "fldyZHHZuM1mMLby5", Score: "fldN5rkaOAcnBJLsr", PorQueFunciona: "flddAuWW90gQPrvYZ", Status: "fldk2hxweVnMId1U1", MotivoDescarte: "fldM7FdKuv09zIrsE", Referencias: "fldQESoyFaJNIancX", Calendario: "fldPMgJAavbChgFoH" } },
-  cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT", Arquivos: "fld0XuKmLrlR77Kl1", ImagensSlides: "fldinvYLBv5a7Lv35", Fotos: "fldyADExC0MK0ZS1S", ArtesProntas: "fldBEUCyMlEcAcljW" } },
+  cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT", Arquivos: "fld0XuKmLrlR77Kl1", ImagensSlides: "fldinvYLBv5a7Lv35", Fotos: "fldyADExC0MK0ZS1S", ArtesProntas: "fldBEUCyMlEcAcljW", Ideia: "fldhYQFuaqkueq9yk", Clipes: "fldOIRvNezYeao3Pd" } },
   fontes: { table: "tbl8L7CHTLKOfsuj3", f: { Nome: "fldEtApljYo1QPZ1Y", Tipo: "fldX64mLZhKNzixzA", Categoria: "fld1ee1spLYITJKQA", Rede: "fldQeCH8AftrYahdd", URL: "fldaJvN3bK4W64tZT", Peso: "fld2Mrr5M6bBJgdhb", Ativa: "fldtvwIISCKUv2wVC" } },
 };
 const OPC = {
@@ -1044,46 +1452,218 @@ async function recarregar() {
   try { await M.mcp.invalidate(AT.server, "list_records_for_table"); } catch (e) {}
 }
 
-/* Fora do claude.ai: o painel fala com o fluxo 07 do n8n, protegido por senha. */
-const API = "https://easypeasypay.app.n8n.cloud/webhook/pauta-painel";
-const CHAVE_SENHA = "pauta-painel-senha";
-const guardado = {
-  ler() { try { return sessionStorage.getItem(CHAVE_SENHA) || localStorage.getItem(CHAVE_SENHA) || ""; } catch (e) { return ""; } },
-  salvar(s, lembrar) { try { sessionStorage.setItem(CHAVE_SENHA, s); if (lembrar) localStorage.setItem(CHAVE_SENHA, s); } catch (e) {} },
-  apagar() { try { sessionStorage.removeItem(CHAVE_SENHA); localStorage.removeItem(CHAVE_SENHA); } catch (e) {} },
+/* Fora do claude.ai: o painel fala com o fluxo 07 do n8n. Cada pessoa entra com e-mail e senha. */
+const API = "https://easypeasypay.app.n8n.cloud/webhook/pauta-app";
+const API_SENHA = "https://easypeasypay.app.n8n.cloud/webhook/pauta-painel"; // só no primeiro acesso
+const CHAVE_SESSAO = "pauta-painel-sessao";
+const sessao = {
+  ler() { try { return JSON.parse(sessionStorage.getItem(CHAVE_SESSAO) || localStorage.getItem(CHAVE_SESSAO) || "null"); } catch (e) { return null; } },
+  salvar(v, lembrar) { try { const t = JSON.stringify(v); sessionStorage.setItem(CHAVE_SESSAO, t); if (lembrar) localStorage.setItem(CHAVE_SESSAO, t); } catch (e) {} },
+  apagar() { try { for (const k of [CHAVE_SESSAO, "pauta-painel-senha"]) { sessionStorage.removeItem(k); localStorage.removeItem(k); } } catch (e) {} },
 };
-async function api(corpo) {
+const U = { token: "", usuario: null, tela: "login", erro: "", ocupado: false };
+async function chamar(url, headers, corpo) {
   let r;
   try {
-    r = await fetch(API, { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json", "x-pauta-senha": M.senha }, body: JSON.stringify(corpo) });
+    r = await fetch(url, { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(corpo) });
   } catch (e) {
-    throw { web: true, message: "Não consegui falar com o n8n. Confira a senha e se o fluxo 07 (API do painel) está ativo." };
+    throw { web: true, message: "Não consegui falar com o n8n. Confira sua internet e se o fluxo 07 (API do painel) está ativo." };
   }
-  if (r.status === 401 || r.status === 403) throw { web: true, senha: true, message: "Senha incorreta." };
   if (r.status === 404) throw { web: true, message: "O fluxo 07 (API do painel) não está ativo no n8n." };
   let j = null;
   try { j = await r.json(); } catch (e) {}
-  if (!r.ok || !j || j.ok === false) throw { web: true, message: (j && j.erro) || ("O n8n respondeu com erro " + r.status + ".") };
+  if (url === API_SENHA && (r.status === 401 || r.status === 403) && !j) throw { web: true, message: "Senha do painel incorreta." };
+  if (!r.ok || !j || j.ok === false) throw { web: true, status: r.status, login: !!(j && j.login), semUsuarios: !!(j && j.semUsuarios), message: (j && j.erro) || ("O n8n respondeu com erro " + r.status + ".") };
   return j;
+}
+async function api(corpo) {
+  try { return await chamar(API, { "x-pauta-token": U.token }, corpo); }
+  catch (e) { if (e.login) sairLocal("Sua sessão expirou. Entre de novo."); throw e; }
 }
 async function carregarWeb() {
   const j = await api({ acao: "listar" });
   M.marca = j.marca || null; M.fontes = j.fontes || [];
   M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
 }
-async function entrarWeb(senha, lembrar) {
-  M.senha = senha; M.ocupado = true; M.erro = null; renderMarca();
-  try {
-    await carregarWeb();
-    guardado.salvar(senha, lembrar);
-    carregarPauta();
-    M.marcaSuja = false;
-  } catch (e) {
-    M.senha = ""; M.erro = e; M.conexao = "login";
-    if (e.senha) guardado.apagar();
-  }
-  M.ocupado = false; renderMarca();
+async function iniciarWeb() {
+  U.tela = "ok"; U.erro = ""; renderAuth();
+  M.conexao = "carregando"; M.ocupado = true; renderMarca();
+  try { await carregarWeb(); M.marcaSuja = false; carregarPauta(); } catch (e) { M.erro = e; if (M.conexao !== "login") M.conexao = "negado"; }
+  M.ocupado = false; renderMarca(); renderAuth();
 }
+async function entrar(email, senha, lembrar) {
+  U.ocupado = true; U.erro = ""; renderAuth();
+  try {
+    const r = await chamar(API, {}, { acao: "entrar", email, senha, lembrar });
+    U.token = r.token; U.usuario = r.usuario;
+    sessao.salvar({ token: r.token, usuario: r.usuario }, lembrar);
+    U.ocupado = false;
+    return iniciarWeb();
+  } catch (e) {
+    U.ocupado = false;
+    if (e.semUsuarios) { U.tela = "primeiro"; U.erro = ""; }
+    else U.erro = textoErro(e);
+    renderAuth();
+  }
+}
+async function primeiroAcesso(d) {
+  U.ocupado = true; U.erro = ""; renderAuth();
+  try {
+    await chamar(API_SENHA, { "x-pauta-senha": d.senhaPainel }, { acao: "salvarUsuario", usuario: { nome: d.nome, email: d.email, senha: d.senha, papel: "Admin" } });
+    U.ocupado = false;
+    return entrar(d.email, d.senha, true);
+  } catch (e) { U.ocupado = false; U.erro = textoErro(e); renderAuth(); }
+}
+function sairLocal(msg) {
+  U.token = ""; U.usuario = null; sessao.apagar();
+  state = { ideias: [], posts: [] }; pauta.carregada = false;
+  M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null; M.conexao = "login";
+  U.tela = "login"; U.erro = msg || "";
+  render(); renderMarca(); renderAuth();
+}
+function sair() { if (U.token) chamar(API, { "x-pauta-token": U.token }, { acao: "sair" }).catch(() => {}); sairLocal(); }
+const ehAdmin = () => !!U.usuario && U.usuario.papel === "Admin";
+const iniciais = n => String(n || "?").split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join("");
+function marcaDoLogin() {
+  const logo = logoMarca();
+  return `<div class="auth-marca"><span class="wm">${logo ? `<img src="${esc(logo)}" alt="Pauta" onerror="this.replaceWith('Pauta')">` : "Pauta"}</span><span class="adm">C O N T E Ú D O</span></div>`;
+}
+function renderAuth() {
+  const el = document.getElementById("auth"), quem = document.getElementById("usuario");
+  const web = M.modo === "web";
+  if (quem) quem.innerHTML = web && U.usuario ? `<div class="quem"><span class="av" aria-hidden="true">${esc(iniciais(U.usuario.nome))}</span><span>${esc(U.usuario.nome || U.usuario.email)}<small>${U.usuario.papel === "Admin" ? "Administrador" : "Editor"}</small></span></div>
+      ${ehAdmin() ? `<button class="btn" data-u="equipe">Equipe</button>` : ""}<button class="btn quiet" data-u="minha-senha">Minha senha</button><button class="btn quiet" data-u="sair">Sair</button>`
+    : (web ? "" : `<span class="notice">Aprove ou peça ajustes na aba Revisão ou pelo Telegram.</span>`);
+  const aberto = web && U.tela !== "ok";
+  el.hidden = !aberto; document.body.classList.toggle("travado", aberto);
+  if (!aberto) return;
+  const erro = U.erro ? `<div class="msg erro">${esc(U.erro)}</div>` : "";
+  const tiles = ["Carrossel|5 erros ao dividir a conta", "Reels|Bastidores do evento", "Estático|Pague em 3 cliques", "Carrossel|Guia do primeiro rolê", "Reels|Fila zero no bar", "Stories|Enquete da semana"];
+  const coluna = (lista, cls) => `<div class="col ${cls}">${lista.concat(lista).map(t => { const [a, b] = t.split("|"); return `<div class="tile"><span>${a}</span><b>${b}</b></div>`; }).join("")}</div>`;
+  const vitrine = `<div class="vitrine" aria-hidden="true">${coluna(tiles.slice(0, 3), "a")}${coluna(tiles.slice(3), "b")}</div>`;
+  const casca = form => `<div class="auth-wrap"><div class="auth-form">${form}</div>${vitrine}</div>`;
+  if (U.tela === "primeiro") {
+    el.innerHTML = casca(`<form class="glass auth-card" id="f-primeiro" onsubmit="return false">
+      ${marcaDoLogin()}
+      <h1>Primeiro acesso</h1>
+      <p class="hint">Ainda não há usuários. Crie a conta de administrador. Para provar que é você, digite a senha do painel (a da credencial <b>Senha do painel</b> no n8n).</p>
+      <label class="field"><span>Senha do painel</span><input id="pa-senha-painel" type="password" autocomplete="off"></label>
+      <label class="field"><span>Seu nome</span><input id="pa-nome" autocomplete="name"></label>
+      <label class="field"><span>E-mail</span><input id="pa-email" type="email" autocomplete="email"></label>
+      <label class="field"><span>Crie uma senha (mínimo 8 caracteres)</span><input id="pa-senha" type="password" autocomplete="new-password"></label>
+      <label class="field"><span>Repita a senha</span><input id="pa-senha2" type="password" autocomplete="new-password"></label>
+      ${erro}
+      <button class="btn primary" data-u="criar-admin" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Criando…" : "Criar conta e entrar"}</button>
+      <button class="btn quiet" data-u="voltar-login" type="button">Voltar para o login</button>
+    </form>`);
+    return;
+  }
+  el.innerHTML = casca(`<form class="glass auth-card" id="f-login" onsubmit="return false">
+    ${marcaDoLogin()}
+    <h1>Entrar</h1>
+    <label class="field"><span>E-mail</span><input id="l-email" type="email" autocomplete="username"></label>
+    <label class="field"><span>Senha</span><input id="l-senha" type="password" autocomplete="current-password"></label>
+    <label class="actions small"><input id="l-lembrar" type="checkbox" style="width:auto" checked> Manter conectado neste aparelho</label>
+    ${erro}
+    <button class="btn primary" data-u="entrar" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Entrando…" : "Entrar"}</button>
+    <p class="hint">Esqueceu a senha? Peça para um administrador definir uma nova em Equipe.</p>
+  </form>`);
+  if (!U.ocupado) document.getElementById("l-email")?.focus();
+}
+
+/* ---------- diálogos: equipe, minha senha, agendar, remover ---------- */
+const dlg = () => document.getElementById("dlg");
+function abrirDlg(html) { const d = dlg(); d.innerHTML = html; if (!d.open) d.showModal(); d.querySelector("input, select, textarea")?.focus(); }
+function fecharDlg() { const d = dlg(); if (d.open) d.close(); }
+const EQ = { lista: [], editando: null, ocupado: false, erro: "" };
+async function abrirEquipe() {
+  EQ.editando = null; EQ.erro = ""; abrirDlg(`<h2>Equipe</h2><p class="hint">Carregando…</p>`);
+  try { EQ.lista = (await api({ acao: "listarUsuarios" })).usuarios || []; } catch (e) { EQ.erro = textoErro(e); }
+  desenharEquipe();
+}
+function formUsuario(u) {
+  return `<form class="glass box" style="border-radius:16px" onsubmit="return false">
+    <div class="fgrid">
+      <label class="field"><span>Nome</span><input id="eq-nome" value="${esc(u ? u.nome : "")}"></label>
+      <label class="field"><span>E-mail</span><input id="eq-email" type="email" value="${esc(u ? u.email : "")}"></label>
+      <label class="field"><span>Papel</span><select id="eq-papel"><option value="Editor" ${u && u.papel === "Editor" ? "selected" : ""}>Editor: cuida da pauta</option><option value="Admin" ${u && u.papel === "Admin" ? "selected" : ""}>Administrador: também gerencia a equipe</option></select></label>
+      <label class="field"><span>${u ? "Nova senha (deixe vazio para manter)" : "Senha inicial (mínimo 8)"}</span><input id="eq-senha" type="password" autocomplete="new-password"></label>
+    </div>
+    ${u ? `<label class="actions small"><input id="eq-ativo" type="checkbox" style="width:auto" ${u.ativo ? "checked" : ""}> Acesso ativo</label>` : ""}
+    <div class="actions"><button class="btn quiet" type="button" data-u="eq-cancelar">Cancelar</button><button class="btn primary" data-u="eq-salvar" data-id="${u ? u.id : ""}" ${EQ.ocupado ? "disabled" : ""}>${u ? "Salvar" : "Criar usuário"}</button></div>
+  </form>`;
+}
+function desenharEquipe() {
+  const linhas = EQ.lista.map(u => EQ.editando === u.id ? formUsuario(u) : `<div class="urow ${u.ativo ? "" : "off"}">
+      <div><div class="un">${esc(u.nome || "(sem nome)")}</div><div class="ue">${esc(u.email)}${u.ultimoAcesso ? " · último acesso " + fmtData(u.ultimoAcesso) : " · nunca entrou"}</div></div>
+      <div class="actions"><span class="chip ${u.papel === "Admin" ? "acc" : "plain"}">${u.papel === "Admin" ? "Admin" : "Editor"}</span>${u.ativo ? "" : `<span class="chip bad">Desativado</span>`}<button class="btn quiet" data-u="eq-editar" data-id="${u.id}">Editar</button></div>
+    </div>`).join("");
+  abrirDlg(`<h2>Equipe</h2>
+    <p class="hint">Quem pode entrar no painel. Editores cuidam da pauta; administradores também criam e desativam contas.</p>
+    ${EQ.erro ? `<div class="msg erro">${esc(EQ.erro)}</div>` : ""}
+    <div class="users">${EQ.editando === "novo" ? formUsuario(null) : ""}${linhas || `<p class="hint">Nenhum usuário ainda.</p>`}</div>
+    <div class="actions" style="margin-top:14px">${EQ.editando ? "" : `<button class="btn" data-u="eq-novo">+ Novo usuário</button>`}<button class="btn quiet" data-u="fechar">Fechar</button></div>`);
+}
+async function salvarUsuarioEq(id) {
+  const val = k => (document.getElementById(k)?.value || "").trim();
+  const dados = { nome: val("eq-nome"), email: val("eq-email"), papel: val("eq-papel") };
+  const senha = document.getElementById("eq-senha")?.value || "";
+  if (senha) dados.senha = senha;
+  if (id) { dados.id = id; dados.ativo = !!document.getElementById("eq-ativo")?.checked; }
+  EQ.ocupado = true; EQ.erro = "";
+  try {
+    await api({ acao: "salvarUsuario", usuario: dados });
+    EQ.lista = (await api({ acao: "listarUsuarios" })).usuarios || [];
+    EQ.editando = null; toast(id ? "Usuário atualizado." : "Usuário criado. Passe o e-mail e a senha inicial para a pessoa.");
+  } catch (e) { EQ.erro = textoErro(e); }
+  EQ.ocupado = false; desenharEquipe();
+}
+function abrirMinhaSenha(erro) {
+  abrirDlg(`<h2>Minha senha</h2>
+    <form onsubmit="return false">
+      <label class="field"><span>Senha atual</span><input id="ms-atual" type="password" autocomplete="current-password"></label>
+      <label class="field"><span>Nova senha (mínimo 8 caracteres)</span><input id="ms-nova" type="password" autocomplete="new-password"></label>
+      <label class="field"><span>Repita a nova senha</span><input id="ms-nova2" type="password" autocomplete="new-password"></label>
+      ${erro ? `<div class="msg erro">${esc(erro)}</div>` : ""}
+      <div class="actions"><button class="btn quiet" type="button" data-u="fechar">Cancelar</button><button class="btn primary" data-u="ms-salvar">Trocar senha</button></div>
+    </form>`);
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-u]"); if (!b) return;
+  const a = b.dataset.u;
+  const val = k => (document.getElementById(k)?.value || "").trim();
+  if (a === "entrar") { const em = val("l-email"), se = document.getElementById("l-senha").value; if (!em || !se) { U.erro = "Preencha o e-mail e a senha."; return renderAuth(); } return entrar(em, se, document.getElementById("l-lembrar").checked); }
+  if (a === "criar-admin") {
+    const d = { senhaPainel: document.getElementById("pa-senha-painel").value, nome: val("pa-nome"), email: val("pa-email"), senha: document.getElementById("pa-senha").value };
+    if (!d.senhaPainel || !d.nome || !d.email || !d.senha) { U.erro = "Preencha todos os campos."; return renderAuth(); }
+    if (d.senha.length < 8) { U.erro = "A senha precisa ter pelo menos 8 caracteres."; return renderAuth(); }
+    if (d.senha !== document.getElementById("pa-senha2").value) { U.erro = "As senhas não são iguais."; return renderAuth(); }
+    return primeiroAcesso(d);
+  }
+  if (a === "voltar-login") { U.tela = "login"; U.erro = ""; return renderAuth(); }
+  if (a === "sair") return sair();
+  if (a === "fechar") return fecharDlg();
+  if (a === "equipe") return abrirEquipe();
+  if (a === "eq-novo") { EQ.editando = "novo"; return desenharEquipe(); }
+  if (a === "eq-editar") { EQ.editando = b.dataset.id; return desenharEquipe(); }
+  if (a === "eq-cancelar") { EQ.editando = null; EQ.erro = ""; return desenharEquipe(); }
+  if (a === "eq-salvar") return salvarUsuarioEq(b.dataset.id || null);
+  if (a === "minha-senha") return abrirMinhaSenha();
+  if (a === "ms-salvar") {
+    const atual = document.getElementById("ms-atual").value, nova = document.getElementById("ms-nova").value;
+    if (nova.length < 8) return abrirMinhaSenha("A nova senha precisa ter pelo menos 8 caracteres.");
+    if (nova !== document.getElementById("ms-nova2").value) return abrirMinhaSenha("As senhas não são iguais.");
+    try { await api({ acao: "trocarSenha", atual, nova }); fecharDlg(); toast("Senha trocada."); } catch (err) { abrirMinhaSenha(textoErro(err)); }
+    return;
+  }
+  if (a === "agendar-ok") return confirmarAgenda(b.dataset.id);
+  if (a === "remover-post-ok") return confirmarRemocao(b.dataset.id);
+});
+document.addEventListener("keydown", e => {
+  if (e.key !== "Enter" || e.target.tagName !== "INPUT") return;
+  const f = e.target.closest("#f-login, #f-primeiro"); if (!f) return;
+  e.preventDefault(); f.querySelector(".btn.primary")?.click();
+});
 
 const paraIds = (f, campos) => Object.fromEntries(Object.entries(campos).map(([k, x]) => [f[k], x]));
 async function executar(op, dados, ok) {
@@ -1108,7 +1688,6 @@ async function executar(op, dados, ok) {
     const talvez = e && (e.code === "server_unavailable" || e.code === "upstream_error");
     M.aviso = { tipo: "erro", texto: textoErro(e) + (talvez ? " A alteração pode ter sido gravada; a lista vai recarregar." : "") };
     if (talvez) recarregar();
-    if (e && e.senha) { M.senha = ""; guardado.apagar(); M.conexao = "login"; M.erro = e; renderMarca(); }
     return false;
   } finally { M.ocupado = false; renderStatus(); }
 }
@@ -1161,13 +1740,14 @@ function toggles(id, lista, marcados) {
 function renderStatus() {
   const el = document.getElementById("m-status"); if (!el) return;
   const cls = M.conexao === "ok" ? "on" : M.conexao === "carregando" ? "" : "off";
-  const txt = { ok: M.modo === "web" ? "Conectado ao Airtable pelo n8n" : "Conectado ao Airtable", carregando: "Conectando ao Airtable…", negado: "Sem acesso ao Airtable", indisponivel: "Airtable indisponível aqui", login: "Entre com a senha" }[M.conexao] || "Airtable";
-  el.innerHTML = `<span class="actions"><span class="live ${cls}">${txt}</span>${M.modo === "web" && M.conexao === "ok" ? `<button class="linkbtn" data-m="sair">Sair</button>` : ""}</span>`;
+  const txt = { ok: M.modo === "web" ? "Conectado ao Airtable pelo n8n" : "Conectado ao Airtable", carregando: "Conectando ao Airtable…", negado: "Sem acesso ao Airtable", indisponivel: "Airtable indisponível aqui", login: "Faça login" }[M.conexao] || "Airtable";
+  el.innerHTML = `<span class="actions"><span class="live ${cls}">${txt}</span></span>`;
   const av = document.getElementById("m-aviso");
   if (av) av.innerHTML = M.aviso ? `<div class="msg ${M.aviso.tipo}">${esc(M.aviso.texto)}</div>` : (M.marcaSuja ? `<div class="msg">Há alterações na marca que ainda não foram salvas.</div>` : "");
   document.querySelectorAll("[data-m='salvar-marca'], [data-m='salvar-fonte']").forEach(b => (b.disabled = M.ocupado));
   const ativas = M.fontes.filter(x => x.Ativa === true).length;
   document.getElementById("c-marca").textContent = M.fontesCarregadas ? String(ativas).padStart(2, "0") : "–";
+  sincronizarCasca();
 }
 function renderFontes() {
   const el = document.getElementById("m-fontes"); if (!el) return;
@@ -1198,7 +1778,7 @@ function formFonte(x) {
       <label class="field full"><span>Link (opcional)</span><input id="f-url" value="${esc(x?.URL || "")}" placeholder="https://"></label>
     </div>
     <div class="actions" style="justify-content:space-between">
-      <span class="actions"><button class="switch" role="switch" id="f-ativa" aria-checked="${ativa}" data-m="ativa-form" aria-label="Fonte ativa"></button><span class="small">Ativa na coleta de segunda</span></span>
+      <span class="actions"><button class="switch" role="switch" id="f-ativa" aria-checked="${ativa}" data-m="ativa-form" aria-label="Fonte ativa"></button><span class="small">Ativa na coleta de ideias</span></span>
       <span class="actions"><button class="btn quiet" data-m="cancelar-fonte">Cancelar</button><button class="btn primary" data-m="salvar-fonte">${x ? "Salvar fonte" : "Adicionar fonte"}</button></span>
     </div>
     <p class="hint" style="margin:0">Perfis e hashtags do Instagram e do TikTok são coletados automaticamente. Os outros tipos entram como temas de interesse para a IA.</p>
@@ -1206,22 +1786,14 @@ function formFonte(x) {
 }
 function renderMarca() {
   const el = document.getElementById("p-marca"); if (!el) return;
-  const head = `<div class="panel-head"><p>O que você salvar aqui vai direto para o Airtable e é usado pela IA em todas as etapas: ideias, posts e ajustes.</p><div id="m-status"></div></div>`;
+  const head = `<div class="panel-head"><p>O que você salvar aqui vai direto para o Airtable.</p><div id="m-status"></div></div>`;
   if (M.conexao === "indisponivel") {
     el.innerHTML = head + `<div class="glass empty">Para editar a marca e as fontes, abra este painel no claude.ai com o conector do Airtable conectado à sua conta.</div>`;
     return renderStatus();
   }
   if (M.conexao === "login") {
-    el.innerHTML = head + `<form class="glass box" id="m-login" style="max-width:440px" onsubmit="return false">
-      <h2>Entrar</h2>
-      <p class="hint">Digite a senha de acesso do painel. É a mesma que está na credencial <b>Senha do painel</b> no n8n.</p>
-      <label class="field"><span>Senha</span><input id="m-senha" type="password" autocomplete="current-password"></label>
-      <label class="actions small" style="flex:none"><input id="m-lembrar" type="checkbox" style="width:auto"> Lembrar neste aparelho</label>
-      ${M.erro ? `<div class="msg erro">${esc(textoErro(M.erro))}</div>` : ""}
-      <div class="actions" style="justify-content:flex-end"><button class="btn primary" data-m="entrar" ${M.ocupado ? "disabled" : ""}>${M.ocupado ? "Entrando…" : "Entrar"}</button></div>
-    </form>`;
-    renderStatus();
-    return document.getElementById("m-senha")?.focus();
+    el.innerHTML = head + `<div class="glass empty">Entre com seu usuário para ver a marca e as fontes.</div>`;
+    return renderStatus();
   }
   if (M.conexao === "negado" || (M.erro && !M.marcaCarregada)) {
     el.innerHTML = head + `<div class="msg erro"><span>${esc(textoErro(M.erro))}</span><button class="btn" data-m="tentar">Tentar de novo</button></div>`;
@@ -1261,7 +1833,7 @@ function renderMarca() {
     </form>
     <section class="glass box">
       <div class="actions" style="justify-content:space-between"><h2>Fontes</h2><button class="btn" data-m="nova-fonte">+ Nova fonte</button></div>
-      <p class="hint">O fluxo de coleta lê as fontes ativas toda segunda às 7h.</p>
+      <p class="hint">A coleta lê as fontes ativas quando você clica em Buscar ideias novas, na aba Ideias.</p>
       <div class="fontes" id="m-fontes"></div>
     </section>
   </div>`;
@@ -1287,8 +1859,6 @@ document.addEventListener("click", async e => {
   if (a === "add-pilar") { const n = v("m-novo-pilar"); if (n) { M.pilaresExtra.push(n); const box = document.getElementById("m-pilares"); box.insertAdjacentHTML("beforeend", `<button type="button" data-m="toggle" data-valor="${esc(n)}" aria-pressed="true">${esc(n)}</button>`); document.getElementById("m-novo-pilar").value = ""; M.marcaSuja = true; renderStatus(); } return; }
   if (a === "add-cor") { document.getElementById("m-cores").insertAdjacentHTML("beforeend", linhaCor({ hex: "#FF3347", nome: "" })); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
   if (a === "rm-cor") { b.closest(".cor").remove(); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
-  if (a === "entrar") { const s = document.getElementById("m-senha").value; if (!s) return; return entrarWeb(s, document.getElementById("m-lembrar").checked); }
-  if (a === "sair") { state = { ideias: [], posts: [] }; pauta.carregada = false; render(); guardado.apagar(); M.senha = ""; M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null; M.conexao = "login"; return renderMarca(); }
   if (a === "salvar-marca") return salvarMarca();
   if (a === "tentar") return tentarDeNovo();
   if (a === "nova-fonte") { M.editando = "novo"; M.remover = null; renderFontes(); return document.getElementById("f-nome")?.focus(); }
@@ -1316,17 +1886,16 @@ document.addEventListener("click", async e => {
   const c = window.claude;
   M.mcp = c && typeof c.use === "function" ? await c.use("mcp").catch(() => null) : null;
   if (M.mcp) return conectar();
-  // Fora do claude.ai (ex.: GitHub Pages): usa o fluxo 07 do n8n, com senha.
+  // Fora do claude.ai (ex.: GitHub Pages): login por usuário, pelo fluxo 07 do n8n.
   M.modo = "web";
-  const salva = guardado.ler();
-  if (salva) return entrarWeb(salva, false);
-  M.conexao = "login"; renderMarca();
+  const salva = sessao.ler();
+  if (salva && salva.token) { U.token = salva.token; U.usuario = salva.usuario || null; return iniciarWeb(); }
+  M.conexao = "login"; renderMarca(); renderAuth();
 })();
-document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "m-senha") { e.preventDefault(); document.querySelector('[data-m="entrar"]')?.click(); } });
 
 render();
 // Fora do claude.ai, atualiza a pauta a cada 90 s enquanto a página está aberta.
-setInterval(() => { if (M.modo === "web" && M.senha && !document.hidden) carregarPauta(); }, 90000);
+setInterval(() => { if (M.modo === "web" && U.token && !document.hidden) carregarPauta(); }, 90000);
 </script>
 </body>
 </html>
