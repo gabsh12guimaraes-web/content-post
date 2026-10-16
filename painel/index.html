@@ -576,7 +576,7 @@ const rot = v => ROTULO[v] || v;
 const INPUT_MARCA = { baseId: AT.base, tableId: AT.marca.table, fieldIds: Object.values(AT.marca.f), pageSize: 1 };
 const INPUT_FONTES = { baseId: AT.base, tableId: AT.fontes.table, fieldIds: Object.values(AT.fontes.f), pageSize: 200, sort: [{ fieldId: AT.fontes.f.Nome }] };
 
-const M = { mcp: null, conexao: "carregando", erro: null, marca: null, marcaCarregada: false, marcaSuja: false, fontes: [], fontesCarregadas: false, editando: null, remover: null, ocupado: false, aviso: null, pilaresExtra: [] };
+const M = { modo: "mcp", senha: "", mcp: null, conexao: "carregando", erro: null, marca: null, marcaCarregada: false, marcaSuja: false, fontes: [], fontesCarregadas: false, editando: null, remover: null, ocupado: false, aviso: null, pilaresExtra: [] };
 
 const selNome = v => (v && typeof v === "object") ? v.name : (v ?? "");
 function lerRegistros(res, f) {
@@ -591,6 +591,7 @@ function lerRegistros(res, f) {
   });
 }
 function textoErro(e) {
+  if (e && e.web) return e.message;
   const code = e && e.code;
   const msg = {
     server_not_connected: "O Airtable não está conectado à sua conta do claude.ai. Adicione em claude.ai → Configurações → Conectores e recarregue esta página.",
@@ -634,6 +635,7 @@ function conectar() {
   }, { cache: { staleTime: 30000 } });
 }
 async function tentarDeNovo() {
+  if (M.modo === "web") { M.ocupado = true; renderStatus(); try { await carregarWeb(); } catch (e) { M.erro = e; } M.ocupado = false; return renderMarca(); }
   if (!M.mcp) return;
   M.ocupado = true; renderStatus();
   try {
@@ -645,13 +647,67 @@ async function tentarDeNovo() {
   } catch (e) { M.erro = e; }
   M.ocupado = false; renderMarca();
 }
-async function recarregar() { try { await M.mcp.invalidate(AT.server, "list_records_for_table"); } catch (e) {} }
+async function recarregar() {
+  if (M.modo === "web") { try { await carregarWeb(); } catch (e) {} return renderFontes(); }
+  try { await M.mcp.invalidate(AT.server, "list_records_for_table"); } catch (e) {}
+}
 
-async function gravar(tool, tabela, input, ok) {
+/* Fora do claude.ai: o painel fala com o fluxo 07 do n8n, protegido por senha. */
+const API = "https://easypeasypay.app.n8n.cloud/webhook/pauta-painel";
+const CHAVE_SENHA = "pauta-painel-senha";
+const guardado = {
+  ler() { try { return sessionStorage.getItem(CHAVE_SENHA) || localStorage.getItem(CHAVE_SENHA) || ""; } catch (e) { return ""; } },
+  salvar(s, lembrar) { try { sessionStorage.setItem(CHAVE_SENHA, s); if (lembrar) localStorage.setItem(CHAVE_SENHA, s); } catch (e) {} },
+  apagar() { try { sessionStorage.removeItem(CHAVE_SENHA); localStorage.removeItem(CHAVE_SENHA); } catch (e) {} },
+};
+async function api(corpo) {
+  let r;
+  try {
+    r = await fetch(API, { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json", "x-pauta-senha": M.senha }, body: JSON.stringify(corpo) });
+  } catch (e) {
+    throw { web: true, message: "Não consegui falar com o n8n. Confira a senha e se o fluxo 07 (API do painel) está ativo." };
+  }
+  if (r.status === 401 || r.status === 403) throw { web: true, senha: true, message: "Senha incorreta." };
+  if (r.status === 404) throw { web: true, message: "O fluxo 07 (API do painel) não está ativo no n8n." };
+  let j = null;
+  try { j = await r.json(); } catch (e) {}
+  if (!r.ok || !j || j.ok === false) throw { web: true, message: (j && j.erro) || ("O n8n respondeu com erro " + r.status + ".") };
+  return j;
+}
+async function carregarWeb() {
+  const j = await api({ acao: "listar" });
+  M.marca = j.marca || null; M.fontes = j.fontes || [];
+  M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
+}
+async function entrarWeb(senha, lembrar) {
+  M.senha = senha; M.ocupado = true; M.erro = null; renderMarca();
+  try {
+    await carregarWeb();
+    guardado.salvar(senha, lembrar);
+    M.marcaSuja = false;
+  } catch (e) {
+    M.senha = ""; M.erro = e; M.conexao = "login";
+    if (e.senha) guardado.apagar();
+  }
+  M.ocupado = false; renderMarca();
+}
+
+const paraIds = (f, campos) => Object.fromEntries(Object.entries(campos).map(([k, x]) => [f[k], x]));
+async function executar(op, dados, ok) {
   M.ocupado = true; M.aviso = null; renderStatus();
   try {
-    const extra = tool === "delete_records_for_table" ? {} : { typecast: true };
-    await M.mcp.callTool(AT.server, tool, { baseId: AT.base, tableId: tabela, ...extra, ...input });
+    if (M.modo === "web") {
+      await api({ acao: op, ...dados });
+    } else {
+      const t = op === "salvarMarca" ? AT.marca : AT.fontes;
+      if (op === "removerFonte") {
+        await M.mcp.callTool(AT.server, "delete_records_for_table", { baseId: AT.base, tableId: t.table, recordIds: [dados.id] });
+      } else {
+        const fields = paraIds(t.f, dados.campos);
+        await M.mcp.callTool(AT.server, dados.id ? "update_records_for_table" : "create_records_for_table",
+          { baseId: AT.base, tableId: t.table, typecast: true, records: [dados.id ? { id: dados.id, fields } : { fields }] });
+      }
+    }
     M.aviso = { tipo: "ok", texto: ok };
     await recarregar();
     return true;
@@ -659,13 +715,14 @@ async function gravar(tool, tabela, input, ok) {
     const talvez = e && (e.code === "server_unavailable" || e.code === "upstream_error");
     M.aviso = { tipo: "erro", texto: textoErro(e) + (talvez ? " A alteração pode ter sido gravada; a lista vai recarregar." : "") };
     if (talvez) recarregar();
+    if (e && e.senha) { M.senha = ""; guardado.apagar(); M.conexao = "login"; M.erro = e; renderMarca(); }
     return false;
   } finally { M.ocupado = false; renderStatus(); }
 }
 
 const v = id => (document.getElementById(id)?.value ?? "").trim();
 async function salvarMarca() {
-  const f = AT.marca.f;
+  const f = { Nome: "Nome", Posicionamento: "Posicionamento", Publico: "Publico", TomDeVoz: "TomDeVoz", Evitar: "Evitar", ExemplosBons: "ExemplosBons", Pilares: "Pilares", Redes: "Redes", FrequenciaSemanal: "FrequenciaSemanal", Idioma: "Idioma", Cores: "Cores", Logo: "Logo" };
   const pilares = [...document.querySelectorAll('#m-pilares [aria-pressed="true"]')].map(b => b.dataset.valor);
   const redes = [...document.querySelectorAll('#m-redes [aria-pressed="true"]')].map(b => b.dataset.valor);
   if (!v("m-nome")) { M.aviso = { tipo: "erro", texto: "Preencha pelo menos o nome da marca." }; return renderStatus(); }
@@ -685,14 +742,12 @@ async function salvarMarca() {
     if (!/^https:\/\//i.test(logo)) { M.aviso = { tipo: "erro", texto: "O link do logo precisa começar com https://" }; return renderStatus(); }
     campos[f.Logo] = [{ url: logo }];
   }
-  const ok = M.marca
-    ? await gravar("update_records_for_table", AT.marca.table, { records: [{ id: M.marca.id, fields: campos }] }, "Marca salva no Airtable.")
-    : await gravar("create_records_for_table", AT.marca.table, { records: [{ fields: campos }] }, "Marca salva no Airtable.");
+  const ok = await executar("salvarMarca", { id: M.marca ? M.marca.id : null, campos }, "Marca salva no Airtable.");
   if (ok) M.marcaSuja = false;
   renderStatus();
 }
 async function salvarFonte() {
-  const f = AT.fontes.f;
+  const f = { Nome: "Nome", Tipo: "Tipo", Rede: "Rede", Categoria: "Categoria", URL: "URL", Peso: "Peso", Ativa: "Ativa" };
   if (!v("f-nome")) { M.aviso = { tipo: "erro", texto: "Preencha o nome da fonte (ex.: @perfil, #hashtag ou um tema)." }; return renderStatus(); }
   const peso = parseInt(v("f-peso"), 10);
   const campos = {
@@ -701,9 +756,7 @@ async function salvarFonte() {
     [f.Ativa]: document.getElementById("f-ativa")?.getAttribute("aria-checked") === "true",
   };
   const novo = M.editando === "novo";
-  const ok = novo
-    ? await gravar("create_records_for_table", AT.fontes.table, { records: [{ fields: campos }] }, "Fonte adicionada.")
-    : await gravar("update_records_for_table", AT.fontes.table, { records: [{ id: M.editando, fields: campos }] }, "Fonte atualizada.");
+  const ok = await executar("salvarFonte", { id: novo ? null : M.editando, campos }, novo ? "Fonte adicionada." : "Fonte atualizada.");
   if (ok) { M.editando = null; renderFontes(); }
 }
 
@@ -715,8 +768,8 @@ function toggles(id, lista, marcados) {
 function renderStatus() {
   const el = document.getElementById("m-status"); if (!el) return;
   const cls = M.conexao === "ok" ? "on" : M.conexao === "carregando" ? "" : "off";
-  const txt = { ok: "Conectado ao Airtable", carregando: "Conectando ao Airtable…", negado: "Sem acesso ao Airtable", indisponivel: "Airtable indisponível aqui" }[M.conexao] || "Airtable";
-  el.innerHTML = `<span class="live ${cls}">${txt}</span>`;
+  const txt = { ok: M.modo === "web" ? "Conectado ao Airtable pelo n8n" : "Conectado ao Airtable", carregando: "Conectando ao Airtable…", negado: "Sem acesso ao Airtable", indisponivel: "Airtable indisponível aqui", login: "Entre com a senha" }[M.conexao] || "Airtable";
+  el.innerHTML = `<span class="actions"><span class="live ${cls}">${txt}</span>${M.modo === "web" && M.conexao === "ok" ? `<button class="linkbtn" data-m="sair">Sair</button>` : ""}</span>`;
   const av = document.getElementById("m-aviso");
   if (av) av.innerHTML = M.aviso ? `<div class="msg ${M.aviso.tipo}">${esc(M.aviso.texto)}</div>` : (M.marcaSuja ? `<div class="msg">Há alterações na marca que ainda não foram salvas.</div>` : "");
   document.querySelectorAll("[data-m='salvar-marca'], [data-m='salvar-fonte']").forEach(b => (b.disabled = M.ocupado));
@@ -764,6 +817,18 @@ function renderMarca() {
   if (M.conexao === "indisponivel") {
     el.innerHTML = head + `<div class="glass empty">Para editar a marca e as fontes, abra este painel no claude.ai com o conector do Airtable conectado à sua conta.</div>`;
     return renderStatus();
+  }
+  if (M.conexao === "login") {
+    el.innerHTML = head + `<form class="glass box" id="m-login" style="max-width:440px" onsubmit="return false">
+      <h2>Entrar</h2>
+      <p class="hint">Digite a senha de acesso do painel. É a mesma que está na credencial <b>Senha do painel</b> no n8n.</p>
+      <label class="field"><span>Senha</span><input id="m-senha" type="password" autocomplete="current-password"></label>
+      <label class="actions small" style="flex:none"><input id="m-lembrar" type="checkbox" style="width:auto"> Lembrar neste aparelho</label>
+      ${M.erro ? `<div class="msg erro">${esc(textoErro(M.erro))}</div>` : ""}
+      <div class="actions" style="justify-content:flex-end"><button class="btn primary" data-m="entrar" ${M.ocupado ? "disabled" : ""}>${M.ocupado ? "Entrando…" : "Entrar"}</button></div>
+    </form>`;
+    renderStatus();
+    return document.getElementById("m-senha")?.focus();
   }
   if (M.conexao === "negado" || (M.erro && !M.marcaCarregada)) {
     el.innerHTML = head + `<div class="msg erro"><span>${esc(textoErro(M.erro))}</span><button class="btn" data-m="tentar">Tentar de novo</button></div>`;
@@ -829,6 +894,8 @@ document.addEventListener("click", async e => {
   if (a === "add-pilar") { const n = v("m-novo-pilar"); if (n) { M.pilaresExtra.push(n); const box = document.getElementById("m-pilares"); box.insertAdjacentHTML("beforeend", `<button type="button" data-m="toggle" data-valor="${esc(n)}" aria-pressed="true">${esc(n)}</button>`); document.getElementById("m-novo-pilar").value = ""; M.marcaSuja = true; renderStatus(); } return; }
   if (a === "add-cor") { document.getElementById("m-cores").insertAdjacentHTML("beforeend", linhaCor({ hex: "#FF3347", nome: "" })); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
   if (a === "rm-cor") { b.closest(".cor").remove(); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
+  if (a === "entrar") { const s = document.getElementById("m-senha").value; if (!s) return; return entrarWeb(s, document.getElementById("m-lembrar").checked); }
+  if (a === "sair") { guardado.apagar(); M.senha = ""; M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null; M.conexao = "login"; return renderMarca(); }
   if (a === "salvar-marca") return salvarMarca();
   if (a === "tentar") return tentarDeNovo();
   if (a === "nova-fonte") { M.editando = "novo"; M.remover = null; renderFontes(); return document.getElementById("f-nome")?.focus(); }
@@ -839,14 +906,14 @@ document.addEventListener("click", async e => {
   if (a === "ativa") {
     const x = M.fontes.find(y => y.id === id); if (!x || M.ocupado) return;
     const nova = x.Ativa !== true; x.Ativa = nova; renderFontes();
-    const ok = await gravar("update_records_for_table", AT.fontes.table, { records: [{ id, fields: { [AT.fontes.f.Ativa]: nova } }] }, nova ? "Fonte ativada." : "Fonte pausada.");
+    const ok = await executar("salvarFonte", { id, campos: { Ativa: nova } }, nova ? "Fonte ativada." : "Fonte pausada.");
     if (!ok) { x.Ativa = !nova; renderFontes(); }
     return;
   }
   if (a === "remover") { M.remover = id; return renderFontes(); }
   if (a === "remover-nao") { M.remover = null; return renderFontes(); }
   if (a === "remover-ok") {
-    const ok = await gravar("delete_records_for_table", AT.fontes.table, { recordIds: [id] }, "Fonte removida.");
+    const ok = await executar("removerFonte", { id }, "Fonte removida.");
     if (ok) { M.fontes = M.fontes.filter(y => y.id !== id); M.remover = null; renderFontes(); }
   }
 });
@@ -855,9 +922,14 @@ document.addEventListener("click", async e => {
   renderMarca();
   const c = window.claude;
   M.mcp = c && typeof c.use === "function" ? await c.use("mcp").catch(() => null) : null;
-  if (!M.mcp) { M.conexao = "indisponivel"; return renderMarca(); }
-  conectar();
+  if (M.mcp) return conectar();
+  // Fora do claude.ai (ex.: GitHub Pages): usa o fluxo 07 do n8n, com senha.
+  M.modo = "web";
+  const salva = guardado.ler();
+  if (salva) return entrarWeb(salva, false);
+  M.conexao = "login"; renderMarca();
 })();
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "m-senha") { e.preventDefault(); document.querySelector('[data-m="entrar"]')?.click(); } });
 
 load(); render();
 </script>
