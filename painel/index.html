@@ -183,7 +183,7 @@ button { cursor: pointer; }
 
 /* revisão */
 .review { display: grid; gap: 20px; }
-.rcard { padding: 20px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; }
+.rcard { padding: 20px; display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 28px; align-items: start; }
 @media (max-width: 820px) { .rcard { grid-template-columns: 1fr; } }
 .slides { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
 .slide {
@@ -258,6 +258,41 @@ button { cursor: pointer; }
 .paleta i { flex: 1; }
 .logo-atual { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--ink-soft); }
 .logo-atual a { color: var(--pink); }
+/* ---------- prévia do post (formato do Instagram) ---------- */
+.ig { --b-bg: #0A0C15; --b-acc: #F8395A; display: grid; gap: 0; background: #000; border-radius: 22px; overflow: hidden; border: 1px solid var(--line); max-width: 460px; width: 100%; justify-self: center; }
+.ig-top { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #0b0b0d; }
+.ig-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--b-bg); border: 2px solid var(--b-acc); display: grid; place-items: center; overflow: hidden; flex: none; font-size: 11px; font-weight: 700; color: #fff; }
+.ig-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+.ig-nome { font-size: 13px; font-weight: 600; color: #fff; }
+.ig-sub { font-size: 11px; color: var(--ink-faint); }
+.ig-trilho { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.ig-trilho::-webkit-scrollbar { display: none; }
+.ig-slide { position: relative; flex: 0 0 100%; aspect-ratio: 4 / 5; scroll-snap-align: start; container-type: inline-size; overflow: hidden; color: #fff;
+  background: radial-gradient(120% 80% at 85% 0%, color-mix(in srgb, var(--b-acc) 28%, transparent), transparent 60%), var(--b-bg); }
+.ig-slide .foto { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.ig-slide .veu { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,12,21,.10) 0%, rgba(10,12,21,.25) 40%, rgba(10,12,21,.94) 100%); }
+.ig-slide.sem-foto .veu { display: none; }
+.ig-slide.cta { background: var(--b-acc); }
+.ig-slide.arte .veu, .ig-slide.arte .conteudo, .ig-slide.arte .marca-agua { display: none; }
+.ig-slide .marca-agua { position: absolute; top: 5cqw; left: 6cqw; height: 6.5cqw; display: flex; align-items: center; gap: 2cqw; font-size: 3.4cqw; font-weight: 700; letter-spacing: .02em; opacity: .95; }
+.ig-slide .marca-agua img { height: 100%; width: auto; }
+.ig-slide .contador { position: absolute; top: 5cqw; right: 6cqw; font-size: 3cqw; font-weight: 600; padding: 1cqw 2.6cqw; border-radius: 99px; background: rgba(0,0,0,.45); }
+.ig-slide .conteudo { position: absolute; left: 6cqw; right: 6cqw; bottom: 8cqw; display: grid; gap: 3cqw; }
+.ig-slide.sem-foto .conteudo { top: 22cqw; bottom: auto; }
+.ig-slide .barra { width: 12cqw; height: 1.4cqw; border-radius: 99px; background: var(--b-acc); }
+.ig-slide.cta .barra { background: #fff; }
+.ig-slide .titulo { font-family: var(--font-body); font-weight: 700; font-size: 8.6cqw; line-height: 1.05; letter-spacing: -.01em; text-wrap: balance; }
+.ig-slide.sem-foto .titulo { font-size: 10cqw; }
+.ig-slide .texto { font-size: 4.4cqw; line-height: 1.35; color: rgba(255,255,255,.88); max-width: 92%; }
+.ig-slide .seta { position: absolute; right: 6cqw; bottom: 6cqw; font-size: 3.2cqw; font-weight: 600; opacity: .8; }
+.ig-pontos { display: flex; justify-content: center; gap: 5px; padding: 10px 0 2px; background: #0b0b0d; }
+.ig-pontos i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.3); }
+.ig-pontos i.on { background: var(--b-acc); }
+.ig-legenda { padding: 8px 14px 14px; background: #0b0b0d; font-size: 13px; color: rgba(255,255,255,.85); white-space: pre-line; max-height: 240px; overflow: auto; }
+.ig-legenda b { color: #fff; }
+.ig-legenda .tags { margin-top: 8px; display: block; }
+.ig-aviso { font-size: 11px; color: var(--ink-faint); padding: 0 14px 12px; background: #0b0b0d; }
+
 /* ---------- celular e tablet ---------- */
 @media (max-width: 760px) {
   .wrap { padding-inline: 16px; padding-block: 16px 56px; }
@@ -293,7 +328,7 @@ button { cursor: pointer; }
 <div class="wrap">
   <header class="top">
     <div class="actions">
-      <span class="notice">Ideias, Calendário e Revisão ainda não estão ligados ao Airtable.</span>
+      <span class="notice">Aprovação dos posts pelo bot do Telegram.</span>
     </div>
   </header>
 
@@ -353,11 +388,12 @@ function deIdeia(r) {
 function dePost(r) {
   let slides = [];
   try {
-    slides = JSON.parse(r.Slides || "[]").map(s => ({ t: s.titulo || s.visual || "", x: s.texto || s.fala_ou_texto || "", img: !!s.usa_imagem }));
+    slides = JSON.parse(r.Slides || "[]").map((s, i) => ({ n: Number(s.n) || i + 1, t: s.titulo || s.visual || "", x: s.texto || s.fala_ou_texto || "", img: !!s.usa_imagem }));
   } catch (e) {}
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, link: r.LinkPublicado || "",
+    arquivos: r.Arquivos || [], imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
 function receberPauta(ideias, posts) {
@@ -468,16 +504,51 @@ function renderRev() {
   el.innerHTML = head + (lista.length ? `<div class="review">${lista.map(cardRev).join("")}</div>`
     : `<div class="empty glass">Nada para revisar agora. Quando a IA terminar um post, ele aparece aqui e você recebe a prévia no Telegram.</div>`);
 }
+const urlArq = a => (a && a.thumbnails && a.thumbnails.large && a.thumbnails.large.url) || (a && a.url) || "";
+function coresMarca() {
+  const c = lerCores(M.marca && M.marca.Cores);
+  return { bg: (c[0] && c[0].hex) || "#0A0C15", acc: (c[1] && c[1].hex) || "#F8395A" };
+}
+function logoMarca() { const a = ((M.marca && M.marca.Logo) || [])[0]; return a ? urlArq(a) : ""; }
+// Liga cada slide à sua imagem. Se há uma arte por slide (Canva), a imagem já é o slide pronto.
+function imagensDoPost(p) {
+  const arq = p.arquivos || [];
+  const mapa = {};
+  const prontas = arq.length > 0 && arq.length === p.slides.length && Object.keys(p.imagensSlides || {}).length !== arq.length;
+  if (prontas) p.slides.forEach((sl, i) => (mapa[sl.n] = urlArq(arq[i])));
+  else Object.keys(p.imagensSlides || {}).map(Number).sort((a, b) => a - b).forEach((n, i) => { if (arq[i]) mapa[n] = urlArq(arq[i]); });
+  return { mapa, prontas };
+}
+const cssUrl = u => "url('" + String(u).replace(/['\\()]/g, encodeURIComponent) + "')";
+function slidePost(sl, i, total, img, prontas, logo, nome) {
+  const ultimo = i === total - 1 && total > 1;
+  const classes = ["ig-slide", img ? "" : "sem-foto", prontas && img ? "arte" : "", ultimo && !img ? "cta" : ""].join(" ");
+  return `<div class="${classes}">
+    ${img ? `<div class="foto" style="background-image:${cssUrl(img)}"></div>` : ""}
+    <div class="veu"></div>
+    <div class="marca-agua">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.replaceWith(document.createTextNode('${esc(nome).replace(/'/g, "")}'))">` : esc(nome)}</div>
+    ${total > 1 ? `<span class="contador">${i + 1}/${total}</span>` : ""}
+    <div class="conteudo"><span class="barra"></span><div class="titulo">${esc(sl.t)}</div>${sl.x ? `<div class="texto">${esc(sl.x)}</div>` : ""}</div>
+    ${total > 1 && !ultimo ? `<span class="seta">arraste →</span>` : ""}
+  </div>`;
+}
 function cardRev(p) {
-  const slides = p.slides.map((s, k) => `<div class="slide"><span class="n">${String(k + 1).padStart(2, "0")}</span><div><div class="st">${esc(s.t)}</div><div class="sx">${esc(s.x)}</div></div>${s.img ? `<span class="img">imagem · Freepik</span>` : "<span></span>"}</div>`).join("");
+  const cores = coresMarca(), logo = logoMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
+  const { mapa, prontas } = imagensDoPost(p);
+  const slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
+  const html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome)).join("");
+  const pontos = slides.length > 1 ? `<div class="ig-pontos" aria-hidden="true">${slides.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
   const acoes = p.status === "Ajustes"
     ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste…</div>`
     : `<div class="msg">Para aprovar ou pedir ajuste, use os botões na mensagem do bot no Telegram.</div>`;
   return `<article class="rcard glass" id="rev-${p.id}">
-    <div style="display:grid;gap:12px;min-width:0">
-      ${slides ? `<div class="slides" tabindex="0" aria-label="Slides do post">${slides}</div>` : ""}
-      <div class="caption">${esc(p.legenda || "Legenda ainda não gerada.")}</div>
-      <div class="tags">${esc(p.hashtags || "")}</div>
+    <div class="ig" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
+      <div class="ig-top"><span class="ig-avatar">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
+        <span><div class="ig-nome">${esc(nome)}</div><div class="ig-sub">${esc(p.rede)} · ${esc(p.formato)}</div></span></div>
+      <div class="ig-trilho" data-trilho="${p.id}" tabindex="0" aria-label="Slides do post">${html}</div>
+      ${pontos}
+      <div class="ig-legenda"><b>${esc(nome)}</b> ${esc(p.legenda || "Legenda ainda não gerada.")}<span class="tags">${esc(p.hashtags || "")}</span></div>
+      ${!prontas && Object.keys(mapa).length ? `<div class="ig-aviso">Prévia montada pelo painel: as fotos são do Freepik e o texto entra por cima. Com o Canva ligado, aqui aparecem as artes finais.</div>` : ""}
     </div>
     <div class="rside">
       <div class="meta">${chip(p.status)}<span class="chip plain">v${p.versao}</span><span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span></div>
@@ -487,6 +558,13 @@ function cardRev(p) {
     </div>
   </article>`;
 }
+
+// Pontinhos acompanham o slide visível
+document.addEventListener("scroll", e => {
+  const t = e.target; if (!t.dataset || !t.dataset.trilho) return;
+  const i = Math.round(t.scrollLeft / t.clientWidth);
+  t.parentElement.querySelectorAll(".ig-pontos i").forEach((d, k) => d.classList.toggle("on", k === i));
+}, true);
 
 /* ---------- geral ---------- */
 function render() {
@@ -544,7 +622,7 @@ const AT = {
   base: "app0V0dEQB4ksFTUV",
   marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", Idioma: "fldfVHS529DWsxlKE" } },
   ideias: { table: "tblkX69MsS5z1MT1v", f: { Titulo: "fldIaygmjuLsE1WFq", Resumo: "fld5lBu8N6tApcJVb", Formato: "fldR8DJtJIF19rmw0", Rede: "fldhnBFmYjiaKU2bw", Pilar: "fldyZHHZuM1mMLby5", Score: "fldN5rkaOAcnBJLsr", PorQueFunciona: "flddAuWW90gQPrvYZ", Status: "fldk2hxweVnMId1U1", MotivoDescarte: "fldM7FdKuv09zIrsE", Referencias: "fldQESoyFaJNIancX", Calendario: "fldPMgJAavbChgFoH" } },
-  cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT" } },
+  cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT", Arquivos: "fld0XuKmLrlR77Kl1", ImagensSlides: "fldinvYLBv5a7Lv35" } },
   fontes: { table: "tbl8L7CHTLKOfsuj3", f: { Nome: "fldEtApljYo1QPZ1Y", Tipo: "fldX64mLZhKNzixzA", Categoria: "fld1ee1spLYITJKQA", Rede: "fldQeCH8AftrYahdd", URL: "fldaJvN3bK4W64tZT", Peso: "fld2Mrr5M6bBJgdhb", Ativa: "fldtvwIISCKUv2wVC" } },
 };
 const OPC = {
