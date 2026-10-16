@@ -14,7 +14,11 @@ Plataforma de criação e publicação de posts: **Fontes → Ideias (você esco
 
 ## Sobre o painel publicado fora do claude.ai
 
-A aba **Marca e fontes** grava no Airtable pelo conector do claude.ai. Fora do claude.ai (por exemplo, no GitHub Pages) essa aba mostra o aviso de que o Airtable não está disponível; nessa versão, edite a marca e as fontes direto no Airtable ou pelo painel no claude.ai. As abas Ideias, Calendário e Revisão ainda usam dados de exemplo.
+A aba **Marca e fontes** grava no Airtable de dois jeitos:
+- **No claude.ai:** pelo conector do Airtable da sua conta.
+- **Fora do claude.ai (GitHub Pages, celular):** pelo fluxo **07 - API do painel** do n8n. O painel pede a senha de acesso, que é a da credencial **Senha do painel** no n8n (cabeçalho `x-pauta-senha`). O fluxo 07 precisa estar ativo.
+
+As abas Ideias, Calendário e Revisão ainda usam dados de exemplo.
 
 ## Atualizar o site depois de mudar o painel
 
