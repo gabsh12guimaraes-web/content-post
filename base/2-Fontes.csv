@@ -1,0 +1,7 @@
+Nome,Tipo,Categoria,Rede,URL,Peso,Ativa,UltimaColeta
+"@concorrente_exemplo",Perfil,Concorrente,Instagram,https://www.instagram.com/concorrente_exemplo,5,checked,
+"@barista_referencia",Perfil,Criador,TikTok,https://www.tiktok.com/@barista_referencia,4,checked,
+"café coado em casa",Tema,Tendencia,Web,,3,checked,
+"#cafeespecial",Hashtag,Tendencia,Instagram,https://www.instagram.com/explore/tags/cafeespecial,3,checked,
+"r/Coffee",Subreddit,Referencia,Reddit,https://www.reddit.com/r/Coffee,2,checked,
+"canal de barista no YouTube",CanalYouTube,Referencia,YouTube,,2,,

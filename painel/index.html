@@ -1,0 +1,863 @@
+<title>Pauta de Conteúdo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap">
+<style>
+/* Identidade do print de referência: fundo quase preto com brilho vermelho, vidro avermelhado,
+   cartões em gradiente (vermelho-rosa e laranja), números grandes, botões em pílula, título em serifa.
+   Tema único escuro, por escolha. */
+:root {
+  color-scheme: dark;
+  --bg: #0c0607;
+  --glow: #8e0f17;
+  --ink: #ffffff;
+  --ink-soft: rgba(255, 255, 255, 0.62);
+  --ink-faint: rgba(255, 255, 255, 0.38);
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-red: rgba(255, 60, 70, 0.10);
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --red: #ff3347;
+  --red-deep: #c10f22;
+  --pink: #ff5a6e;
+  --orange: #ff8a1e;
+  --orange-deep: #f2560c;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --info: #7cb4ff;
+  --bad: #ff6b6b;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-body: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --radius: 22px;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  background:
+    radial-gradient(900px 520px at 18% -8%, rgba(190, 20, 32, 0.55), transparent 70%),
+    radial-gradient(700px 600px at 92% 30%, rgba(120, 10, 20, 0.45), transparent 70%),
+    radial-gradient(800px 500px at 40% 110%, rgba(140, 12, 24, 0.35), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.55;
+  min-height: 100%;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 72px; }
+h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; }
+button, textarea, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+
+/* vidro: o material básico das superfícies */
+.glass {
+  background: linear-gradient(180deg, var(--glass-red), var(--glass));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+}
+
+/* topo */
+.top { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center; justify-content: flex-end; }
+.top + .track { margin-top: 18px; }
+.top h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 4.4vw, 46px); letter-spacing: -0.01em; }
+.top h1 span { display: block; color: var(--ink-faint); font-weight: 600; }
+.top .sub { color: var(--ink-soft); margin-top: 10px; max-width: 52ch; }
+.notice { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); padding: 7px 14px; border-radius: 99px; background: var(--glass); border: 1px solid var(--line); }
+.notice::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 10px var(--warn); }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--ink-faint); text-decoration: underline; font-size: 12px; }
+.linkbtn:hover { color: var(--ink); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* etapas = cartões em gradiente, como "Global Hits 50" */
+.track { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 28px; }
+@media (max-width: 960px) { .track { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.track .t-marca { background: linear-gradient(160deg, #ff8a5c 0%, #ff4d3d 45%, #9e0f1c 100%); }
+.track .t-marca[aria-selected="true"] { box-shadow: 0 18px 40px -12px rgba(255, 77, 61, 0.65); }
+.track button {
+  position: relative; overflow: hidden; border: 0; text-align: left; border-radius: var(--radius);
+  padding: 16px 18px 18px; display: grid; gap: 6px; min-height: 148px; align-content: start;
+  color: #fff; opacity: 0.72; transition: opacity .2s, transform .2s, box-shadow .2s;
+}
+.track button:hover { opacity: 0.92; }
+.track button[aria-selected="true"] { opacity: 1; transform: translateY(-2px); }
+.track .t-ideias { background: linear-gradient(160deg, #ff6b7d 0%, #ff3347 45%, #b80d22 100%); }
+.track .t-cal { background: linear-gradient(160deg, #ffb347 0%, #ff8a1e 45%, #e5480b 100%); }
+.track .t-rev { background: linear-gradient(160deg, #ff4f8b 0%, #e0204f 45%, #8f0b2a 100%); }
+.track .t-ideias[aria-selected="true"] { box-shadow: 0 18px 40px -12px rgba(255, 51, 71, 0.65); }
+.track .t-cal[aria-selected="true"] { box-shadow: 0 18px 40px -12px rgba(255, 138, 30, 0.6); }
+.track .t-rev[aria-selected="true"] { box-shadow: 0 18px 40px -12px rgba(224, 32, 79, 0.65); }
+.track button::after { /* reflexo de vidro */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(120% 70% at 85% 110%, rgba(0, 0, 0, 0.28), transparent 60%), linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 40%);
+}
+.track .step { justify-self: start; font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.22); }
+.track .name { font-size: 18px; font-weight: 600; margin-top: 6px; }
+.track .count { font-size: 46px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.track .play { position: absolute; right: 16px; bottom: 16px; width: 0; height: 0; border-left: 14px solid #fff; border-top: 9px solid transparent; border-bottom: 9px solid transparent; z-index: 1; }
+@media (max-width: 640px) {
+  .track { grid-template-columns: 1fr; gap: 12px; }
+  .track button { min-height: 0; grid-template-columns: 1fr auto; align-items: center; }
+  .track .step { grid-column: 1 / -1; }
+  .track .count { font-size: 34px; grid-column: 2; grid-row: 2; }
+  .track .play { display: none; }
+}
+
+.panel { margin-top: 28px; }
+.panel-head { display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.panel-head p { margin: 0; color: var(--ink-soft); max-width: 62ch; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; border-radius: 99px; background: var(--glass); border: 1px solid var(--line); }
+.filters button { border: 0; background: none; border-radius: 99px; padding: 6px 14px; font-size: 12px; color: var(--ink-soft); }
+.filters button:hover { color: var(--ink); }
+.filters button[aria-pressed="true"] { background: linear-gradient(180deg, var(--red), var(--red-deep)); color: #fff; box-shadow: 0 6px 16px -6px rgba(255, 51, 71, 0.7); }
+
+/* chips em pílula translúcida */
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); color: var(--ink-soft); border: 1px solid var(--line); white-space: nowrap; }
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.9; }
+.chip.plain::before { display: none; }
+.chip.ok { color: var(--ok); }
+.chip.warn { color: var(--warn); }
+.chip.info { color: var(--info); }
+.chip.bad { color: var(--bad); }
+.chip.acc { color: var(--pink); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* botões em pílula */
+.btn { border: 1px solid var(--line-strong); background: rgba(255, 255, 255, 0.06); border-radius: 99px; padding: 9px 18px; font-weight: 500; font-size: 13px; color: #fff; transition: background .15s, box-shadow .15s; }
+.btn:hover { background: rgba(255, 255, 255, 0.12); }
+.btn.primary { border-color: transparent; background: linear-gradient(180deg, #ff4a5c, var(--red-deep)); box-shadow: 0 10px 24px -10px rgba(255, 51, 71, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+.btn.primary:hover { background: linear-gradient(180deg, #ff6070, #d4142a); }
+.btn.quiet { border-color: transparent; background: none; color: var(--ink-faint); }
+.btn.quiet:hover { color: #fff; }
+
+/* ideias */
+.ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px; }
+@media (max-width: 400px) { .ideas { grid-template-columns: 1fr; } }
+.idea { padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.idea.dim { opacity: 0.5; }
+.idea h3 { font-size: 17px; font-weight: 600; }
+.idea p { margin: 0; color: var(--ink-soft); }
+.idea .why { font-size: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line); }
+.idea .why b { color: #fff; font-weight: 600; }
+.score { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.score .pill { display: inline-flex; align-items: baseline; gap: 4px; padding: 4px 12px; border-radius: 99px; background: linear-gradient(180deg, var(--orange), var(--orange-deep)); font-size: 12px; font-weight: 500; box-shadow: 0 6px 16px -8px rgba(255, 138, 30, 0.9); }
+.score .pill strong { font-size: 15px; font-weight: 700; }
+.score .pill.low { background: rgba(255, 255, 255, 0.1); box-shadow: none; color: var(--ink-soft); }
+.bar { flex: 1; max-width: 120px; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--red), var(--orange)); }
+.src { font-size: 11px; color: var(--ink-faint); overflow-wrap: anywhere; }
+.reason { display: grid; gap: 8px; }
+.reason input, textarea { width: 100%; border: 1px solid var(--line-strong); background: rgba(0, 0, 0, 0.3); border-radius: 16px; padding: 10px 14px; color: #fff; }
+.reason input::placeholder, textarea::placeholder { color: var(--ink-faint); }
+.decided { font-size: 12px; color: var(--ink-soft); }
+.decided b { color: #fff; }
+
+/* calendário */
+.cal { overflow: hidden; padding: 6px; }
+.cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.cal-week + .cal-week { margin-top: 6px; }
+.day { min-height: 132px; padding: 10px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); display: grid; gap: 8px; align-content: start; min-width: 0; }
+.day.past { opacity: 0.55; }
+.day.today { background: rgba(255, 51, 71, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 51, 71, 0.5); }
+.dlabel { font-size: 11px; color: var(--ink-faint); display: flex; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.06em; }
+.day.today .dlabel { color: var(--pink); font-weight: 600; }
+.list { display: grid; gap: 6px; }
+.post { border: 1px solid var(--line); border-radius: 14px; padding: 8px 9px; background: rgba(0, 0, 0, 0.35); display: grid; gap: 5px; text-align: left; width: 100%; color: #fff; position: relative; overflow: hidden; }
+.post::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--ink-faint); }
+.post .pt { font-size: 12px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; padding-left: 4px; }
+.post .pm { font-size: 10px; color: var(--ink-faint); padding-left: 4px; }
+.post .chip { justify-self: start; margin-left: 4px; }
+.post:hover { border-color: var(--line-strong); }
+.post.s-Publicado::before { background: var(--ok); }
+.post.s-Agendado::before, .post.s-Aprovado::before { background: var(--info); }
+.post.s-EmRevisao::before, .post.s-Ajustes::before { background: var(--warn); }
+.post.s-EmCriacao::before { background: var(--pink); }
+.post.flash { animation: flash 1.6s ease-out; }
+@keyframes flash { from { box-shadow: 0 0 0 2px var(--red), 0 0 24px rgba(255, 51, 71, 0.6); } to { box-shadow: none; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+@media (max-width: 760px) {
+  .cal-week { grid-template-columns: 1fr; }
+  .day { min-height: 0; grid-template-columns: 64px 1fr; }
+  .day .dlabel { flex-direction: column; justify-content: start; }
+}
+
+/* revisão */
+.review { display: grid; gap: 20px; }
+.rcard { padding: 20px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 820px) { .rcard { grid-template-columns: 1fr; } }
+.slides { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
+.slide {
+  position: relative; overflow: hidden; flex: 0 0 172px; aspect-ratio: 4 / 5; max-width: 100%; border-radius: 20px; padding: 14px;
+  display: flex; flex-direction: column; justify-content: space-between; scroll-snap-align: start; color: #fff;
+  background: linear-gradient(160deg, #ff6b7d 0%, #ff3347 45%, #b80d22 100%);
+}
+.slide:nth-child(even) { background: linear-gradient(160deg, #ffb347 0%, #ff8a1e 45%, #e5480b 100%); }
+.slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 40%); pointer-events: none; }
+.slide .n { font-size: 40px; font-weight: 700; line-height: 1; }
+.slide .st { font-weight: 600; font-size: 15px; line-height: 1.2; }
+.slide .sx { font-size: 11px; line-height: 1.4; opacity: 0.9; margin-top: 4px; }
+.slide .img { align-self: start; font-size: 10px; padding: 3px 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.25); }
+.caption { white-space: pre-line; font-size: 13px; color: var(--ink-soft); background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line); border-radius: 16px; padding: 14px; max-height: 220px; overflow: auto; }
+.tags { font-size: 12px; color: var(--pink); overflow-wrap: anywhere; }
+.rside { display: grid; gap: 14px; align-content: start; }
+.rside h3 { font-family: var(--font-display); font-size: 26px; font-weight: 700; }
+.hist { display: grid; gap: 8px; font-size: 12px; }
+.hist div { padding: 10px 12px; border-radius: 14px; background: rgba(0, 0, 0, 0.3); color: var(--ink-soft); }
+.hist b { color: #fff; font-weight: 600; }
+.working { font-size: 13px; color: var(--warn); display: flex; gap: 10px; align-items: center; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; animation: pulse 1s infinite alternate; }
+@keyframes pulse { from { opacity: 0.3; } to { opacity: 1; } }
+.empty { padding: 32px; text-align: center; color: var(--ink-soft); }
+.small { font-size: 12px; color: var(--ink-soft); }
+.small b { color: #fff; }
+.toast { position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: rgba(20, 8, 10, 0.92); border: 1px solid var(--line-strong); color: #fff; padding: 10px 18px; border-radius: 99px; font-size: 13px; max-width: calc(100vw - 32px); box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.9); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+/* base da marca (ligada ao Airtable) */
+.live { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; padding: 6px 12px; border-radius: 99px; background: var(--glass); border: 1px solid var(--line); color: var(--ink-soft); }
+.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ink-faint); }
+.live.on::before { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+.live.off::before { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
+.mgrid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .mgrid { grid-template-columns: 1fr; } }
+.box { padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.box h2 { font-family: var(--font-display); font-size: 24px; font-weight: 700; }
+.box .hint { margin: -8px 0 0; color: var(--ink-soft); font-size: 12px; }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
+@media (max-width: 520px) { .fgrid { grid-template-columns: 1fr; } }
+.fgrid .full { grid-column: 1 / -1; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field > span { font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+.field input, .field textarea, .field select { width: 100%; border: 1px solid var(--line-strong); background: rgba(0, 0, 0, 0.3); border-radius: 14px; padding: 10px 12px; color: #fff; font-size: 13px; }
+.field select option { background: #1a0b0d; }
+.field textarea { resize: vertical; min-height: 72px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.toggles button { border: 1px solid var(--line-strong); background: rgba(255, 255, 255, 0.04); border-radius: 99px; padding: 6px 12px; font-size: 12px; color: var(--ink-soft); }
+.toggles button[aria-pressed="true"] { background: linear-gradient(180deg, #ff4a5c, var(--red-deep)); border-color: transparent; color: #fff; }
+.fontes { display: grid; gap: 8px; }
+.fonte { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line); }
+.fonte.inativa { opacity: 0.55; }
+.fonte .fn { font-weight: 600; font-size: 13px; overflow-wrap: anywhere; }
+.fonte .meta { margin-top: 4px; }
+.fonte .acts { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.switch { position: relative; width: 38px; height: 22px; border-radius: 99px; border: 0; background: rgba(255, 255, 255, 0.15); flex: none; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.switch[aria-checked="true"] { background: linear-gradient(180deg, var(--red), var(--red-deep)); }
+.switch[aria-checked="true"]::after { transform: translateX(16px); }
+.msg { padding: 12px 14px; border-radius: 14px; font-size: 13px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line); color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.msg.erro { border-color: rgba(255, 107, 107, 0.4); color: #ffd0d0; }
+.msg.ok { border-color: rgba(74, 222, 128, 0.35); color: #c9f7d8; }
+.btn[disabled] { opacity: 0.5; cursor: progress; }
+.cores { display: grid; gap: 8px; }
+.cor { display: grid; grid-template-columns: 44px 110px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+@media (max-width: 460px) { .cor { grid-template-columns: 44px minmax(0, 1fr) auto; } .cor .nome { grid-column: 1 / -1; grid-row: 2; } }
+.cor input[type="color"] { width: 44px; height: 40px; padding: 3px; border-radius: 12px; border: 1px solid var(--line-strong); background: rgba(0, 0, 0, 0.3); cursor: pointer; }
+.cor input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.cor input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 8px; }
+.cor .hex { text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.paleta { display: flex; height: 10px; border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+.paleta:empty { display: none; }
+.paleta i { flex: 1; }
+.logo-atual { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--ink-soft); }
+.logo-atual a { color: var(--pink); }
+/* ---------- celular e tablet ---------- */
+@media (max-width: 760px) {
+  .wrap { padding-inline: 16px; padding-block: 16px 56px; }
+  .top { justify-content: space-between; }
+  .notice { font-size: 11px; }
+  .track { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .track button { min-height: 0; padding: 12px 14px 14px; gap: 4px; border-radius: 18px; grid-template-columns: none; }
+  .track .step { font-size: 10px; padding: 3px 8px; grid-column: auto; }
+  .track .name { font-size: 13px; margin-top: 2px; line-height: 1.25; }
+  .track .count { font-size: 30px; grid-column: auto; grid-row: auto; }
+  .track .play { display: none; }
+  .panel { margin-top: 20px; }
+  .panel-head { margin-bottom: 14px; }
+  .panel-head p { font-size: 13px; }
+  .filters { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .filters button { flex: none; }
+  .idea, .rcard, .box { padding: 16px; }
+  .box h2, .rside h3 { font-size: 21px; }
+  .btn { min-height: 40px; }
+  .actions .btn { flex: 1 1 auto; }
+  .field input, .field textarea, .field select, .reason input, textarea { font-size: 16px; }
+  .fonte { grid-template-columns: auto minmax(0, 1fr); }
+  .fonte .acts { grid-column: 1 / -1; justify-content: flex-start; }
+  .slide { flex-basis: 150px; }
+  .toast { border-radius: 16px; text-align: center; }
+}
+@media (max-width: 340px) { .track { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .switch::after { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .dot, .post.flash { animation: none; } .track button { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="actions">
+      <span class="notice">Ideias, Calendário e Revisão ainda usam dados de exemplo.</span>
+      <button class="linkbtn" id="reset">Restaurar exemplos</button>
+    </div>
+  </header>
+
+  <nav class="track" role="tablist" aria-label="Etapas">
+    <button role="tab" class="t-marca" id="tab-marca" data-tab="marca"><span class="step">Base · Airtable</span><span class="name">Marca e fontes</span><span class="count" id="c-marca">–</span><span class="play" aria-hidden="true"></span></button>
+    <button role="tab" class="t-ideias" id="tab-ideias" data-tab="ideias"><span class="step">Etapa 0 · Ideação</span><span class="name">Ideias para decidir</span><span class="count" id="c-ideias">0</span><span class="play" aria-hidden="true"></span></button>
+    <button role="tab" class="t-cal" id="tab-cal" data-tab="cal"><span class="step">Etapa 1 · Calendário</span><span class="name">Posts na pauta</span><span class="count" id="c-cal">0</span><span class="play" aria-hidden="true"></span></button>
+    <button role="tab" class="t-rev" id="tab-rev" data-tab="rev"><span class="step">Etapa 4 · Revisão</span><span class="name">Esperando você</span><span class="count" id="c-rev">0</span><span class="play" aria-hidden="true"></span></button>
+  </nav>
+
+  <section class="panel" id="p-marca" role="tabpanel" aria-labelledby="tab-marca" hidden></section>
+  <section class="panel" id="p-ideias" role="tabpanel" aria-labelledby="tab-ideias"></section>
+  <section class="panel" id="p-cal" role="tabpanel" aria-labelledby="tab-cal" hidden></section>
+  <section class="panel" id="p-rev" role="tabpanel" aria-labelledby="tab-rev" hidden></section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const TODAY = new Date(2026, 9, 16); // 16/10/2026
+const KEY = "pauta-prototipo-v1";
+
+function seed() {
+  return {
+    ideias: [
+      { id: "i1", titulo: "Seu café está amargo? Provavelmente é um destes 3 motivos", resumo: "Carrossel didático: água fervendo, moagem fina demais e café velho. Cada slide mostra o erro e como corrigir.", formato: "Carrossel", rede: "Instagram", pilar: "Educação", score: 9, porQue: "Post parecido do concorrente teve <b>3,1×</b> o engajamento médio do perfil. Resolve uma dor clara do público.", fonte: "@concorrente_exemplo · Instagram", status: "Sugerida" },
+      { id: "i2", titulo: "Mesmo café, 5 moagens: qual fica melhor?", resumo: "Vídeo curto comparando a xícara de cada moagem lado a lado, com a reação de quem prova.", formato: "Reels", rede: "TikTok", pilar: "Educação", score: 8, porQue: "Formato de teste comparativo performou <b>2,4×</b> no criador de referência.", fonte: "@barista_referencia · TikTok", status: "Sugerida" },
+      { id: "i3", titulo: "Um dia na fazenda que torra o café deste mês", resumo: "Bastidores em vídeo: colheita, secagem e a família produtora contando a história do lote.", formato: "Reels", rede: "Instagram", pilar: "Bastidores", score: 8, porQue: "Bastidores de origem aparecem entre os posts mais salvos em <b>#cafeespecial</b> nas últimas 2 semanas.", fonte: "#cafeespecial · Instagram", status: "Sugerida" },
+      { id: "i4", titulo: "Glossário sem frescura: o que é \"notas de caramelo\"?", resumo: "Carrossel que traduz 6 termos da embalagem de café especial para a linguagem do dia a dia.", formato: "Carrossel", rede: "Instagram", pilar: "Educação", score: 7, porQue: "Pergunta recorrente em <b>r/Coffee</b> (4 tópicos com mais de 200 comentários no mês).", fonte: "r/Coffee · Reddit", status: "Sugerida" },
+      { id: "i5", titulo: "Mostre seu cantinho do café", resumo: "Convite para assinantes postarem o próprio cantinho com a hashtag da marca. Os melhores aparecem nos stories.", formato: "Stories", rede: "Instagram", pilar: "Comunidade", score: 6, porQue: "Conteúdo de comunidade gera prova social. Sem referência direta de desempenho nesta coleta.", fonte: "Sugestão da IA a partir dos pilares", status: "Sugerida" },
+      { id: "i6", titulo: "Abrindo a caixa de novembro em 30 segundos", resumo: "Unboxing rápido do lote do próximo mês, com foco no cheiro e no cartão do produtor.", formato: "Reels", rede: "TikTok", pilar: "Produto", score: 6, porQue: "Unboxings curtos têm boa retenção, mas o concorrente teve só <b>1,1×</b> a média com esse formato.", fonte: "@concorrente_exemplo · Instagram", status: "Sugerida" },
+      { id: "i7", titulo: "Café emagrece? O que a ciência diz", resumo: "Post respondendo a mito comum sobre café e saúde.", formato: "Carrossel", rede: "Instagram", pilar: "Educação", score: 3, porQue: "Tema com alto alcance, mas esbarra na regra da marca de não fazer promessas de saúde.", fonte: "café coado em casa · Web", status: "Sugerida" }
+    ],
+    posts: [
+      { id: "p1", titulo: "Como guardar café para não perder o aroma", data: "2026-10-14T18:00", rede: "Instagram", formato: "Carrossel", pilar: "Educação", status: "Publicado", versao: 2, historico: [] },
+      { id: "p2", titulo: "Bastidores da torra de outubro", data: "2026-10-17T12:00", rede: "TikTok", formato: "Reels", pilar: "Bastidores", status: "Agendado", versao: 1, historico: [] },
+      { id: "p3", titulo: "Coado, prensa ou italiana: qual combina com você?", data: "2026-10-19T18:00", rede: "Instagram", formato: "Carrossel", pilar: "Educação", status: "EmRevisao", versao: 1,
+        legenda: "Coado, prensa francesa ou cafeteira italiana? Não existe método certo, existe o que combina com sua rotina.\n\nArrasta pro lado que a gente explica cada um em 10 segundos.\n\nE conta aqui: qual é o seu?",
+        hashtags: "#cafeespecial #cafeemcasa #metodosdepreparo #baristaemcasa",
+        slides: [
+          { t: "Coado, prensa ou italiana?", x: "Qual combina com a sua rotina.", img: true },
+          { t: "Coado", x: "Mais leve e limpo. Bom para quem gosta de sentir as notas do café.", img: true },
+          { t: "Prensa francesa", x: "Encorpado e cremoso. Ideal para quem toma com calma.", img: true },
+          { t: "Italiana", x: "Forte e intenso. Perfeito para quem gosta de café com leite.", img: true },
+          { t: "E aí, qual é o seu?", x: "Conta nos comentários e salva pra testar depois.", img: false }
+        ], historico: [] },
+      { id: "p4", titulo: "O que significa \"torra média\"", data: "2026-10-21T18:00", rede: "Instagram", formato: "Estatico", pilar: "Educação", status: "Planejado", versao: 1, historico: [] },
+      { id: "p5", titulo: "Receita de café gelado com laranja", data: "2026-10-23T12:00", rede: "TikTok", formato: "Reels", pilar: "Produto", status: "EmCriacao", versao: 1, historico: [] }
+    ]
+  };
+}
+
+let state;
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) { state = JSON.parse(raw); return; } } catch (e) {}
+  state = seed();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+let tab = "ideias";
+try { tab = localStorage.getItem(KEY + ":tab") || "ideias"; } catch (e) {}
+let filtro = "Sugerida";
+let abertoDescarte = null;
+let ajusteAberto = null;
+let flashId = null;
+
+const STATUS = {
+  Planejado: ["Planejado", ""], EmCriacao: ["Em criação", "acc"], EmRevisao: ["Em revisão", "warn"],
+  Ajustes: ["IA ajustando", "warn"], Aprovado: ["Aprovado", "info"], Agendado: ["Agendado", "info"], Publicado: ["Publicado", "ok"]
+};
+const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const fmtData = iso => { const d = new Date(iso); return `${DIAS[d.getDay()]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} · ${String(d.getHours()).padStart(2, "0")}h`; };
+const chip = s => `<span class="chip ${STATUS[s][1]}">${STATUS[s][0]}</span>`;
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), 2600);
+}
+
+function proximaData() {
+  const ocupados = new Set(state.posts.map(p => p.data.slice(0, 10)));
+  const d = new Date(TODAY);
+  for (let i = 1; i < 60; i++) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0 && !ocupados.has(ymd(d))) return `${ymd(d)}T18:00`;
+  }
+  return `${ymd(d)}T18:00`;
+}
+
+/* ---------- Ideias ---------- */
+function renderIdeias() {
+  const lista = state.ideias.filter(i => filtro === "Todas" || i.status === filtro).sort((a, b) => b.score - a.score);
+  const contagem = s => state.ideias.filter(i => s === "Todas" || i.status === s).length;
+  const fb = (s, label) => `<button aria-pressed="${filtro === s}" data-filtro="${s}">${label} · ${contagem(s)}</button>`;
+  const el = document.getElementById("p-ideias");
+  el.innerHTML = `
+    <div class="panel-head">
+      <p>A IA leu as fontes desta semana e sugeriu estas ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>
+      <div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div>
+    </div>
+    ${lista.length ? `<div class="ideas">${lista.map(cardIdeia).join("")}</div>` : `<div class="empty glass">Nenhuma ideia aqui. Na próxima coleta semanal, novas sugestões aparecem em "Para decidir".</div>`}`;
+}
+function cardIdeia(i) {
+  
+  let rodape;
+  if (i.status === "Sugerida" || i.status === "Guardada") {
+    rodape = abertoDescarte === i.id
+      ? `<div class="reason"><label class="small" for="motivo-${i.id}">Por que descartar? (opcional, ajuda a IA a acertar mais)</label>
+           <input id="motivo-${i.id}" placeholder="Ex.: tema fora do nosso público">
+           <div class="actions"><button class="btn" data-act="descartar-ok" data-id="${i.id}">Descartar</button><button class="btn quiet" data-act="descartar-cancel">Cancelar</button></div></div>`
+      : `<div class="actions"><button class="btn primary" data-act="aprovar" data-id="${i.id}">Levar para o calendário</button>
+           ${i.status === "Sugerida" ? `<button class="btn" data-act="guardar" data-id="${i.id}">Guardar</button>` : ""}
+           <button class="btn quiet" data-act="descartar" data-id="${i.id}">Descartar</button></div>`;
+  } else if (i.status === "Aprovada") {
+    const p = state.posts.find(p => p.ideiaId === i.id);
+    rodape = `<div class="decided">No calendário${p ? ` para <b>${fmtData(p.data)}</b>` : ""}.</div>`;
+  } else {
+    rodape = `<div class="actions"><span class="decided">Descartada${i.motivo ? `: “${esc(i.motivo)}”` : ""}</span><button class="btn quiet" data-act="restaurar" data-id="${i.id}">Desfazer</button></div>`;
+  }
+  return `<article class="idea glass ${i.status === "Descartada" ? "dim" : ""}">
+    <div class="score"><span class="pill ${i.score < 6 ? "low" : ""}">aderência <strong>${i.score}</strong>/10</span><span class="bar" aria-hidden="true"><i style="width:${i.score * 10}%"></i></span></div>
+    <h3>${esc(i.titulo)}</h3>
+    <div class="meta"><span class="chip acc">${i.formato}</span><span class="chip plain">${i.rede}</span><span class="chip plain">${i.pilar}</span></div>
+    <p>${esc(i.resumo)}</p>
+    <p class="why">${i.porQue}</p>
+    <div class="src">fonte: ${esc(i.fonte)}</div>
+    ${rodape}
+  </article>`;
+}
+
+/* ---------- Calendário ---------- */
+function renderCal() {
+  const inicio = new Date(TODAY); inicio.setDate(inicio.getDate() - ((inicio.getDay() + 6) % 7)); // segunda
+  const semanas = [];
+  for (let w = 0; w < 3; w++) {
+    let dias = "";
+    for (let d = 0; d < 7; d++) {
+      const dia = new Date(inicio); dia.setDate(inicio.getDate() + w * 7 + d);
+      const key = ymd(dia);
+      const posts = state.posts.filter(p => p.data.slice(0, 10) === key).sort((a, b) => a.data.localeCompare(b.data));
+      const cls = key === ymd(TODAY) ? "today" : dia < TODAY ? "past" : "";
+      dias += `<div class="day ${cls}"><div class="dlabel"><span>${DIAS[dia.getDay()]}</span><span>${String(dia.getDate()).padStart(2, "0")}/${String(dia.getMonth() + 1).padStart(2, "0")}${cls === "today" ? " · hoje" : ""}</span></div>
+        <div class="list">${posts.map(cardPost).join("")}</div></div>`;
+    }
+    semanas.push(`<div class="cal-week">${dias}</div>`);
+  }
+  const fora = state.posts.filter(p => { const d = new Date(p.data); const fim = new Date(inicio); fim.setDate(fim.getDate() + 21); return d >= fim; });
+  document.getElementById("p-cal").innerHTML = `
+    <div class="panel-head"><p>Cada post entra em criação automaticamente 7 dias antes da data. Toque em um post em revisão para abrir a prévia.</p></div>
+    <div class="cal glass">${semanas.join("")}</div>
+    ${fora.length ? `<p class="small">Mais adiante: ${fora.map(p => `${esc(p.titulo)} (${fmtData(p.data)})`).join(" · ")}</p>` : ""}
+    <div class="legend">${Object.keys(STATUS).map(chip).join("")}</div>`;
+}
+function cardPost(p) {
+  return `<button class="post s-${p.status} ${flashId === p.id ? "flash" : ""}" data-act="abrir" data-id="${p.id}">
+    <span class="pt">${esc(p.titulo)}</span>
+    <span class="pm">${String(new Date(p.data).getHours()).padStart(2, "0")}h · ${p.rede} · ${p.formato}</span>
+    ${chip(p.status)}
+  </button>`;
+}
+
+/* ---------- Revisão ---------- */
+function renderRev() {
+  const lista = state.posts.filter(p => p.status === "EmRevisao" || p.status === "Ajustes").sort((a, b) => a.data.localeCompare(b.data));
+  document.getElementById("p-rev").innerHTML = `
+    <div class="panel-head"><p>Posts prontos esperando seu olhar. Aprove para agendar, ou peça um ajuste: a IA refaz só o que você pedir e o post volta para cá.</p></div>
+    ${lista.length ? `<div class="review">${lista.map(cardRev).join("")}</div>` : `<div class="empty glass">Nada para revisar agora. Quando a IA terminar um post, ele aparece aqui e você recebe um aviso.</div>`}`;
+}
+function cardRev(p) {
+  const slides = (p.slides || []).map((s, k) => `<div class="slide"><span class="n">${String(k + 1).padStart(2, "0")}</span><div><div class="st">${esc(s.t)}</div><div class="sx">${esc(s.x)}</div></div>${s.img ? `<span class="img">imagem · Freepik</span>` : "<span></span>"}</div>`).join("");
+  const hist = p.historico.map(h => `<div><b>v${h.versao}:</b> você pediu “${esc(h.comentario)}”${h.resumo ? `<br>${esc(h.resumo)}` : ""}</div>`).join("");
+  let acoes;
+  if (p.status === "Ajustes") acoes = `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste…</div>`;
+  else if (ajusteAberto === p.id) acoes = `<div class="reason"><label class="small" for="ajuste-${p.id}">O que você quer mudar?</label>
+      <textarea id="ajuste-${p.id}" rows="3" placeholder="Ex.: deixa o slide 1 mais provocativo e troca a foto da italiana por uma de inox"></textarea>
+      <div class="actions"><button class="btn primary" data-act="enviar-ajuste" data-id="${p.id}">Enviar para a IA</button><button class="btn quiet" data-act="cancelar-ajuste">Cancelar</button></div></div>`;
+  else acoes = `<div class="actions"><button class="btn primary" data-act="aprovar-post" data-id="${p.id}">Aprovar e agendar</button><button class="btn" data-act="pedir-ajuste" data-id="${p.id}">Pedir ajuste</button></div>`;
+  return `<article class="rcard glass" id="rev-${p.id}">
+    <div style="display:grid;gap:12px;min-width:0">
+      <div class="slides" tabindex="0" aria-label="Slides do post">${slides}</div>
+      <div class="caption">${esc(p.legenda || "")}</div>
+      <div class="tags">${esc(p.hashtags || "")}</div>
+    </div>
+    <div class="rside">
+      <div class="meta">${chip(p.status)}<span class="chip plain">v${p.versao}</span><span class="chip plain">${p.rede}</span><span class="chip plain">${p.formato}</span></div>
+      <h3>${esc(p.titulo)}</h3>
+      <div class="small">Publicação: <b>${fmtData(p.data)}</b></div>
+      ${hist ? `<div class="hist">${hist}</div>` : ""}
+      ${acoes}
+    </div>
+  </article>`;
+}
+
+/* ---------- geral ---------- */
+function render() {
+  document.querySelectorAll(".track button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
+  ["marca", "ideias", "cal", "rev"].forEach(t => (document.getElementById("p-" + t).hidden = t !== tab));
+  document.getElementById("c-ideias").textContent = state.ideias.filter(i => i.status === "Sugerida").length;
+  document.getElementById("c-cal").textContent = state.posts.filter(p => p.status !== "Publicado").length;
+  document.getElementById("c-rev").textContent = state.posts.filter(p => p.status === "EmRevisao").length;
+  renderIdeias(); renderCal(); renderRev();
+  flashId = null;
+}
+function ir(t) { tab = t; try { localStorage.setItem(KEY + ":tab", t); } catch (e) {} render(); }
+
+document.addEventListener("click", e => {
+  const tabBtn = e.target.closest(".track button"); if (tabBtn) return ir(tabBtn.dataset.tab);
+  const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; return render(); }
+  if (e.target.id === "reset") { state = seed(); filtro = "Sugerida"; save(); toast("Exemplos restaurados"); return render(); }
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const id = b.dataset.id, act = b.dataset.act;
+  const ideia = state.ideias.find(i => i.id === id);
+  const post = state.posts.find(p => p.id === id);
+
+  if (act === "aprovar") {
+    ideia.status = "Aprovada";
+    const p = { id: "p" + Date.now(), ideiaId: id, titulo: ideia.titulo, data: proximaData(), rede: ideia.rede, formato: ideia.formato, pilar: ideia.pilar, status: "Planejado", versao: 1, historico: [] };
+    state.posts.push(p); flashId = p.id;
+    toast(`Agendada para ${fmtData(p.data)} no calendário`);
+  }
+  if (act === "guardar") { ideia.status = "Guardada"; toast("Ideia guardada para depois"); }
+  if (act === "descartar") { abertoDescarte = id; render(); document.getElementById("motivo-" + id)?.focus(); return; }
+  if (act === "descartar-cancel") abertoDescarte = null;
+  if (act === "descartar-ok") { ideia.motivo = document.getElementById("motivo-" + id).value.trim(); ideia.status = "Descartada"; abertoDescarte = null; toast("Ideia descartada"); }
+  if (act === "restaurar") { ideia.status = "Sugerida"; ideia.motivo = ""; }
+  if (act === "abrir") {
+    if (post.status === "EmRevisao" || post.status === "Ajustes") { ir("rev"); document.getElementById("rev-" + id)?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    toast(`${STATUS[post.status][0]} · ${fmtData(post.data)}`); return;
+  }
+  if (act === "pedir-ajuste") { ajusteAberto = id; render(); document.getElementById("ajuste-" + id)?.focus(); return; }
+  if (act === "cancelar-ajuste") ajusteAberto = null;
+  if (act === "enviar-ajuste") {
+    const txt = document.getElementById("ajuste-" + id).value.trim();
+    if (!txt) { toast("Escreva o que você quer mudar"); return; }
+    post.historico.push({ versao: post.versao, comentario: txt, resumo: "" });
+    post.status = "Ajustes"; ajusteAberto = null;
+    setTimeout(() => {
+      post.versao += 1; post.status = "EmRevisao";
+      post.historico[post.historico.length - 1].resumo = "Simulação: no sistema real, a IA reescreve só o que você pediu e explica aqui o que mudou.";
+      save(); render(); toast(`Nova versão pronta (v${post.versao})`);
+    }, 2200);
+  }
+  if (act === "aprovar-post") { post.status = "Agendado"; flashId = post.id; toast(`Aprovado e agendado para ${fmtData(post.data)}`); }
+  save(); render();
+});
+
+/* ================= Base da marca: lê e grava no Airtable ================= */
+const AT = {
+  server: "Airtable",
+  base: "app0V0dEQB4ksFTUV",
+  marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", Idioma: "fldfVHS529DWsxlKE" } },
+  fontes: { table: "tbl8L7CHTLKOfsuj3", f: { Nome: "fldEtApljYo1QPZ1Y", Tipo: "fldX64mLZhKNzixzA", Categoria: "fld1ee1spLYITJKQA", Rede: "fldQeCH8AftrYahdd", URL: "fldaJvN3bK4W64tZT", Peso: "fld2Mrr5M6bBJgdhb", Ativa: "fldtvwIISCKUv2wVC" } },
+};
+const OPC = {
+  Pilares: ["Educação", "Bastidores", "Produto", "Comunidade"],
+  Redes: ["Instagram", "TikTok", "LinkedIn", "YouTube"],
+  Tipo: ["Perfil", "Hashtag", "Tema", "PalavraChave", "Site", "Subreddit", "CanalYouTube"],
+  Categoria: ["Concorrente", "Referencia", "Criador", "Tendencia"],
+  RedeFonte: ["Instagram", "TikTok", "LinkedIn", "YouTube", "Web", "Reddit"],
+  Idioma: ["Português (Brasil)", "Português (Portugal)", "Inglês", "Espanhol"],
+};
+function lerCores(txt) {
+  return String(txt || "").split("\n").map(l => l.trim().match(/^(#[0-9a-f]{6})\b\s*(.*)$/i)).filter(Boolean).map(m => ({ hex: m[1].toUpperCase(), nome: m[2] }));
+}
+const linhaCor = c => `<div class="cor">
+  <input type="color" value="${esc(c.hex.toLowerCase())}" aria-label="Escolher cor">
+  <input class="hex" value="${esc(c.hex)}" aria-label="Código da cor" maxlength="7">
+  <input class="nome" value="${esc(c.nome || "")}" placeholder="Nome (ex.: Vermelho principal)" aria-label="Nome da cor">
+  <button type="button" class="btn quiet" data-m="rm-cor" aria-label="Remover cor">✕</button></div>`;
+function logoAtual(anexos) {
+  const a = (anexos || [])[0];
+  if (!a) return "Nenhum logo salvo ainda.";
+  return `Logo atual: <a href="${esc(a.url || "#")}" target="_blank" rel="noopener">${esc(a.filename || "abrir arquivo")}</a>`;
+}
+const ROTULO = { PalavraChave: "Palavra-chave", CanalYouTube: "Canal do YouTube", Referencia: "Referência", Tendencia: "Tendência" };
+const rot = v => ROTULO[v] || v;
+const INPUT_MARCA = { baseId: AT.base, tableId: AT.marca.table, fieldIds: Object.values(AT.marca.f), pageSize: 1 };
+const INPUT_FONTES = { baseId: AT.base, tableId: AT.fontes.table, fieldIds: Object.values(AT.fontes.f), pageSize: 200, sort: [{ fieldId: AT.fontes.f.Nome }] };
+
+const M = { mcp: null, conexao: "carregando", erro: null, marca: null, marcaCarregada: false, marcaSuja: false, fontes: [], fontesCarregadas: false, editando: null, remover: null, ocupado: false, aviso: null, pilaresExtra: [] };
+
+const selNome = v => (v && typeof v === "object") ? v.name : (v ?? "");
+function lerRegistros(res, f) {
+  let p = res && res.payload;
+  if (typeof p === "string") { try { p = JSON.parse(p); } catch (e) { p = {}; } }
+  const lista = (p && p.records) || [];
+  return lista.map(r => {
+    const c = r.cellValuesByFieldId || r.fields || {};
+    const o = { id: r.id };
+    for (const [nome, id] of Object.entries(f)) o[nome] = c[id] !== undefined ? c[id] : c[nome];
+    return o;
+  });
+}
+function textoErro(e) {
+  const code = e && e.code;
+  const msg = {
+    server_not_connected: "O Airtable não está conectado à sua conta do claude.ai. Adicione em claude.ai → Configurações → Conectores e recarregue esta página.",
+    needs_reauth: "A conexão com o Airtable expirou. Reconecte em claude.ai → Configurações → Conectores.",
+    approval_required: "Esta página precisa da sua permissão para acessar o Airtable.",
+    not_in_manifest: "O acesso ao Airtable foi recusado para esta página. Libere no menu de permissões do artefato e recarregue.",
+    blocked_by_policy: "A política da sua organização bloqueia o Airtable nesta página.",
+    selection_required: "Você tem mais de uma conta do Airtable conectada. Escolha qual usar no aviso do claude.ai.",
+    server_unavailable: "O Airtable não respondeu agora. Tente de novo em instantes.",
+    not_granted: "Esta visualização não tem acesso aos conectores. Abra o painel no claude.ai.",
+    capability_disabled: "Esta visualização não tem acesso aos conectores. Abra o painel no claude.ai.",
+  }[code];
+  if (msg) return msg;
+  if (code === "tool_error") return "O Airtable recusou a operação: " + String(e.message || "").slice(0, 200);
+  return "Não foi possível falar com o Airtable" + (code ? " (" + code + ")" : "") + ".";
+}
+const NEGADO = ["needs_reauth", "server_not_connected", "blocked_by_policy", "approval_required", "not_in_manifest", "selection_required", "not_granted", "capability_disabled"];
+
+function conectar() {
+  M.mcp.watchTool(AT.server, "list_records_for_table", INPUT_MARCA, ev => {
+    if (ev.type === "data") {
+      M.marca = lerRegistros(ev.result, AT.marca.f)[0] || null;
+      M.marcaCarregada = true; M.conexao = "ok"; M.erro = null;
+      if (!M.marcaSuja) renderMarca(); else renderStatus();
+    } else {
+      M.erro = ev.error;
+      if (NEGADO.includes(ev.error.code)) { M.marca = null; M.marcaCarregada = false; M.conexao = "negado"; }
+      renderMarca();
+    }
+  }, { cache: { staleTime: 30000 } });
+  M.mcp.watchTool(AT.server, "list_records_for_table", INPUT_FONTES, ev => {
+    if (ev.type === "data") {
+      M.fontes = lerRegistros(ev.result, AT.fontes.f);
+      M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
+      renderFontes(); renderStatus();
+    } else {
+      M.erro = ev.error;
+      if (NEGADO.includes(ev.error.code)) { M.fontes = []; M.fontesCarregadas = false; M.conexao = "negado"; }
+      renderMarca();
+    }
+  }, { cache: { staleTime: 30000 } });
+}
+async function tentarDeNovo() {
+  if (!M.mcp) return;
+  M.ocupado = true; renderStatus();
+  try {
+    const r1 = await M.mcp.callTool(AT.server, "list_records_for_table", INPUT_MARCA, { cache: { refresh: true } });
+    const r2 = await M.mcp.callTool(AT.server, "list_records_for_table", INPUT_FONTES, { cache: { refresh: true } });
+    M.marca = lerRegistros(r1, AT.marca.f)[0] || null; M.marcaCarregada = true;
+    M.fontes = lerRegistros(r2, AT.fontes.f); M.fontesCarregadas = true;
+    M.conexao = "ok"; M.erro = null; M.marcaSuja = false;
+  } catch (e) { M.erro = e; }
+  M.ocupado = false; renderMarca();
+}
+async function recarregar() { try { await M.mcp.invalidate(AT.server, "list_records_for_table"); } catch (e) {} }
+
+async function gravar(tool, tabela, input, ok) {
+  M.ocupado = true; M.aviso = null; renderStatus();
+  try {
+    const extra = tool === "delete_records_for_table" ? {} : { typecast: true };
+    await M.mcp.callTool(AT.server, tool, { baseId: AT.base, tableId: tabela, ...extra, ...input });
+    M.aviso = { tipo: "ok", texto: ok };
+    await recarregar();
+    return true;
+  } catch (e) {
+    const talvez = e && (e.code === "server_unavailable" || e.code === "upstream_error");
+    M.aviso = { tipo: "erro", texto: textoErro(e) + (talvez ? " A alteração pode ter sido gravada; a lista vai recarregar." : "") };
+    if (talvez) recarregar();
+    return false;
+  } finally { M.ocupado = false; renderStatus(); }
+}
+
+const v = id => (document.getElementById(id)?.value ?? "").trim();
+async function salvarMarca() {
+  const f = AT.marca.f;
+  const pilares = [...document.querySelectorAll('#m-pilares [aria-pressed="true"]')].map(b => b.dataset.valor);
+  const redes = [...document.querySelectorAll('#m-redes [aria-pressed="true"]')].map(b => b.dataset.valor);
+  if (!v("m-nome")) { M.aviso = { tipo: "erro", texto: "Preencha pelo menos o nome da marca." }; return renderStatus(); }
+  const freq = parseInt(v("m-freq"), 10);
+  const campos = {
+    [f.Nome]: v("m-nome"), [f.Posicionamento]: v("m-pos"), [f.Publico]: v("m-pub"), [f.TomDeVoz]: v("m-tom"),
+    [f.Evitar]: v("m-evitar"), [f.ExemplosBons]: v("m-exemplos"), [f.Pilares]: pilares, [f.Redes]: redes,
+    [f.FrequenciaSemanal]: Number.isFinite(freq) ? freq : null,
+    [f.Idioma]: v("m-idioma") || null,
+    [f.Cores]: [...document.querySelectorAll("#m-cores .cor")].map(r => {
+      const hex = r.querySelector(".hex").value.trim().toUpperCase();
+      return /^#[0-9A-F]{6}$/.test(hex) ? (hex + " " + r.querySelector(".nome").value.trim()).trim() : null;
+    }).filter(Boolean).join("\n"),
+  };
+  const logo = v("m-logo");
+  if (logo) {
+    if (!/^https:\/\//i.test(logo)) { M.aviso = { tipo: "erro", texto: "O link do logo precisa começar com https://" }; return renderStatus(); }
+    campos[f.Logo] = [{ url: logo }];
+  }
+  const ok = M.marca
+    ? await gravar("update_records_for_table", AT.marca.table, { records: [{ id: M.marca.id, fields: campos }] }, "Marca salva no Airtable.")
+    : await gravar("create_records_for_table", AT.marca.table, { records: [{ fields: campos }] }, "Marca salva no Airtable.");
+  if (ok) M.marcaSuja = false;
+  renderStatus();
+}
+async function salvarFonte() {
+  const f = AT.fontes.f;
+  if (!v("f-nome")) { M.aviso = { tipo: "erro", texto: "Preencha o nome da fonte (ex.: @perfil, #hashtag ou um tema)." }; return renderStatus(); }
+  const peso = parseInt(v("f-peso"), 10);
+  const campos = {
+    [f.Nome]: v("f-nome"), [f.Tipo]: v("f-tipo") || null, [f.Rede]: v("f-rede") || null, [f.Categoria]: v("f-cat") || null,
+    [f.URL]: v("f-url") || null, [f.Peso]: Number.isFinite(peso) ? Math.min(5, Math.max(1, peso)) : 3,
+    [f.Ativa]: document.getElementById("f-ativa")?.getAttribute("aria-checked") === "true",
+  };
+  const novo = M.editando === "novo";
+  const ok = novo
+    ? await gravar("create_records_for_table", AT.fontes.table, { records: [{ fields: campos }] }, "Fonte adicionada.")
+    : await gravar("update_records_for_table", AT.fontes.table, { records: [{ id: M.editando, fields: campos }] }, "Fonte atualizada.");
+  if (ok) { M.editando = null; renderFontes(); }
+}
+
+/* ---------- desenho ---------- */
+const opcoes = (lista, atual, vazio) => (vazio ? `<option value="">${vazio}</option>` : "") + lista.map(o => `<option value="${esc(o)}" ${o === atual ? "selected" : ""}>${esc(rot(o))}</option>`).join("");
+function toggles(id, lista, marcados) {
+  return `<div class="toggles" id="${id}">${lista.map(o => `<button type="button" data-m="toggle" data-valor="${esc(o)}" aria-pressed="${marcados.includes(o)}">${esc(o)}</button>`).join("")}</div>`;
+}
+function renderStatus() {
+  const el = document.getElementById("m-status"); if (!el) return;
+  const cls = M.conexao === "ok" ? "on" : M.conexao === "carregando" ? "" : "off";
+  const txt = { ok: "Conectado ao Airtable", carregando: "Conectando ao Airtable…", negado: "Sem acesso ao Airtable", indisponivel: "Airtable indisponível aqui" }[M.conexao] || "Airtable";
+  el.innerHTML = `<span class="live ${cls}">${txt}</span>`;
+  const av = document.getElementById("m-aviso");
+  if (av) av.innerHTML = M.aviso ? `<div class="msg ${M.aviso.tipo}">${esc(M.aviso.texto)}</div>` : (M.marcaSuja ? `<div class="msg">Há alterações na marca que ainda não foram salvas.</div>` : "");
+  document.querySelectorAll("[data-m='salvar-marca'], [data-m='salvar-fonte']").forEach(b => (b.disabled = M.ocupado));
+  const ativas = M.fontes.filter(x => x.Ativa === true).length;
+  document.getElementById("c-marca").textContent = M.fontesCarregadas ? String(ativas).padStart(2, "0") : "–";
+}
+function renderFontes() {
+  const el = document.getElementById("m-fontes"); if (!el) return;
+  if (!M.fontesCarregadas) { el.innerHTML = `<div class="msg">Carregando as fontes…</div>`; return; }
+  const linhas = M.fontes.map(x => {
+    if (M.editando === x.id) return formFonte(x);
+    const ativa = x.Ativa === true;
+    const rm = M.remover === x.id
+      ? `<button class="btn" data-m="remover-ok" data-id="${x.id}">Remover de vez</button><button class="btn quiet" data-m="remover-nao">Cancelar</button>`
+      : `<button class="btn quiet" data-m="editar" data-id="${x.id}">Editar</button><button class="btn quiet" data-m="remover" data-id="${x.id}">Remover</button>`;
+    return `<div class="fonte ${ativa ? "" : "inativa"}">
+      <button class="switch" role="switch" aria-checked="${ativa}" aria-label="Fonte ativa" data-m="ativa" data-id="${x.id}"></button>
+      <div><div class="fn">${esc(x.Nome || "(sem nome)")}</div>
+        <div class="meta">${[selNome(x.Tipo), selNome(x.Rede), selNome(x.Categoria)].filter(Boolean).map(t => `<span class="chip plain">${esc(rot(t))}</span>`).join("")}<span class="chip plain">peso ${x.Peso ?? 3}</span></div></div>
+      <div class="acts">${rm}</div></div>`;
+  }).join("");
+  el.innerHTML = (M.editando === "novo" ? formFonte(null) : "") + (linhas || (M.editando === "novo" ? "" : `<div class="msg">Nenhuma fonte ainda. Adicione perfis de concorrentes, hashtags e temas da sua marca.</div>`));
+}
+function formFonte(x) {
+  const ativa = x ? x.Ativa === true : true;
+  return `<div class="glass box" style="border-radius:16px">
+    <div class="fgrid">
+      <label class="field full"><span>Nome (@perfil, #hashtag ou tema)</span><input id="f-nome" value="${esc(x?.Nome || "")}" placeholder="@concorrente"></label>
+      <label class="field"><span>Tipo</span><select id="f-tipo">${opcoes(OPC.Tipo, selNome(x?.Tipo) || "Perfil")}</select></label>
+      <label class="field"><span>Rede</span><select id="f-rede">${opcoes(OPC.RedeFonte, selNome(x?.Rede) || "Instagram")}</select></label>
+      <label class="field"><span>Categoria</span><select id="f-cat">${opcoes(OPC.Categoria, selNome(x?.Categoria), "Sem categoria")}</select></label>
+      <label class="field"><span>Peso (1 a 5)</span><input id="f-peso" type="number" min="1" max="5" value="${x?.Peso ?? 3}"></label>
+      <label class="field full"><span>Link (opcional)</span><input id="f-url" value="${esc(x?.URL || "")}" placeholder="https://"></label>
+    </div>
+    <div class="actions" style="justify-content:space-between">
+      <span class="actions"><button class="switch" role="switch" id="f-ativa" aria-checked="${ativa}" data-m="ativa-form" aria-label="Fonte ativa"></button><span class="small">Ativa na coleta de segunda</span></span>
+      <span class="actions"><button class="btn quiet" data-m="cancelar-fonte">Cancelar</button><button class="btn primary" data-m="salvar-fonte">${x ? "Salvar fonte" : "Adicionar fonte"}</button></span>
+    </div>
+    <p class="hint" style="margin:0">Perfis e hashtags do Instagram e do TikTok são coletados automaticamente. Os outros tipos entram como temas de interesse para a IA.</p>
+  </div>`;
+}
+function renderMarca() {
+  const el = document.getElementById("p-marca"); if (!el) return;
+  const head = `<div class="panel-head"><p>O que você salvar aqui vai direto para o Airtable e é usado pela IA em todas as etapas: ideias, posts e ajustes.</p><div id="m-status"></div></div>`;
+  if (M.conexao === "indisponivel") {
+    el.innerHTML = head + `<div class="glass empty">Para editar a marca e as fontes, abra este painel no claude.ai com o conector do Airtable conectado à sua conta.</div>`;
+    return renderStatus();
+  }
+  if (M.conexao === "negado" || (M.erro && !M.marcaCarregada)) {
+    el.innerHTML = head + `<div class="msg erro"><span>${esc(textoErro(M.erro))}</span><button class="btn" data-m="tentar">Tentar de novo</button></div>`;
+    return renderStatus();
+  }
+  if (!M.marcaCarregada) { el.innerHTML = head + `<div class="glass empty">Carregando a marca e as fontes do Airtable…</div>`; return renderStatus(); }
+  const m = M.marca || {};
+  const pil = (m.Pilares || []).map(selNome), red = (m.Redes || []).map(selNome);
+  const todosPilares = [...new Set([...OPC.Pilares, ...pil, ...M.pilaresExtra])];
+  el.innerHTML = head + `<div class="mgrid">
+    <form class="glass box" id="m-form" onsubmit="return false">
+      <h2>Marca</h2>
+      <p class="hint">Quanto mais concreto, melhor a IA acerta o tom.</p>
+      <div class="fgrid">
+        <label class="field full"><span>Nome da marca</span><input id="m-nome" value="${esc(m.Nome || "")}"></label>
+        <label class="field full"><span>Posicionamento</span><textarea id="m-pos" placeholder="O que a marca é e por que existe, em 2 ou 3 frases">${esc(m.Posicionamento || "")}</textarea></label>
+        <label class="field full"><span>Público</span><textarea id="m-pub" placeholder="Idade, momento de vida, dores e desejos">${esc(m.Publico || "")}</textarea></label>
+        <label class="field full"><span>Tom de voz</span><textarea id="m-tom" placeholder="Ex.: próxima, direta, bem-humorada sem forçar">${esc(m.TomDeVoz || "")}</textarea></label>
+        <div class="field full"><span>Pilares de conteúdo</span>${toggles("m-pilares", todosPilares, pil)}
+          <span class="actions"><input id="m-novo-pilar" placeholder="Novo pilar" style="max-width:220px"><button type="button" class="btn quiet" data-m="add-pilar">+ Adicionar</button></span></div>
+        <div class="field full"><span>Redes onde publica</span>${toggles("m-redes", OPC.Redes, red)}</div>
+        <label class="field"><span>Idioma das postagens</span><select id="m-idioma">${opcoes(OPC.Idioma, selNome(m.Idioma) || "Português (Brasil)")}</select></label>
+        <div class="field full"><span>Cores da marca</span>
+          <div class="paleta" id="m-paleta" aria-hidden="true">${lerCores(m.Cores).map(c => `<i style="background:${c.hex}"></i>`).join("")}</div>
+          <div class="cores" id="m-cores">${lerCores(m.Cores).map(linhaCor).join("")}</div>
+          <span class="actions"><button type="button" class="btn quiet" data-m="add-cor">+ Adicionar cor</button></span></div>
+        <div class="field full"><span>Logo</span>
+          <div class="logo-atual">${logoAtual(m.Logo)}</div>
+          <input id="m-logo" placeholder="Para enviar ou trocar: cole o link público do arquivo (https://…)">
+          <p class="hint" style="margin:0">Ou arraste o arquivo direto no campo <b>Logo</b> da tabela Marca, no Airtable.</p></div>
+        <label class="field full"><span>O que evitar</span><textarea id="m-evitar" placeholder="Assuntos, palavras e estilos proibidos">${esc(m.Evitar || "")}</textarea></label>
+        <label class="field"><span>Posts por semana</span><input id="m-freq" type="number" min="0" max="50" value="${m.FrequenciaSemanal ?? ""}"></label>
+        <label class="field full"><span>Exemplos de posts que representam a marca (links)</span><textarea id="m-exemplos">${esc(m.ExemplosBons || "")}</textarea></label>
+      </div>
+      <div id="m-aviso"></div>
+      <div class="actions" style="justify-content:flex-end"><button class="btn primary" data-m="salvar-marca">Salvar marca</button></div>
+    </form>
+    <section class="glass box">
+      <div class="actions" style="justify-content:space-between"><h2>Fontes</h2><button class="btn" data-m="nova-fonte">+ Nova fonte</button></div>
+      <p class="hint">O fluxo de coleta lê as fontes ativas toda segunda às 7h.</p>
+      <div class="fontes" id="m-fontes"></div>
+    </section>
+  </div>`;
+  renderFontes(); renderStatus();
+}
+
+function pintarPaleta() {
+  const p = document.getElementById("m-paleta"); if (!p) return;
+  p.innerHTML = [...document.querySelectorAll("#m-cores .hex")].map(i => i.value.trim()).filter(h => /^#[0-9a-f]{6}$/i.test(h)).map(h => `<i style="background:${h}"></i>`).join("");
+}
+document.addEventListener("input", e => {
+  if (!e.target.closest("#m-form")) return;
+  M.marcaSuja = true; M.aviso = null;
+  const linha = e.target.closest(".cor");
+  if (linha && e.target.type === "color") linha.querySelector(".hex").value = e.target.value.toUpperCase();
+  if (linha && e.target.classList.contains("hex") && /^#[0-9a-f]{6}$/i.test(e.target.value.trim())) linha.querySelector('input[type="color"]').value = e.target.value.trim().toLowerCase();
+  if (linha) pintarPaleta();
+});
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-m]"); if (!b) return;
+  const a = b.dataset.m, id = b.dataset.id;
+  if (a === "toggle") { b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); M.marcaSuja = true; M.aviso = null; return renderStatus(); }
+  if (a === "add-pilar") { const n = v("m-novo-pilar"); if (n) { M.pilaresExtra.push(n); const box = document.getElementById("m-pilares"); box.insertAdjacentHTML("beforeend", `<button type="button" data-m="toggle" data-valor="${esc(n)}" aria-pressed="true">${esc(n)}</button>`); document.getElementById("m-novo-pilar").value = ""; M.marcaSuja = true; renderStatus(); } return; }
+  if (a === "add-cor") { document.getElementById("m-cores").insertAdjacentHTML("beforeend", linhaCor({ hex: "#FF3347", nome: "" })); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
+  if (a === "rm-cor") { b.closest(".cor").remove(); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
+  if (a === "salvar-marca") return salvarMarca();
+  if (a === "tentar") return tentarDeNovo();
+  if (a === "nova-fonte") { M.editando = "novo"; M.remover = null; renderFontes(); return document.getElementById("f-nome")?.focus(); }
+  if (a === "editar") { M.editando = id; M.remover = null; renderFontes(); return document.getElementById("f-nome")?.focus(); }
+  if (a === "cancelar-fonte") { M.editando = null; return renderFontes(); }
+  if (a === "ativa-form") { b.setAttribute("aria-checked", b.getAttribute("aria-checked") !== "true"); return; }
+  if (a === "salvar-fonte") return salvarFonte();
+  if (a === "ativa") {
+    const x = M.fontes.find(y => y.id === id); if (!x || M.ocupado) return;
+    const nova = x.Ativa !== true; x.Ativa = nova; renderFontes();
+    const ok = await gravar("update_records_for_table", AT.fontes.table, { records: [{ id, fields: { [AT.fontes.f.Ativa]: nova } }] }, nova ? "Fonte ativada." : "Fonte pausada.");
+    if (!ok) { x.Ativa = !nova; renderFontes(); }
+    return;
+  }
+  if (a === "remover") { M.remover = id; return renderFontes(); }
+  if (a === "remover-nao") { M.remover = null; return renderFontes(); }
+  if (a === "remover-ok") {
+    const ok = await gravar("delete_records_for_table", AT.fontes.table, { recordIds: [id] }, "Fonte removida.");
+    if (ok) { M.fontes = M.fontes.filter(y => y.id !== id); M.remover = null; renderFontes(); }
+  }
+});
+
+(async () => {
+  renderMarca();
+  const c = window.claude;
+  M.mcp = c && typeof c.use === "function" ? await c.use("mcp").catch(() => null) : null;
+  if (!M.mcp) { M.conexao = "indisponivel"; return renderMarca(); }
+  conectar();
+})();
+
+load(); render();
+</script>

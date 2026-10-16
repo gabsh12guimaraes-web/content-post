@@ -1,0 +1,354 @@
+{
+  "name": "06 - Publicação",
+  "nodes": [
+    {
+      "id": "894d9ef5-ea8a-48f8-b6d7-40c633532d42",
+      "name": "Nota 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -320
+      ],
+      "parameters": {
+        "content": "## 06 · Publicação\nA cada 15 min: pega posts *Agendado* cuja data chega nos próximos 15 minutos e publica na hora pelo **Ayrshare**. Publicar perto da hora (em vez de agendar com dias de antecedência) evita que os links dos arquivos expirem e deixa você cancelar até o último minuto: basta mudar o status.\n\nDeu certo → *Publicado* + link. Deu erro → *Erro* + aviso no Telegram.",
+        "width": 560,
+        "height": 220
+      }
+    },
+    {
+      "id": "11de5aaa-f75c-41a7-aa4a-2eceae3d9edb",
+      "name": "A cada 15 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e40e4cfe-e512-481d-9a7c-696824f416d8",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "15de84f0-4251-41fd-9e4a-32b29747b0ad",
+              "name": "airtableBase",
+              "value": "app0V0dEQB4ksFTUV",
+              "type": "string"
+            },
+            {
+              "id": "04804a11-c91b-4dd6-b173-fdd02b24dfa7",
+              "name": "telegramChatId",
+              "value": "7112977933",
+              "type": "string"
+            },
+            {
+              "id": "bede5030-a8a8-4399-9283-4f63f7ee9655",
+              "name": "modelo",
+              "value": "claude-opus-5-5",
+              "type": "string"
+            },
+            {
+              "id": "0bc4fede-1aad-442e-afb6-9a708898b6de",
+              "name": "fuso",
+              "value": "-03:00",
+              "type": "string"
+            },
+            {
+              "id": "250326ea-877f-47e2-be41-777a06f502e5",
+              "name": "horarioPadrao",
+              "value": "18:00",
+              "type": "string"
+            },
+            {
+              "id": "ebda1705-dc94-48b2-9719-195b06dd6b77",
+              "name": "diasAntecedencia",
+              "value": "7",
+              "type": "string"
+            },
+            {
+              "id": "c4ed94b1-ade0-431f-b5b8-3651b4ac7015",
+              "name": "ideiasPorSemana",
+              "value": "10",
+              "type": "string"
+            },
+            {
+              "id": "10aee9ea-2191-4e02-97d3-1e561334decf",
+              "name": "limiteAjustes",
+              "value": "3",
+              "type": "string"
+            },
+            {
+              "id": "7869f880-3dcd-4c4c-bc0e-7592ebd9d3b2",
+              "name": "usarCanva",
+              "value": "nao",
+              "type": "string"
+            },
+            {
+              "id": "61c14044-7d96-465c-9350-7fc88cc35932",
+              "name": "canvaTemplateCapa",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "5c748ece-1c60-431c-8e0f-062e81cfe2b4",
+              "name": "canvaTemplateSlide",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "b38bef6e-0a8b-4a5a-b671-7cf976310eca",
+              "name": "canvaTemplateFinal",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c35559fc-bf09-48a6-ab1f-241e847ba824",
+      "name": "Buscar posts da vez",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "AND({Status}='Agendado', IS_BEFORE({DataPublicacao}, DATEADD(NOW(), 15, 'minutes')))"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "8d03ba50-2cd0-4d34-8bd7-143c674115e5",
+      "name": "Montar publicações",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const REDES = { Instagram: 'instagram', TikTok: 'tiktok', LinkedIn: 'linkedin', YouTube: 'youtube' };\nreturn (($input.first().json.records) || []).map(r => {\n  const f = r.fields;\n  const body = {\n    post: [f.Legenda, f.Hashtags].filter(Boolean).join('\\n\\n'),\n    platforms: [REDES[f.Rede]].filter(Boolean),\n    mediaUrls: (f.Arquivos || []).map(a => a.url),\n  };\n  if (['Reels', 'Stories'].includes(f.Formato)) body.isVideo = true;\n  if (f.Rede === 'Instagram' && f.Formato === 'Reels') body.instagramOptions = { reels: true, shareReelsFeed: true };\n  if (f.Rede === 'Instagram' && f.Formato === 'Stories') body.instagramOptions = { stories: true };\n  if (f.Rede === 'YouTube') body.youTubeOptions = { title: String(f.Titulo).slice(0, 100), visibility: 'public' };\n  return { json: { id: r.id, titulo: f.Titulo, body } };\n});"
+      }
+    },
+    {
+      "id": "c4913cdb-56f6-45e6-ad19-0189c9cdd1af",
+      "name": "Ayrshare: publicar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.ayrshare.com/api/post' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 300000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "Ayrshare"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "1a27b196-ac20-4808-a6fb-39694174a672",
+      "name": "Ler resultado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const p = $('Montar publicações').item.json;\nconst r = $json;\nconst ok = r.status === 'success';\nconst link = (r.postIds || []).map(x => x.postUrl).filter(Boolean)[0] || null;\nreturn { json: { id: p.id, titulo: p.titulo, ok, link, idPublicacao: r.id || '', erro: ok ? '' : JSON.stringify(r.errors || r.error || r).slice(0, 500) } };",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "7383c986-c304-4175-99dd-57af786bda74",
+      "name": "Atualizar status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { Status: $json.ok ? 'Publicado' : 'Erro', LinkPublicado: $json.link, IdAgendamento: $json.idPublicacao } }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "7f068e95-09ac-434b-9283-4f827578a5cb",
+      "name": "Avisar no Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1540,
+        0
+      ],
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "text": "={{ $('Ler resultado').item.json.ok ? '📣 Publicado: \"' + $('Ler resultado').item.json.titulo + '\"' + ($('Ler resultado').item.json.link ? '\\n' + $('Ler resultado').item.json.link : '') : '❌ Falhou ao publicar \"' + $('Ler resultado').item.json.titulo + '\": ' + $('Ler resultado').item.json.erro + '\\nCorrija e mude o status para Agendado de novo.' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "A cada 15 min": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Buscar posts da vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar posts da vez": {
+      "main": [
+        [
+          {
+            "node": "Montar publicações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar publicações": {
+      "main": [
+        [
+          {
+            "node": "Ayrshare: publicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ayrshare: publicar": {
+      "main": [
+        [
+          {
+            "node": "Ler resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler resultado": {
+      "main": [
+        [
+          {
+            "node": "Atualizar status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar status": {
+      "main": [
+        [
+          {
+            "node": "Avisar no Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

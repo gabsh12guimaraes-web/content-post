@@ -1,0 +1,1431 @@
+{
+  "name": "05 - Artes e prévia (sub-fluxo)",
+  "nodes": [
+    {
+      "id": "2dcfeb5d-d8a8-4bde-87ce-419d27b981de",
+      "name": "Nota 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -460
+      ],
+      "parameters": {
+        "content": "## 05 · Artes e prévia (sub-fluxo)\nChamado pelos fluxos 03 e 04 com o registro do post (precisa do campo `id`).\n1. Gera no **Freepik** (modelo Mystic) as imagens que faltam, ou só as que o ajuste pediu (*ImagensRegerar*).\n2. Se Config › usarCanva = sim: para cada slide, envia a imagem ao **Canva**, preenche o template de marca (campos `titulo`, `texto`, `imagem`) e exporta PNG.\n3. Salva as artes em *Arquivos*, muda o status para *EmRevisao* e manda a prévia com os botões no Telegram.\n\nReels e Stories pulam as etapas 1 e 2 e usam o vídeo que você anexou.\n\nNão precisa ativar este fluxo; ele roda quando é chamado. Copie o ID dele (na URL do n8n) para os fluxos 03 e 04.",
+        "width": 600,
+        "height": 320
+      }
+    },
+    {
+      "id": "53354c50-391c-41ba-b0e9-2e2ed50b05c2",
+      "name": "Ao ser chamado",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "6c70cf97-29ba-46d0-8e4e-0483d15bde6e",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9b3b81e4-f64d-464e-9c1a-ba7b74ed1ae3",
+              "name": "airtableBase",
+              "value": "app0V0dEQB4ksFTUV",
+              "type": "string"
+            },
+            {
+              "id": "c4e61377-2ad8-4385-9a9e-e2d82793b65f",
+              "name": "telegramChatId",
+              "value": "7112977933",
+              "type": "string"
+            },
+            {
+              "id": "c4a22408-adb8-44a1-8aaa-30bcb25e9224",
+              "name": "modelo",
+              "value": "claude-opus-5-5",
+              "type": "string"
+            },
+            {
+              "id": "9bc9ed68-5c40-44fa-9e3d-ee0835a08cea",
+              "name": "fuso",
+              "value": "-03:00",
+              "type": "string"
+            },
+            {
+              "id": "d211d905-dcea-4fb2-87de-250f77757d34",
+              "name": "horarioPadrao",
+              "value": "18:00",
+              "type": "string"
+            },
+            {
+              "id": "760ecad7-a5de-4c26-a296-1df9b24a63bd",
+              "name": "diasAntecedencia",
+              "value": "7",
+              "type": "string"
+            },
+            {
+              "id": "20782ffa-4c6e-472a-a340-2b185fe0c4c7",
+              "name": "ideiasPorSemana",
+              "value": "10",
+              "type": "string"
+            },
+            {
+              "id": "4ccebe45-ea75-4aaa-9cde-256fb346b180",
+              "name": "limiteAjustes",
+              "value": "3",
+              "type": "string"
+            },
+            {
+              "id": "6e163699-08a1-4ad4-8e73-f1411949fcce",
+              "name": "usarCanva",
+              "value": "nao",
+              "type": "string"
+            },
+            {
+              "id": "36d38366-4399-4875-a649-bd3db7fbe4cd",
+              "name": "canvaTemplateCapa",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "f9df3fcc-057b-4dee-800f-cab095ed9579",
+              "name": "canvaTemplateSlide",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "98c4aeb7-32b8-451a-88ed-f22bcf907a2b",
+              "name": "canvaTemplateFinal",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6353371c-b08e-49da-b88f-058412092af3",
+      "name": "Buscar post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $('Ao ser chamado').first().json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "9f37a311-b84e-4ac8-acac-1b5e1ae16eec",
+      "name": "Ver imagens que faltam",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const f = $json.fields;\nif (['Reels', 'Stories'].includes(f.Formato)) return [{ json: { gerar: false } }];\nconst c = JSON.parse(f.Conteudo || '{}');\nconst regerar = f.ImagensRegerar ? JSON.parse(f.ImagensRegerar) : null;\nconst atuais = f.ImagensSlides ? JSON.parse(f.ImagensSlides) : {};\nconst PROPORCAO = { '4:5': 'social_post_4_5', '1:1': 'square_1_1', '9:16': 'social_story_9_16', '16:9': 'widescreen_16_9' };\nconst pedidos = (c.prompts_imagem || []).filter(x => (regerar && regerar.length) ? regerar.includes(x.slide) : !atuais[x.slide]);\nif (!pedidos.length) return [{ json: { gerar: false } }];\nreturn pedidos.map(x => ({ json: { gerar: true, slide: x.slide, prompt: x.prompt, aspect_ratio: PROPORCAO[x.proporcao] || 'social_post_4_5' } }));"
+      }
+    },
+    {
+      "id": "11214c39-45fe-412b-817e-a2f346d36be1",
+      "name": "Tem imagem para gerar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "38072065-3df9-40b3-814a-484a6becddbb",
+              "leftValue": "={{ $json.gerar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8719a829-d40a-4e73-9bbf-a07b53010712",
+      "name": "Uma imagem por vez",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1100,
+        -100
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "9aa1a422-c103-4945-8e57-b5bacc42c850",
+      "name": "Freepik: criar imagem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        20
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.freepik.com/v1/ai/mystic' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: $json.prompt, aspect_ratio: $json.aspect_ratio }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "Freepik"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "c5cbd203-1491-4178-b6c7-37b9e220bda4",
+      "name": "Esperar imagem",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1540,
+        20
+      ],
+      "webhookId": "00ea3347-c709-418b-8b94-8936b151f539",
+      "parameters": {
+        "amount": 15,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "8f2d62ec-e0bd-48d4-b63e-783dc6838730",
+      "name": "Freepik: ver imagem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        20
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.freepik.com/v1/ai/mystic/' + $('Freepik: criar imagem').first().json.data.task_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "Freepik"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "92a8d60c-79f3-46ef-aa04-441d26348e3c",
+      "name": "Imagem pronta?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        20
+      ],
+      "parameters": {
+        "jsCode": "const d = $json.data || {};\nconst pronto = d.status === 'COMPLETED' || d.status === 'FAILED' || !!$json.error || $runIndex > 300;\nreturn [{ json: { pronto, slide: $('Uma imagem por vez').first().json.slide, url: d.status === 'COMPLETED' ? (d.generated || [])[0] : null } }];"
+      }
+    },
+    {
+      "id": "18d9a782-0988-4246-85b5-b5b3a0729d13",
+      "name": "Imagem terminou?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        20
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "81433226-aea8-45a8-9ce6-a3652851712f",
+              "leftValue": "={{ $json.pronto }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a22f19c3-347f-4b9a-9530-a2c5e7c1c616",
+      "name": "Juntar imagens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -240
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst f = $('Buscar post').first().json.fields;\nconst c = JSON.parse(f.Conteudo || '{}');\nconst imgs = f.ImagensSlides ? JSON.parse(f.ImagensSlides) : {};\nfor (const it of $input.all()) if (it.json.slide && it.json.url) imgs[it.json.slide] = it.json.url;\nif (['Reels', 'Stories'].includes(f.Formato)) return [{ json: { canva: false, ehVideo: true, imgs, arquivos: [] } }];\nconst slides = c.slides || [];\nif (cfg.usarCanva === 'sim' && slides.length) {\n  return slides.map((s, i) => {\n    const n = s.n || i + 1;\n    const template = i === 0 ? cfg.canvaTemplateCapa : (i === slides.length - 1 && !imgs[n]) ? cfg.canvaTemplateFinal : cfg.canvaTemplateSlide;\n    return { json: { canva: true, imgs, n, titulo: s.titulo || '', texto: s.texto || '', imagem: imgs[n] || null, template } };\n  });\n}\nconst arquivos = Object.keys(imgs).sort((a, b) => a - b).map(k => imgs[k]).filter(Boolean);\nreturn [{ json: { canva: false, ehVideo: false, imgs, arquivos } }];"
+      }
+    },
+    {
+      "id": "7ca0d260-2b41-4b12-b7b0-a087ebd01314",
+      "name": "Usar Canva?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        -240
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "78022b31-8a05-4d6c-9948-b8fb56f18857",
+              "leftValue": "={{ $json.canva }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "06efb403-2d57-4a66-a2cb-af10489b56a8",
+      "name": "Um slide por vez",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1760,
+        -400
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "87f85398-140a-4dd3-9220-9067bf9065d0",
+      "name": "Slide tem imagem?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        -280
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "b64176a3-ebf9-4cc5-81c1-cf39f7736d23",
+              "leftValue": "={{ !!$json.imagem }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "7e7d8e3a-12e6-4c64-bedf-e5c396984a65",
+      "name": "Canva: enviar imagem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        -360
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.canva.com/rest/v1/url-asset-uploads' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: 'slide-' + $json.n, url: $json.imagem }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "name": "Canva"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "1daf61a2-a0e1-4244-8263-fb40d0e719c4",
+      "name": "Esperar envio",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2420,
+        -360
+      ],
+      "webhookId": "f98923da-249f-4831-81bf-4e6319c65d8c",
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "ad53d5c7-8fc2-4393-8911-2b79a34b6288",
+      "name": "Canva: ver envio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        -360
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.canva.com/rest/v1/url-asset-uploads/' + $('Canva: enviar imagem').first().json.job.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "name": "Canva"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "8069de62-4f30-4e9e-847f-f5a611f1cc2c",
+      "name": "Envio terminou?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2860,
+        -360
+      ],
+      "parameters": {
+        "jsCode": "const job = $json.job || {};\nreturn [{ json: { pronto: job.status !== 'in_progress' || !!$json.error || $runIndex > 300, assetId: (job.asset && job.asset.id) || null } }];"
+      }
+    },
+    {
+      "id": "269b2928-1404-4752-8de4-95930ac72769",
+      "name": "Imagem no Canva?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        -360
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "7842bdd8-2a74-49d7-aeae-511e1b68fb06",
+              "leftValue": "={{ $json.pronto }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5a047af2-31c7-44b5-bd87-e48dfcf7676a",
+      "name": "Preencher template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3300,
+        -280
+      ],
+      "parameters": {
+        "jsCode": "const s = $('Um slide por vez').first().json;\nconst data = { titulo: { type: 'text', text: s.titulo }, texto: { type: 'text', text: s.texto } };\nif ($json.assetId) data.imagem = { type: 'image', asset_id: $json.assetId };\nreturn [{ json: { body: { brand_template_id: s.template, title: 'Slide ' + s.n, data } } }];"
+      }
+    },
+    {
+      "id": "a22d0c82-c019-4ff2-9364-29c6b1dfe1b6",
+      "name": "Canva: autofill",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3520,
+        -280
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.canva.com/rest/v1/autofills' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "name": "Canva"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "760ee69c-e8b1-4a80-8fd9-9b83f06ecf44",
+      "name": "Esperar autofill",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3740,
+        -280
+      ],
+      "webhookId": "e06c0d02-a17e-4868-9723-8d4622ab5722",
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "6a498485-6e43-41be-b26f-da0a6588be1b",
+      "name": "Canva: ver autofill",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3960,
+        -280
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.canva.com/rest/v1/autofills/' + $('Canva: autofill').first().json.job.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "name": "Canva"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "32b73fe9-2cfc-4b18-90be-200821d7d191",
+      "name": "Autofill terminou?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4180,
+        -280
+      ],
+      "parameters": {
+        "jsCode": "const job = $json.job || {};\nconst designId = job.result && job.result.design && job.result.design.id;\nreturn [{ json: { pronto: job.status !== 'in_progress' || !!$json.error || $runIndex > 300, designId: designId || null } }];"
+      }
+    },
+    {
+      "id": "d0169d4c-6011-4180-ada8-0480395c6ee5",
+      "name": "Design pronto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        4400,
+        -280
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "8e74131c-e984-44ef-8c2c-75d11b9e3799",
+              "leftValue": "={{ $json.pronto }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "23661af1-732f-4fa6-a004-9d20b85efabf",
+      "name": "Canva: exportar PNG",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4620,
+        -360
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.canva.com/rest/v1/exports' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ design_id: $json.designId, format: { type: 'png' } }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "name": "Canva"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "4c9f1e6f-14ab-4988-9fe1-521a3e110d49",
+      "name": "Esperar exportação",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4840,
+        -360
+      ],
+      "webhookId": "89a34b98-a14e-40b5-967d-80a51af58582",
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "303f1dd3-b246-4f07-8f7f-159a7c6375a4",
+      "name": "Canva: ver exportação",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5060,
+        -360
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.canva.com/rest/v1/exports/' + $('Canva: exportar PNG').first().json.job.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "name": "Canva"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "0a3edcef-6677-40a1-8450-5b8de32a0ad9",
+      "name": "Exportação terminou?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5280,
+        -360
+      ],
+      "parameters": {
+        "jsCode": "const job = $json.job || {};\nreturn [{ json: { pronto: job.status !== 'in_progress' || !!$json.error || $runIndex > 300, n: $('Um slide por vez').first().json.n, url: (job.urls || [])[0] || null } }];"
+      }
+    },
+    {
+      "id": "357d3198-b746-49a2-aef4-a2d569972710",
+      "name": "PNG pronto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        5500,
+        -360
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "f91f4bcc-ead1-4223-b8df-56fe247724e2",
+              "leftValue": "={{ $json.pronto }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "00640ee8-ade7-43ee-b86b-12df3469298c",
+      "name": "Finalizar artes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        -600
+      ],
+      "parameters": {
+        "jsCode": "const ent = $input.all().map(i => i.json);\nlet imgs, arquivos, ehVideo = false;\nif (ent[0] && ent[0].canva === false) {\n  ({ imgs, arquivos, ehVideo } = ent[0]);\n} else {\n  imgs = $('Juntar imagens').first().json.imgs;\n  arquivos = ent.filter(e => e.url).sort((a, b) => a.n - b.n).map(e => e.url);\n}\nconst fields = { ImagensSlides: JSON.stringify(imgs), ImagensRegerar: '', Status: 'EmRevisao' };\nif (!ehVideo) fields.Arquivos = arquivos.map(url => ({ url }));\nreturn [{ json: { fields, arquivos, ehVideo } }];"
+      }
+    },
+    {
+      "id": "e91438e9-1e31-472b-83f9-c1e2bd7851a5",
+      "name": "Salvar artes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        -600
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $('Buscar post').first().json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: $json.fields }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "6d0fa0ac-75b9-4d12-899d-c750c5896380",
+      "name": "Separar mídias",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        -720
+      ],
+      "parameters": {
+        "jsCode": "const fin = $('Finalizar artes').first().json;\nif (fin.ehVideo) {\n  const a = ($json.fields.Arquivos || [])[0];\n  return a ? [{ json: { url: a.url, video: true } }] : [];\n}\nreturn fin.arquivos.map(url => ({ json: { url, video: false } }));"
+      }
+    },
+    {
+      "id": "b236c47b-d977-46c7-b1f9-f059a1c36609",
+      "name": "É vídeo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2860,
+        -720
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "61ed9dd7-e6ee-40b2-8d89-16188002a075",
+              "leftValue": "={{ $json.video }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b56b3269-c72b-4733-8cff-5dc30b38f843",
+      "name": "Mandar vídeo",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3080,
+        -800
+      ],
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "file": "={{ $json.url }}",
+        "additionalFields": {}
+      }
+    },
+    {
+      "id": "9e0f0828-9555-4cc0-93dc-5115dd5212db",
+      "name": "Mandar imagem",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3080,
+        -640
+      ],
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "file": "={{ $json.url }}",
+        "additionalFields": {}
+      }
+    },
+    {
+      "id": "5d0cdccc-942b-4461-b248-ffb3ab379df3",
+      "name": "Montar mensagem de revisão",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        -520
+      ],
+      "parameters": {
+        "jsCode": "const r = $('Salvar artes').first().json;\nconst f = r.fields;\nconst c = JSON.parse(f.Conteudo || '{}');\nconst quando = new Date(f.DataPublicacao).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });\nlet t = '📝 ' + f.Titulo + ' (v' + (f.Versao || 1) + ')\\n📅 ' + quando + ' · ' + f.Rede + ' · ' + f.Formato + '\\n\\n' + (f.Legenda || '') + '\\n\\n' + (f.Hashtags || '');\nif (c.resumo_mudancas) t += '\\n\\n🔁 O que mudou: ' + c.resumo_mudancas;\nreturn [{ json: { id: r.id, texto: t.slice(0, 4000) } }];"
+      }
+    },
+    {
+      "id": "2b820e14-f175-4acd-b1f7-9ab6e6a73375",
+      "name": "Mandar prévia com botões",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2860,
+        -520
+      ],
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "text": "={{ $json.texto }}",
+        "additionalFields": {
+          "appendAttribution": false
+        },
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Aprovar",
+                    "additionalFields": {
+                      "callback_data": "=aprovar:{{ $json.id }}"
+                    }
+                  },
+                  {
+                    "text": "✏️ Pedir ajuste",
+                    "additionalFields": {
+                      "callback_data": "=ajustar:{{ $json.id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Ao ser chamado": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Buscar post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar post": {
+      "main": [
+        [
+          {
+            "node": "Ver imagens que faltam",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ver imagens que faltam": {
+      "main": [
+        [
+          {
+            "node": "Tem imagem para gerar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem imagem para gerar?": {
+      "main": [
+        [
+          {
+            "node": "Uma imagem por vez",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Juntar imagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Uma imagem por vez": {
+      "main": [
+        [
+          {
+            "node": "Juntar imagens",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Freepik: criar imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Freepik: criar imagem": {
+      "main": [
+        [
+          {
+            "node": "Esperar imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar imagem": {
+      "main": [
+        [
+          {
+            "node": "Freepik: ver imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Freepik: ver imagem": {
+      "main": [
+        [
+          {
+            "node": "Imagem pronta?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Imagem pronta?": {
+      "main": [
+        [
+          {
+            "node": "Imagem terminou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Imagem terminou?": {
+      "main": [
+        [
+          {
+            "node": "Uma imagem por vez",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Juntar imagens": {
+      "main": [
+        [
+          {
+            "node": "Usar Canva?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Usar Canva?": {
+      "main": [
+        [
+          {
+            "node": "Um slide por vez",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Finalizar artes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Um slide por vez": {
+      "main": [
+        [
+          {
+            "node": "Finalizar artes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slide tem imagem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slide tem imagem?": {
+      "main": [
+        [
+          {
+            "node": "Canva: enviar imagem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preencher template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canva: enviar imagem": {
+      "main": [
+        [
+          {
+            "node": "Esperar envio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar envio": {
+      "main": [
+        [
+          {
+            "node": "Canva: ver envio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canva: ver envio": {
+      "main": [
+        [
+          {
+            "node": "Envio terminou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envio terminou?": {
+      "main": [
+        [
+          {
+            "node": "Imagem no Canva?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Imagem no Canva?": {
+      "main": [
+        [
+          {
+            "node": "Preencher template",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar envio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preencher template": {
+      "main": [
+        [
+          {
+            "node": "Canva: autofill",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canva: autofill": {
+      "main": [
+        [
+          {
+            "node": "Esperar autofill",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar autofill": {
+      "main": [
+        [
+          {
+            "node": "Canva: ver autofill",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canva: ver autofill": {
+      "main": [
+        [
+          {
+            "node": "Autofill terminou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autofill terminou?": {
+      "main": [
+        [
+          {
+            "node": "Design pronto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Design pronto?": {
+      "main": [
+        [
+          {
+            "node": "Canva: exportar PNG",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar autofill",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canva: exportar PNG": {
+      "main": [
+        [
+          {
+            "node": "Esperar exportação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar exportação": {
+      "main": [
+        [
+          {
+            "node": "Canva: ver exportação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canva: ver exportação": {
+      "main": [
+        [
+          {
+            "node": "Exportação terminou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exportação terminou?": {
+      "main": [
+        [
+          {
+            "node": "PNG pronto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PNG pronto?": {
+      "main": [
+        [
+          {
+            "node": "Um slide por vez",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar exportação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalizar artes": {
+      "main": [
+        [
+          {
+            "node": "Salvar artes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar artes": {
+      "main": [
+        [
+          {
+            "node": "Separar mídias",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Montar mensagem de revisão",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar mídias": {
+      "main": [
+        [
+          {
+            "node": "É vídeo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É vídeo?": {
+      "main": [
+        [
+          {
+            "node": "Mandar vídeo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mandar imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar mensagem de revisão": {
+      "main": [
+        [
+          {
+            "node": "Mandar prévia com botões",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

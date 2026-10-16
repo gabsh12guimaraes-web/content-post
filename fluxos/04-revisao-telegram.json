@@ -1,0 +1,1026 @@
+{
+  "name": "04 - Revisão pelo Telegram",
+  "nodes": [
+    {
+      "id": "f80cf8eb-775b-4838-8c41-1088106bb04c",
+      "name": "Nota 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -380
+      ],
+      "parameters": {
+        "content": "## 04 · Revisão\nEscuta o bot do Telegram.\n• **✅ Aprovar** → status *Agendado* (o fluxo 06 publica na data).\n• **✏️ Pedir ajuste** → o bot pede o comentário. Você **responde à mensagem do bot** e o Claude aplica só o que você pediu; o fluxo 05 refaz as imagens necessárias e manda a nova prévia.\n\nSó aceita mensagens do chat da Config (telegramChatId). Para no limite de ajustes da Config.\n\nAtive este fluxo para o Telegram começar a mandar os cliques.",
+        "width": 560,
+        "height": 280
+      }
+    },
+    {
+      "id": "fe82165f-032f-469b-9bc0-8a52e7fa8f4c",
+      "name": "Telegram: cliques e respostas",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "cd26d828-157e-46d7-94ff-e292abb79de8",
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      },
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      }
+    },
+    {
+      "id": "054f8174-2277-49d5-8d49-4843fae4e917",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2759b3c4-3670-4907-99b4-6a8bc281741a",
+              "name": "airtableBase",
+              "value": "app0V0dEQB4ksFTUV",
+              "type": "string"
+            },
+            {
+              "id": "60a0f4e6-a236-4744-820d-ad67367d443d",
+              "name": "telegramChatId",
+              "value": "7112977933",
+              "type": "string"
+            },
+            {
+              "id": "a617b433-4e1b-48d2-b4d8-32ca54884cd1",
+              "name": "modelo",
+              "value": "claude-opus-5-5",
+              "type": "string"
+            },
+            {
+              "id": "97f7bc75-836a-492c-b30f-91b8e342e6e4",
+              "name": "fuso",
+              "value": "-03:00",
+              "type": "string"
+            },
+            {
+              "id": "620f8844-4494-48b4-a190-ea95f5d5a56f",
+              "name": "horarioPadrao",
+              "value": "18:00",
+              "type": "string"
+            },
+            {
+              "id": "ad63981a-ad60-4ff2-97ee-1eafa5f256d7",
+              "name": "diasAntecedencia",
+              "value": "7",
+              "type": "string"
+            },
+            {
+              "id": "767042b3-d002-4bb2-9b47-f5a669d6697d",
+              "name": "ideiasPorSemana",
+              "value": "10",
+              "type": "string"
+            },
+            {
+              "id": "a405c99e-307c-4cc7-88d3-116db29777a6",
+              "name": "limiteAjustes",
+              "value": "3",
+              "type": "string"
+            },
+            {
+              "id": "6c68f455-fbb5-49d9-921d-40c9d01574b1",
+              "name": "usarCanva",
+              "value": "nao",
+              "type": "string"
+            },
+            {
+              "id": "5c1b2f8f-f677-4f07-86d4-d3077dd532e6",
+              "name": "canvaTemplateCapa",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "f7b897fa-a23d-4884-8309-014e0bb68d89",
+              "name": "canvaTemplateSlide",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "10a05861-073a-4904-8b85-f072e9f9c60e",
+              "name": "canvaTemplateFinal",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9769bd49-4035-449d-b538-2f1ecb037268",
+      "name": "Entender mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst u = $('Telegram: cliques e respostas').first().json;\nconst cb = u.callback_query;\nif (cb) {\n  if (String(cb.message && cb.message.chat && cb.message.chat.id) !== String(cfg.telegramChatId)) return [];\n  const [acao, id] = String(cb.data || '').split(':');\n  if (!id) return [];\n  return [{ json: { aprovar: acao === 'aprovar', pedir: acao === 'ajustar', id, queryId: cb.id } }];\n}\nconst m = u.message;\nif (!m || String(m.chat && m.chat.id) !== String(cfg.telegramChatId) || !m.text) return [];\nconst achou = String((m.reply_to_message && m.reply_to_message.text) || '').match(/\\[(rec[A-Za-z0-9]{14})\\]/);\nif (!achou) return [];\nreturn [{ json: { aprovar: false, pedir: false, id: achou[1], comentario: m.text } }];"
+      }
+    },
+    {
+      "id": "9cfc61dd-5abe-46a6-a8b5-ac22d4d52433",
+      "name": "É aprovação?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "81207e15-bb08-48b4-bab3-0fe81cdaa54f",
+              "leftValue": "={{ $json.aprovar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "86321f48-3aed-4f9d-ad69-00d262526c2a",
+      "name": "Marcar agendado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -160
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { Status: 'Agendado' } }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "763487b1-d828-4831-8b74-a56819038bf4",
+      "name": "Registrar aprovação",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        -160
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Revisoes' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [{ fields: { Post: [$json.id], Versao: $json.fields.Versao || 1, Decisao: 'Aprovado', CriadoEm: new Date().toISOString() } }], typecast: true }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "78c00228-08a8-44a9-ab6f-d71cecc63420",
+      "name": "Responder clique (aprovado)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1320,
+        -160
+      ],
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $('Entender mensagem').first().json.queryId }}",
+        "additionalFields": {
+          "text": "Aprovado ✅"
+        }
+      }
+    },
+    {
+      "id": "e6a1e32f-4aea-4a06-8d55-feccd9cbb23d",
+      "name": "Confirmar aprovação",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1540,
+        -160
+      ],
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "text": "={{ '✅ Aprovado: \"' + $('Marcar agendado').first().json.fields.Titulo + '\". Publica em ' + new Date($('Marcar agendado').first().json.fields.DataPublicacao).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }) + '.' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      }
+    },
+    {
+      "id": "ea80e7fe-afa8-450c-b231-d338440dd9a4",
+      "name": "É pedido de ajuste?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        880,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "d6f3e457-7a80-47b0-a74f-723ce7f966e6",
+              "leftValue": "={{ $json.pedir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d4b4b30c-07ba-4e8b-b553-e95911899d8a",
+      "name": "Responder clique (ajuste)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1100,
+        20
+      ],
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $('Entender mensagem').first().json.queryId }}",
+        "additionalFields": {
+          "text": "Me diga o que mudar"
+        }
+      }
+    },
+    {
+      "id": "4438527e-d773-4b20-8b5d-c3180aa4b029",
+      "name": "Pedir o comentário",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1320,
+        20
+      ],
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "text": "={{ '✏️ O que você quer mudar no post [' + $('Entender mensagem').first().json.id + ']? Responda esta mensagem.' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        },
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": true
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      }
+    },
+    {
+      "id": "fb90dd5e-5df3-4ac1-9e39-6f1165d1b8c8",
+      "name": "Buscar post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        260
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "7c4c6ccb-48fa-4795-a083-c56cefd2fd82",
+      "name": "Checar limite",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        260
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst f = $json.fields;\nconst versao = Number(f.Versao) || 1;\nreturn [{ json: { id: $json.id, versao, titulo: f.Titulo, passou: versao - 1 >= Number(cfg.limiteAjustes), historico: f.HistoricoAjustes || '' } }];"
+      }
+    },
+    {
+      "id": "e767a230-e2e3-4122-ad1a-dc9ace06814c",
+      "name": "Passou do limite?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        260
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "be66fb9a-3f57-4131-9319-587904e5e14b",
+              "leftValue": "={{ $json.passou }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e53a19d3-4083-4073-8bd2-e8c48f109a92",
+      "name": "Avisar limite",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        180
+      ],
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "text": "={{ '⛔ \"' + $json.titulo + '\" já teve ' + ($json.versao - 1) + ' ajustes. Edite direto no Airtable, ou mude o status para Planejado para refazer do zero.' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      }
+    },
+    {
+      "id": "e4604f5b-3ced-49f9-a609-9af8f22e775e",
+      "name": "Registrar pedido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        340
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Revisoes' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [{ fields: { Post: [$json.id], Versao: $json.versao, Decisao: 'PediuAjuste', Comentario: $('Entender mensagem').first().json.comentario, CriadoEm: new Date().toISOString() } }], typecast: true }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "3624275f-f08e-4756-9715-207b3aa619b2",
+      "name": "Marcar ajustando",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        340
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $('Checar limite').first().json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { Status: 'Ajustes', HistoricoAjustes: ($('Checar limite').first().json.historico + '\\nv' + $('Checar limite').first().json.versao + ': ' + $('Entender mensagem').first().json.comentario).trim() } }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "96438170-9dbc-46a5-a6a5-b0aca99c9290",
+      "name": "Avisar que está ajustando",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2200,
+        340
+      ],
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "text": "={{ '🔁 Recebido. Ajustando \"' + $('Checar limite').first().json.titulo + '\"…' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      }
+    },
+    {
+      "id": "0cb08ba2-81d2-49a2-98bd-308ad12a9bf2",
+      "name": "Buscar marca",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        340
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Marca' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "maxRecords",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "d6729b7b-57c6-4c2b-81f4-4187dfde3131",
+      "name": "Montar pedido de ajuste",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        340
+      ],
+      "parameters": {
+        "jsCode": "const SYSTEM = \"Você está revisando um post da marca descrita em <marca>, a pedido da pessoa responsável pela marca.\\n\\nRegras:\\n1. Faça EXATAMENTE o que <comentario> pede. Não \\\"melhore\\\" outras partes por conta própria.\\n2. Tudo o que o comentário não menciona fica idêntico, caractere por caractere.\\n3. Se o comentário for ambíguo, escolha a interpretação mais provável e explique em \\\"resumo_mudancas\\\".\\n4. Se o pedido violar <marca><evitar>, não aplique essa parte e explique em \\\"resumo_mudancas\\\".\\n5. Continue seguindo o tom de voz, o idioma (<marca><idioma>) e as regras de formato da marca.\\n6. Se mudou o conteúdo de um slide que tem imagem, avalie se o prompt de imagem também precisa mudar. Liste em \\\"alterou_imagens\\\" só os slides cuja IMAGEM precisa ser gerada de novo.\\n\\nResponda APENAS com um objeto JSON com os mesmos campos da versão atual (legenda, hashtags, slides, cenas, prompts_imagem) mais:\\n\\\"alterou_legenda\\\": true|false, \\\"alterou_slides\\\": [números], \\\"alterou_imagens\\\": [números], \\\"resumo_mudancas\\\": \\\"frase curta dizendo o que mudou\\\"\";\nconst idiomaDe = m => (m.Idioma && m.Idioma.name) || m.Idioma || 'Português (Brasil)';\nconst cfg = $('Config').first().json;\nconst marca = (($json.records || [])[0] || {}).fields || {};\nconst post = $('Buscar post').first().json.fields;\nconst atual = JSON.parse(post.Conteudo || '{}');\nfor (const k of ['alterou_legenda', 'alterou_slides', 'alterou_imagens', 'resumo_mudancas']) delete atual[k];\nconst user = [\n  '<marca>',\n  '<tom_de_voz>' + (marca.TomDeVoz || '') + '</tom_de_voz>',\n  '<idioma>' + idiomaDe(marca) + '</idioma>',\n  '<evitar>' + (marca.Evitar || '') + '</evitar>',\n  '</marca>',\n  '',\n  '<versao_atual numero=\"' + (post.Versao || 1) + '\">', JSON.stringify(atual, null, 1), '</versao_atual>',\n  '',\n  '<historico>', post.HistoricoAjustes || '', '</historico>',\n  '',\n  '<comentario>', $('Entender mensagem').first().json.comentario, '</comentario>',\n].join('\\n');\nreturn [{ json: { body: {\n  model: cfg.modelo, max_tokens: 16000, output_config: { effort: 'medium' }, fallbacks: 'default',\n  system: SYSTEM, messages: [{ role: 'user', content: user }],\n} } }];"
+      }
+    },
+    {
+      "id": "492c09dc-95ff-4669-a549-054a47e5a52c",
+      "name": "Claude: aplicar ajuste",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        340
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.anthropic.com/v1/messages' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "anthropic-beta",
+              "value": "server-side-fallback-2026-07-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "credentials": {
+        "anthropicApi": {
+          "name": "Anthropic"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "b2dd4a14-51bd-46d6-96d9-d415c0646fad",
+      "name": "Ler ajuste",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        340
+      ],
+      "parameters": {
+        "jsCode": "function lerClaude(r) {\n  if (!r || r.error || r.type === 'error') throw new Error('falha na API do Claude: ' + JSON.stringify((r && r.error) || r).slice(0, 300));\n  if (r.stop_reason === 'refusal') throw new Error('o Claude recusou o pedido');\n  if (r.stop_reason === 'max_tokens') throw new Error('a resposta ficou longa demais e foi cortada');\n  const txt = (r.content || []).filter(b => b.type === 'text').map(b => b.text).join('');\n  const m = txt.match(/\\{[\\s\\S]*\\}/);\n  if (!m) throw new Error('a resposta não veio em JSON');\n  return JSON.parse(m[0]);\n}\n\nconst post = $('Buscar post').first().json;\nconst f = post.fields;\nconst ehVideo = ['Reels', 'Stories'].includes(f.Formato);\ntry {\n  const c = lerClaude($json);\n  return [{ json: { ok: true, id: post.id, patch: {\n    Legenda: c.legenda || '', Hashtags: (c.hashtags || []).join(' '),\n    Slides: JSON.stringify(ehVideo ? (c.cenas || []) : (c.slides || [])),\n    PromptsImagem: JSON.stringify(c.prompts_imagem || []), Conteudo: JSON.stringify(c),\n    ImagensRegerar: JSON.stringify(c.alterou_imagens || []), Versao: (Number(f.Versao) || 1) + 1,\n  } } }];\n} catch (e) {\n  return [{ json: { ok: false, id: post.id, erro: e.message } }];\n}"
+      }
+    },
+    {
+      "id": "8cb2a7f0-da2e-41ea-b99d-677315303dc0",
+      "name": "Ajuste deu certo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3300,
+        340
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "3c7924eb-8ead-43c6-950c-dd0d42ac3398",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "16c9c5b3-f3ae-4d72-a1ed-4ea9dbb80c55",
+      "name": "Salvar ajuste",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3520,
+        260
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: $json.patch, typecast: true }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "e5899f7c-aab2-4c6a-81bf-f297024206b4",
+      "name": "05: refazer artes e prévia",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3740,
+        260
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": "pjYDLT3tM4CTGAex"
+      }
+    },
+    {
+      "id": "92bdfa69-93f7-4d63-b591-74734c291783",
+      "name": "Voltar para revisão",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3520,
+        440
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { Status: 'EmRevisao' } }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "876f68a7-fd56-4912-a8ce-7e3889fa553e",
+      "name": "Avisar erro no ajuste",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3740,
+        440
+      ],
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "text": "={{ '⚠️ Não consegui aplicar o ajuste: ' + $('Ler ajuste').first().json.erro + '. O post continua na versão anterior; tente pedir de novo.' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram: cliques e respostas": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Entender mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entender mensagem": {
+      "main": [
+        [
+          {
+            "node": "É aprovação?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É aprovação?": {
+      "main": [
+        [
+          {
+            "node": "Marcar agendado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "É pedido de ajuste?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar agendado": {
+      "main": [
+        [
+          {
+            "node": "Registrar aprovação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar aprovação": {
+      "main": [
+        [
+          {
+            "node": "Responder clique (aprovado)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder clique (aprovado)": {
+      "main": [
+        [
+          {
+            "node": "Confirmar aprovação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É pedido de ajuste?": {
+      "main": [
+        [
+          {
+            "node": "Responder clique (ajuste)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder clique (ajuste)": {
+      "main": [
+        [
+          {
+            "node": "Pedir o comentário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar post": {
+      "main": [
+        [
+          {
+            "node": "Checar limite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checar limite": {
+      "main": [
+        [
+          {
+            "node": "Passou do limite?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Passou do limite?": {
+      "main": [
+        [
+          {
+            "node": "Avisar limite",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar pedido": {
+      "main": [
+        [
+          {
+            "node": "Marcar ajustando",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar ajustando": {
+      "main": [
+        [
+          {
+            "node": "Avisar que está ajustando",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avisar que está ajustando": {
+      "main": [
+        [
+          {
+            "node": "Buscar marca",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar marca": {
+      "main": [
+        [
+          {
+            "node": "Montar pedido de ajuste",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar pedido de ajuste": {
+      "main": [
+        [
+          {
+            "node": "Claude: aplicar ajuste",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude: aplicar ajuste": {
+      "main": [
+        [
+          {
+            "node": "Ler ajuste",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler ajuste": {
+      "main": [
+        [
+          {
+            "node": "Ajuste deu certo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ajuste deu certo?": {
+      "main": [
+        [
+          {
+            "node": "Salvar ajuste",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Voltar para revisão",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar ajuste": {
+      "main": [
+        [
+          {
+            "node": "05: refazer artes e prévia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voltar para revisão": {
+      "main": [
+        [
+          {
+            "node": "Avisar erro no ajuste",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

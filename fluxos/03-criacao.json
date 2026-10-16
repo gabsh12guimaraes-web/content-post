@@ -1,0 +1,747 @@
+{
+  "name": "03 - Criação dos posts",
+  "nodes": [
+    {
+      "id": "0bb8d741-b303-4fb3-be9b-2f94bdc4f997",
+      "name": "Nota 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -420
+      ],
+      "parameters": {
+        "content": "## 03 · Criação\nA cada hora: pega até 5 posts *Planejado* que publicam nos próximos dias (Config › diasAntecedencia), pede ao Claude legenda, slides e prompts de imagem, e chama o fluxo **05** para gerar as artes e mandar a prévia.\n\n**Reels e Stories:** o Claude escreve o roteiro e manda no Telegram. Você edita no CapCut, anexa o vídeo em *Arquivos* e muda o status para *VideoAnexado*. A linha de baixo pega esses posts e manda a prévia.\n\nOs nós de sub-fluxo já apontam para o fluxo 05.",
+        "width": 560,
+        "height": 280
+      }
+    },
+    {
+      "id": "65e117e1-8030-49c9-b1f4-a3fec5f71ed1",
+      "name": "A cada hora",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "6ab2ac1c-b0e5-47d7-aab1-20de2f5c5ad9",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1ee0430-74b1-459d-832d-df0474328033",
+              "name": "airtableBase",
+              "value": "app0V0dEQB4ksFTUV",
+              "type": "string"
+            },
+            {
+              "id": "e79fd8de-6ab2-432f-8eef-6a7f93d40153",
+              "name": "telegramChatId",
+              "value": "7112977933",
+              "type": "string"
+            },
+            {
+              "id": "0b787a11-9b12-4773-8ebf-499666c5b834",
+              "name": "modelo",
+              "value": "claude-opus-5-5",
+              "type": "string"
+            },
+            {
+              "id": "51d3d4f3-23c7-49cc-8078-1b532cafb3f1",
+              "name": "fuso",
+              "value": "-03:00",
+              "type": "string"
+            },
+            {
+              "id": "3c79fb10-7a53-46a6-b6c9-80fbf648f2c7",
+              "name": "horarioPadrao",
+              "value": "18:00",
+              "type": "string"
+            },
+            {
+              "id": "1a621cd2-21ed-4278-b091-eaad95046391",
+              "name": "diasAntecedencia",
+              "value": "7",
+              "type": "string"
+            },
+            {
+              "id": "d75cd275-78cd-499e-831f-f724164b7fe8",
+              "name": "ideiasPorSemana",
+              "value": "10",
+              "type": "string"
+            },
+            {
+              "id": "6c745f33-2648-47e2-8465-6064569d06f3",
+              "name": "limiteAjustes",
+              "value": "3",
+              "type": "string"
+            },
+            {
+              "id": "6a4947b4-a335-4db8-9e49-ac345cf3aa8b",
+              "name": "usarCanva",
+              "value": "nao",
+              "type": "string"
+            },
+            {
+              "id": "0c8f00bc-f55a-4a16-acad-7ac1ea555d81",
+              "name": "canvaTemplateCapa",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "2da1128b-bc29-4439-b1c8-a8765fa1db1b",
+              "name": "canvaTemplateSlide",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "53fdb7f8-8d5a-4f18-98e8-e6f1fdb0fac9",
+              "name": "canvaTemplateFinal",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d8ce38ae-1eca-49dc-8c9f-7c1d94b050cd",
+      "name": "Buscar posts para criar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "={{ \"AND({Status}='Planejado', IS_BEFORE({DataPublicacao}, DATEADD(NOW(), \" + $('Config').first().json.diasAntecedencia + \", 'days')))\" }}"
+            },
+            {
+              "name": "maxRecords",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "31250081-dfc8-4032-92c9-da8da1f9a990",
+      "name": "Separar posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return (($input.first().json.records) || []).map(r => ({ json: r }));"
+      }
+    },
+    {
+      "id": "a3e87964-253d-4eac-b917-1fdd64ea4385",
+      "name": "Um post por vez",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "cb9b2dc0-dac3-4306-910f-66906a930f90",
+      "name": "Marcar em criação",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        120
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { Status: 'EmCriacao' } }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "0a953832-e6b3-406d-9706-60b51579003f",
+      "name": "Buscar marca",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        120
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Marca' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "maxRecords",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "e48d9ed6-4a6e-4d11-9ef9-3fa5b44255e8",
+      "name": "Buscar ideia",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        120
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Ideias' + '/' + (($('Um post por vez').first().json.fields.Ideia || [])[0] || 'sem-ideia') }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "a9cf9c8f-383a-428d-8532-060ee883e5c7",
+      "name": "Montar pedido do post",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        120
+      ],
+      "parameters": {
+        "jsCode": "const SYSTEM = \"Você é redator(a) e diretor(a) de arte da marca descrita em <marca>. Escreva o post completo a partir da ideia aprovada.\\n\\nRegras de texto:\\n1. Use exatamente o tom de voz da marca. Releia <marca><tom_de_voz> antes de escrever.\\n2. Respeite tudo o que está em <marca><evitar>.\\n3. A primeira linha da legenda é o gancho: precisa funcionar sozinha no feed.\\n4. Legenda de Instagram: até 1.200 caracteres, parágrafos curtos, CTA no fim. TikTok: até 300 caracteres.\\n5. Hashtags: de 3 a 8, misturando amplas e de nicho. Nada genérico demais (#love, #instagood).\\n6. Escreva no idioma indicado em <marca><idioma> (se vier vazio, português do Brasil), sem erros.\\n\\nRegras por formato:\\n- Carrossel: de 5 a 10 slides. Slide 1 = gancho. Último slide = CTA. Cada slide tem \\\"titulo\\\" (até 8 palavras) e \\\"texto\\\" (até 30 palavras).\\n- Estatico: 1 slide com \\\"titulo\\\" e \\\"texto\\\".\\n- Reels/Stories: de 4 a 8 cenas, cada uma com \\\"duracao_s\\\", \\\"visual\\\" (o que aparece) e \\\"fala_ou_texto\\\" (o que é dito ou escrito na tela). Some no máximo 45 segundos.\\n\\nRegras de imagem:\\n- Gere 1 prompt de imagem por slide que precise de imagem (nem todo slide precisa). Reels e Stories não levam prompts de imagem.\\n- Prompts em inglês (os modelos de imagem respondem melhor), descritivos, com estilo, luz e enquadramento.\\n- Nunca peça texto escrito dentro da imagem: o texto entra pelo template do Canva.\\n- Nunca peça logotipos ou pessoas reais identificáveis.\\n- Quando fizer sentido, puxe a direção de arte para as cores de <marca><cores> (fundo, luz, objetos), sem deixar a imagem artificial.\\n\\nResponda APENAS com um objeto JSON neste formato:\\n{\\\"legenda\\\":\\\"\\\",\\\"hashtags\\\":[\\\"#...\\\"],\\\"slides\\\":[{\\\"n\\\":1,\\\"titulo\\\":\\\"\\\",\\\"texto\\\":\\\"\\\",\\\"usa_imagem\\\":true}],\\\"cenas\\\":[{\\\"n\\\":1,\\\"duracao_s\\\":5,\\\"visual\\\":\\\"\\\",\\\"fala_ou_texto\\\":\\\"\\\"}],\\\"prompts_imagem\\\":[{\\\"slide\\\":1,\\\"prompt\\\":\\\"\\\",\\\"proporcao\\\":\\\"4:5\\\"}]}\\n\\\"slides\\\" é usado em Carrossel e Estatico; \\\"cenas\\\" em Reels e Stories. O que não se aplica vem como lista vazia.\";\nconst idiomaDe = m => (m.Idioma && m.Idioma.name) || m.Idioma || 'Português (Brasil)';\nconst cfg = $('Config').first().json;\nconst marca = (($('Buscar marca').first().json.records || [])[0] || {}).fields || {};\nconst post = $('Um post por vez').first().json.fields;\nconst ideia = ($json && $json.fields) || {};\nconst user = [\n  '<marca>',\n  'nome: ' + (marca.Nome || ''),\n  'posicionamento: ' + (marca.Posicionamento || ''),\n  'publico: ' + (marca.Publico || ''),\n  '<tom_de_voz>' + (marca.TomDeVoz || '') + '</tom_de_voz>',\n  '<idioma>' + idiomaDe(marca) + '</idioma>',\n  '<cores>' + (marca.Cores || '').split('\\n').join('; ') + '</cores>',\n  '<evitar>' + (marca.Evitar || '') + '</evitar>',\n  '</marca>',\n  '',\n  '<post>',\n  'titulo: ' + post.Titulo,\n  'rede: ' + post.Rede,\n  'formato: ' + post.Formato,\n  'pilar: ' + (post.Pilar || ''),\n  'data: ' + post.DataPublicacao,\n  '</post>',\n  '',\n  '<ideia>',\n  'resumo: ' + (ideia.Resumo || post.Titulo),\n  'por_que_funciona: ' + (ideia.PorQueFunciona || ''),\n  '</ideia>',\n].join('\\n');\nreturn [{ json: { body: {\n  model: cfg.modelo, max_tokens: 16000, output_config: { effort: 'high' }, fallbacks: 'default',\n  system: SYSTEM, messages: [{ role: 'user', content: user }],\n} } }];"
+      }
+    },
+    {
+      "id": "1639126a-5b4a-4739-bfc3-614bad182abd",
+      "name": "Claude: escrever post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        120
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.anthropic.com/v1/messages' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "anthropic-beta",
+              "value": "server-side-fallback-2026-07-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "credentials": {
+        "anthropicApi": {
+          "name": "Anthropic"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "02d18bf2-99de-407a-8131-2a579a09ae30",
+      "name": "Ler post",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        120
+      ],
+      "parameters": {
+        "jsCode": "function lerClaude(r) {\n  if (!r || r.error || r.type === 'error') throw new Error('falha na API do Claude: ' + JSON.stringify((r && r.error) || r).slice(0, 300));\n  if (r.stop_reason === 'refusal') throw new Error('o Claude recusou o pedido');\n  if (r.stop_reason === 'max_tokens') throw new Error('a resposta ficou longa demais e foi cortada');\n  const txt = (r.content || []).filter(b => b.type === 'text').map(b => b.text).join('');\n  const m = txt.match(/\\{[\\s\\S]*\\}/);\n  if (!m) throw new Error('a resposta não veio em JSON');\n  return JSON.parse(m[0]);\n}\n\nconst post = $('Um post por vez').first().json;\nconst f = post.fields;\nconst ehVideo = ['Reels', 'Stories'].includes(f.Formato);\nlet c;\ntry { c = lerClaude($json); } catch (e) {\n  return [{ json: { id: post.id, artes: false, patch: { Status: 'Erro' }, aviso: '⚠️ Não consegui criar \"' + f.Titulo + '\": ' + e.message + '. Mude o status para Planejado para tentar de novo.' } }];\n}\nconst patch = {\n  Legenda: c.legenda || '', Hashtags: (c.hashtags || []).join(' '),\n  Slides: JSON.stringify(ehVideo ? (c.cenas || []) : (c.slides || [])),\n  PromptsImagem: JSON.stringify(c.prompts_imagem || []), Conteudo: JSON.stringify(c),\n  ImagensSlides: '', ImagensRegerar: '', Status: ehVideo ? 'AguardandoVideo' : 'EmCriacao',\n};\nconst roteiro = (c.cenas || []).map((s, i) => (i + 1) + '. (' + s.duracao_s + 's) ' + s.visual + '\\n   ' + s.fala_ou_texto).join('\\n');\nconst aviso = '🎬 Roteiro pronto: \"' + f.Titulo + '\"\\n\\n' + roteiro + '\\n\\nLegenda:\\n' + patch.Legenda +\n  '\\n\\nEdite no CapCut, anexe o vídeo no campo Arquivos do Airtable e mude o status para VideoAnexado.';\nreturn [{ json: { id: post.id, artes: !ehVideo, patch, aviso } }];"
+      }
+    },
+    {
+      "id": "b9e2a759-bad0-4ae0-a803-c59056d323a3",
+      "name": "Salvar texto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        120
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' + '/' + $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: $json.patch, typecast: true }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "5d8e5e94-8da3-4e19-9cc3-d3edf8cd964d",
+      "name": "Precisa de artes?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        120
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "95b190b0-7a56-4f27-aba7-3aadf9087b72",
+              "leftValue": "={{ $('Ler post').first().json.artes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "71041efd-60f5-482a-8a1c-63ab56ba36e1",
+      "name": "05: gerar artes e prévia",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        2860,
+        40
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": "pjYDLT3tM4CTGAex"
+      }
+    },
+    {
+      "id": "1ebeec9d-60e1-4a92-a79a-15418d737e12",
+      "name": "Mandar roteiro ou erro",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2860,
+        220
+      ],
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "text": "={{ $('Ler post').first().json.aviso }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      }
+    },
+    {
+      "id": "5663d9f9-b9dc-4acc-84c9-d51200cdae1b",
+      "name": "Buscar vídeos anexados",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        420
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "{Status}='VideoAnexado'"
+            },
+            {
+              "name": "maxRecords",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "0176d800-6303-43ee-86bc-504ddaee3f00",
+      "name": "Separar vídeos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        420
+      ],
+      "parameters": {
+        "jsCode": "return (($input.first().json.records) || []).map(r => ({ json: r }));"
+      }
+    },
+    {
+      "id": "7018ea11-fdc7-4d60-923b-cf34a6f21b73",
+      "name": "Um vídeo por vez",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        880,
+        420
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "120bf3a7-ee33-4588-b2b4-e1ec52cdf02b",
+      "name": "05: prévia do vídeo",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        540
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": "pjYDLT3tM4CTGAex"
+      }
+    }
+  ],
+  "connections": {
+    "A cada hora": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Buscar posts para criar",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Buscar vídeos anexados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar posts para criar": {
+      "main": [
+        [
+          {
+            "node": "Separar posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar posts": {
+      "main": [
+        [
+          {
+            "node": "Um post por vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Um post por vez": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Marcar em criação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar em criação": {
+      "main": [
+        [
+          {
+            "node": "Buscar marca",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar marca": {
+      "main": [
+        [
+          {
+            "node": "Buscar ideia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar ideia": {
+      "main": [
+        [
+          {
+            "node": "Montar pedido do post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar pedido do post": {
+      "main": [
+        [
+          {
+            "node": "Claude: escrever post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude: escrever post": {
+      "main": [
+        [
+          {
+            "node": "Ler post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler post": {
+      "main": [
+        [
+          {
+            "node": "Salvar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar texto": {
+      "main": [
+        [
+          {
+            "node": "Precisa de artes?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Precisa de artes?": {
+      "main": [
+        [
+          {
+            "node": "05: gerar artes e prévia",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mandar roteiro ou erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05: gerar artes e prévia": {
+      "main": [
+        [
+          {
+            "node": "Um post por vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mandar roteiro ou erro": {
+      "main": [
+        [
+          {
+            "node": "Um post por vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar vídeos anexados": {
+      "main": [
+        [
+          {
+            "node": "Separar vídeos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar vídeos": {
+      "main": [
+        [
+          {
+            "node": "Um vídeo por vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Um vídeo por vez": {
+      "main": [
+        [],
+        [
+          {
+            "node": "05: prévia do vídeo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05: prévia do vídeo": {
+      "main": [
+        [
+          {
+            "node": "Um vídeo por vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

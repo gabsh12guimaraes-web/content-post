@@ -1,0 +1,358 @@
+{
+  "name": "02 - Ideias aprovadas para o calendário",
+  "nodes": [
+    {
+      "id": "f47498ae-cea6-44db-b263-2cb9c3309f60",
+      "name": "Nota 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -320
+      ],
+      "parameters": {
+        "content": "## 02 · Ideias aprovadas → calendário\nA cada 15 min: pega ideias com status *Aprovada* que ainda não estão no **Calendario** e cria um post para cada uma no próximo dia livre (segunda a sábado, no horário padrão da Config). Você pode mudar a data no Airtable depois.",
+        "width": 520,
+        "height": 180
+      }
+    },
+    {
+      "id": "d5a8b9ff-14df-4720-a85c-3de9c95c61b4",
+      "name": "A cada 15 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "74119a67-0b92-4d3d-9347-527f2e6d59a1",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "648a20bd-ff30-4f84-8004-0bff13af5529",
+              "name": "airtableBase",
+              "value": "app0V0dEQB4ksFTUV",
+              "type": "string"
+            },
+            {
+              "id": "84be7a30-5173-4043-bdab-42ada96116bc",
+              "name": "telegramChatId",
+              "value": "7112977933",
+              "type": "string"
+            },
+            {
+              "id": "70da9e2f-35fd-4565-add4-942772dc9186",
+              "name": "modelo",
+              "value": "claude-opus-5-5",
+              "type": "string"
+            },
+            {
+              "id": "deb70323-bfd1-437c-94a2-a6c43a0fddf0",
+              "name": "fuso",
+              "value": "-03:00",
+              "type": "string"
+            },
+            {
+              "id": "1ad3a2c3-3822-4763-bebf-cc0da2379731",
+              "name": "horarioPadrao",
+              "value": "18:00",
+              "type": "string"
+            },
+            {
+              "id": "787e9e11-435d-4e50-942a-576e6b3d9398",
+              "name": "diasAntecedencia",
+              "value": "7",
+              "type": "string"
+            },
+            {
+              "id": "31eb3dad-d66a-4e29-8fa4-67c87a015df3",
+              "name": "ideiasPorSemana",
+              "value": "10",
+              "type": "string"
+            },
+            {
+              "id": "a57a6fbe-d057-4777-894a-de686d4d56dd",
+              "name": "limiteAjustes",
+              "value": "3",
+              "type": "string"
+            },
+            {
+              "id": "4345343f-b766-48ed-bea6-848c0178029c",
+              "name": "usarCanva",
+              "value": "nao",
+              "type": "string"
+            },
+            {
+              "id": "97913bd5-0882-4441-9403-28c39dd07c31",
+              "name": "canvaTemplateCapa",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "5ba47346-d96b-428b-b0d7-83cc1a2d776f",
+              "name": "canvaTemplateSlide",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            },
+            {
+              "id": "18b4300f-3f3b-4e9c-b290-e250f94b849b",
+              "name": "canvaTemplateFinal",
+              "value": "COLE_O_ID_DO_TEMPLATE",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "87833140-9b38-4128-bc72-8a8eb3fca446",
+      "name": "Buscar ideias aprovadas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Ideias' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "AND({Status}='Aprovada', {Calendario}='')"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "b3815127-03f2-437e-8cf6-e6e57c221053",
+      "name": "Buscar datas ocupadas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "IS_AFTER({DataPublicacao}, NOW())"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "ebc8f6f3-bffa-4c6f-ad30-243fc900e186",
+      "name": "Escolher datas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst ideias = $('Buscar ideias aprovadas').first().json.records || [];\nif (!ideias.length) return [];\nconst [hh, mm] = cfg.fuso.slice(1).split(':').map(Number);\nconst offMin = (cfg.fuso[0] === '-' ? -1 : 1) * (hh * 60 + mm);\nconst diaLocal = iso => new Date(Date.parse(iso) + offMin * 60000).toISOString().slice(0, 10);\nconst ocupados = new Set(($('Buscar datas ocupadas').first().json.records || []).filter(r => r.fields.DataPublicacao).map(r => diaLocal(r.fields.DataPublicacao)));\nconst d = new Date(Date.now() + offMin * 60000);\nconst registros = ideias.map(r => {\n  do { d.setUTCDate(d.getUTCDate() + 1); } while (d.getUTCDay() === 0 || ocupados.has(d.toISOString().slice(0, 10)));\n  const dia = d.toISOString().slice(0, 10);\n  ocupados.add(dia);\n  const f = r.fields;\n  return { fields: {\n    Titulo: f.Titulo, Ideia: [r.id], DataPublicacao: dia + 'T' + cfg.horarioPadrao + ':00' + cfg.fuso,\n    Rede: f.Rede, Formato: f.Formato, Pilar: f.Pilar, Status: 'Planejado', Versao: 1,\n  } };\n});\nconst out = [];\nfor (let k = 0; k < registros.length; k += 10) out.push({ json: { body: { records: registros.slice(k, k + 10), typecast: true } } });\nreturn out;"
+      }
+    },
+    {
+      "id": "5a2f1578-c506-41e4-93c3-4f3c7ad71454",
+      "name": "Criar posts no calendário",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.airtable.com/v0/' + $('Config').first().json.airtableBase + '/Calendario' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable"
+        }
+      }
+    },
+    {
+      "id": "01dd693b-ad3e-491e-b3cd-6231de96bf05",
+      "name": "Resumo do calendário",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const posts = $input.all().flatMap(i => i.json.records || []);\nconst linhas = posts.map(p => '• ' + new Date(p.fields.DataPublicacao).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short', day: '2-digit', month: '2-digit' }) + ': ' + p.fields.Titulo);\nreturn [{ json: { texto: '🗓️ ' + posts.length + ' post(s) no calendário:\\n' + linhas.join('\\n') } }];"
+      }
+    },
+    {
+      "id": "9099fb19-1113-4188-8d4f-ed990b3c8ae0",
+      "name": "Avisar no Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1540,
+        0
+      ],
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegramChatId }}",
+        "text": "={{ $json.texto }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "A cada 15 min": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Buscar ideias aprovadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar ideias aprovadas": {
+      "main": [
+        [
+          {
+            "node": "Buscar datas ocupadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar datas ocupadas": {
+      "main": [
+        [
+          {
+            "node": "Escolher datas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escolher datas": {
+      "main": [
+        [
+          {
+            "node": "Criar posts no calendário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar posts no calendário": {
+      "main": [
+        [
+          {
+            "node": "Resumo do calendário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resumo do calendário": {
+      "main": [
+        [
+          {
+            "node": "Avisar no Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
