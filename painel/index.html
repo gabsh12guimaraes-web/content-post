@@ -399,6 +399,8 @@ function dePost(r) {
 function receberPauta(ideias, posts) {
   if (ideias) state.ideias = ideias.map(deIdeia);
   if (posts) state.posts = posts.map(dePost).filter(p => p.data);
+  // Na primeira carga, se não houver nada para decidir, abre mostrando todas as ideias.
+  if (!pauta.carregada && ideias && filtro === "Sugerida" && !state.ideias.some(i => i.status === "Sugerida")) filtro = "Todas";
   pauta.carregada = true; pauta.erro = null;
   render();
 }
