@@ -300,8 +300,7 @@ button { cursor: pointer; }
 <div class="wrap">
   <header class="top">
     <div class="actions">
-      <span class="notice">Ideias, Calendário e Revisão ainda usam dados de exemplo.</span>
-      <button class="linkbtn" id="reset">Restaurar exemplos</button>
+      <span class="notice">Ideias, Calendário e Revisão ainda não estão ligados ao Airtable.</span>
     </div>
   </header>
 
@@ -321,36 +320,10 @@ button { cursor: pointer; }
 
 <script>
 const TODAY = new Date(2026, 9, 16); // 16/10/2026
-const KEY = "pauta-prototipo-v1";
+const KEY = "pauta-painel-v2";
 
 function seed() {
-  return {
-    ideias: [
-      { id: "i1", titulo: "Seu café está amargo? Provavelmente é um destes 3 motivos", resumo: "Carrossel didático: água fervendo, moagem fina demais e café velho. Cada slide mostra o erro e como corrigir.", formato: "Carrossel", rede: "Instagram", pilar: "Educação", score: 9, porQue: "Post parecido do concorrente teve <b>3,1×</b> o engajamento médio do perfil. Resolve uma dor clara do público.", fonte: "@concorrente_exemplo · Instagram", status: "Sugerida" },
-      { id: "i2", titulo: "Mesmo café, 5 moagens: qual fica melhor?", resumo: "Vídeo curto comparando a xícara de cada moagem lado a lado, com a reação de quem prova.", formato: "Reels", rede: "TikTok", pilar: "Educação", score: 8, porQue: "Formato de teste comparativo performou <b>2,4×</b> no criador de referência.", fonte: "@barista_referencia · TikTok", status: "Sugerida" },
-      { id: "i3", titulo: "Um dia na fazenda que torra o café deste mês", resumo: "Bastidores em vídeo: colheita, secagem e a família produtora contando a história do lote.", formato: "Reels", rede: "Instagram", pilar: "Bastidores", score: 8, porQue: "Bastidores de origem aparecem entre os posts mais salvos em <b>#cafeespecial</b> nas últimas 2 semanas.", fonte: "#cafeespecial · Instagram", status: "Sugerida" },
-      { id: "i4", titulo: "Glossário sem frescura: o que é \"notas de caramelo\"?", resumo: "Carrossel que traduz 6 termos da embalagem de café especial para a linguagem do dia a dia.", formato: "Carrossel", rede: "Instagram", pilar: "Educação", score: 7, porQue: "Pergunta recorrente em <b>r/Coffee</b> (4 tópicos com mais de 200 comentários no mês).", fonte: "r/Coffee · Reddit", status: "Sugerida" },
-      { id: "i5", titulo: "Mostre seu cantinho do café", resumo: "Convite para assinantes postarem o próprio cantinho com a hashtag da marca. Os melhores aparecem nos stories.", formato: "Stories", rede: "Instagram", pilar: "Comunidade", score: 6, porQue: "Conteúdo de comunidade gera prova social. Sem referência direta de desempenho nesta coleta.", fonte: "Sugestão da IA a partir dos pilares", status: "Sugerida" },
-      { id: "i6", titulo: "Abrindo a caixa de novembro em 30 segundos", resumo: "Unboxing rápido do lote do próximo mês, com foco no cheiro e no cartão do produtor.", formato: "Reels", rede: "TikTok", pilar: "Produto", score: 6, porQue: "Unboxings curtos têm boa retenção, mas o concorrente teve só <b>1,1×</b> a média com esse formato.", fonte: "@concorrente_exemplo · Instagram", status: "Sugerida" },
-      { id: "i7", titulo: "Café emagrece? O que a ciência diz", resumo: "Post respondendo a mito comum sobre café e saúde.", formato: "Carrossel", rede: "Instagram", pilar: "Educação", score: 3, porQue: "Tema com alto alcance, mas esbarra na regra da marca de não fazer promessas de saúde.", fonte: "café coado em casa · Web", status: "Sugerida" }
-    ],
-    posts: [
-      { id: "p1", titulo: "Como guardar café para não perder o aroma", data: "2026-10-14T18:00", rede: "Instagram", formato: "Carrossel", pilar: "Educação", status: "Publicado", versao: 2, historico: [] },
-      { id: "p2", titulo: "Bastidores da torra de outubro", data: "2026-10-17T12:00", rede: "TikTok", formato: "Reels", pilar: "Bastidores", status: "Agendado", versao: 1, historico: [] },
-      { id: "p3", titulo: "Coado, prensa ou italiana: qual combina com você?", data: "2026-10-19T18:00", rede: "Instagram", formato: "Carrossel", pilar: "Educação", status: "EmRevisao", versao: 1,
-        legenda: "Coado, prensa francesa ou cafeteira italiana? Não existe método certo, existe o que combina com sua rotina.\n\nArrasta pro lado que a gente explica cada um em 10 segundos.\n\nE conta aqui: qual é o seu?",
-        hashtags: "#cafeespecial #cafeemcasa #metodosdepreparo #baristaemcasa",
-        slides: [
-          { t: "Coado, prensa ou italiana?", x: "Qual combina com a sua rotina.", img: true },
-          { t: "Coado", x: "Mais leve e limpo. Bom para quem gosta de sentir as notas do café.", img: true },
-          { t: "Prensa francesa", x: "Encorpado e cremoso. Ideal para quem toma com calma.", img: true },
-          { t: "Italiana", x: "Forte e intenso. Perfeito para quem gosta de café com leite.", img: true },
-          { t: "E aí, qual é o seu?", x: "Conta nos comentários e salva pra testar depois.", img: false }
-        ], historico: [] },
-      { id: "p4", titulo: "O que significa \"torra média\"", data: "2026-10-21T18:00", rede: "Instagram", formato: "Estatico", pilar: "Educação", status: "Planejado", versao: 1, historico: [] },
-      { id: "p5", titulo: "Receita de café gelado com laranja", data: "2026-10-23T12:00", rede: "TikTok", formato: "Reels", pilar: "Produto", status: "EmCriacao", versao: 1, historico: [] }
-    ]
-  };
+  return { ideias: [], posts: [] };
 }
 
 let state;
@@ -404,7 +377,7 @@ function renderIdeias() {
       <p>A IA leu as fontes desta semana e sugeriu estas ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>
       <div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div>
     </div>
-    ${lista.length ? `<div class="ideas">${lista.map(cardIdeia).join("")}</div>` : `<div class="empty glass">Nenhuma ideia aqui. Na próxima coleta semanal, novas sugestões aparecem em "Para decidir".</div>`}`;
+    ${lista.length ? `<div class="ideas">${lista.map(cardIdeia).join("")}</div>` : `<div class="empty glass">Nenhuma ideia ainda. Depois que você cadastrar a marca e as fontes, a coleta de segunda traz as sugestões para cá.</div>`}`;
 }
 function cardIdeia(i) {
   
@@ -512,7 +485,6 @@ function ir(t) { tab = t; try { localStorage.setItem(KEY + ":tab", t); } catch (
 document.addEventListener("click", e => {
   const tabBtn = e.target.closest(".track button"); if (tabBtn) return ir(tabBtn.dataset.tab);
   const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; return render(); }
-  if (e.target.id === "reset") { state = seed(); filtro = "Sugerida"; save(); toast("Exemplos restaurados"); return render(); }
   const b = e.target.closest("[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
   const ideia = state.ideias.find(i => i.id === id);

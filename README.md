@@ -18,7 +18,7 @@ A aba **Marca e fontes** grava no Airtable de dois jeitos:
 - **No claude.ai:** pelo conector do Airtable da sua conta.
 - **Fora do claude.ai (GitHub Pages, celular):** pelo fluxo **07 - API do painel** do n8n. O painel pede a senha de acesso, que é a da credencial **Senha do painel** no n8n (cabeçalho `x-pauta-senha`). O fluxo 07 precisa estar ativo.
 
-As abas Ideias, Calendário e Revisão ainda usam dados de exemplo.
+As abas Ideias, Calendário e Revisão ainda não estão ligadas ao Airtable.
 
 ## Atualizar o site depois de mudar o painel
 
