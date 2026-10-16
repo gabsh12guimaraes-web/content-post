@@ -319,68 +319,91 @@ button { cursor: pointer; }
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const TODAY = new Date(2026, 9, 16); // 16/10/2026
-const KEY = "pauta-painel-v2";
+const KEY = "pauta-painel-v3";
 
-function seed() {
-  return { ideias: [], posts: [] };
-}
-
-let state;
-function load() {
-  try { const raw = localStorage.getItem(KEY); if (raw) { state = JSON.parse(raw); return; } } catch (e) {}
-  state = seed();
-}
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+/* Ideias, calendário e revisão vêm do Airtable (pelo conector no claude.ai, ou pelo fluxo 07 fora dele). */
+let state = { ideias: [], posts: [] };
+const pauta = { carregada: false, erro: null };
 
 let tab = "ideias";
 try { tab = localStorage.getItem(KEY + ":tab") || "ideias"; } catch (e) {}
 let filtro = "Sugerida";
 let abertoDescarte = null;
-let ajusteAberto = null;
 let flashId = null;
 
 const STATUS = {
-  Planejado: ["Planejado", ""], EmCriacao: ["Em criação", "acc"], EmRevisao: ["Em revisão", "warn"],
-  Ajustes: ["IA ajustando", "warn"], Aprovado: ["Aprovado", "info"], Agendado: ["Agendado", "info"], Publicado: ["Publicado", "ok"]
+  Planejado: ["Planejado", ""], EmCriacao: ["Em criação", "acc"], AguardandoVideo: ["Aguardando vídeo", "acc"], VideoAnexado: ["Vídeo anexado", "acc"],
+  EmRevisao: ["Em revisão", "warn"], Ajustes: ["IA ajustando", "warn"], Aprovado: ["Aprovado", "info"], Agendado: ["Agendado", "info"],
+  Publicado: ["Publicado", "ok"], Erro: ["Erro", "bad"],
 };
 const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const fmtData = iso => { const d = new Date(iso); return `${DIAS[d.getDay()]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} · ${String(d.getHours()).padStart(2, "0")}h`; };
-const chip = s => `<span class="chip ${STATUS[s][1]}">${STATUS[s][0]}</span>`;
+const fmtData = iso => { if (!iso) return "sem data"; const d = new Date(iso); return `${DIAS[d.getDay()]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} · ${String(d.getHours()).padStart(2, "0")}h`; };
+const chip = s => { const [txt, cls] = STATUS[s] || [s || "—", ""]; return `<span class="chip ${cls}">${esc(txt)}</span>`; };
 
 function toast(msg) {
   const t = document.getElementById("toast");
   t.textContent = msg; t.hidden = false;
-  clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), 2600);
+  clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), 3200);
 }
 
-function proximaData() {
-  const ocupados = new Set(state.posts.map(p => p.data.slice(0, 10)));
-  const d = new Date(TODAY);
-  for (let i = 1; i < 60; i++) {
-    d.setDate(d.getDate() + 1);
-    if (d.getDay() !== 0 && !ocupados.has(ymd(d))) return `${ymd(d)}T18:00`;
+/* ---------- dados do Airtable ---------- */
+const nomeSel = v => (v && typeof v === "object") ? v.name : (v ?? "");
+function deIdeia(r) {
+  return {
+    id: r.id, titulo: r.Titulo || "", resumo: r.Resumo || "", formato: nomeSel(r.Formato), rede: nomeSel(r.Rede), pilar: nomeSel(r.Pilar),
+    score: Number(r.Score) || 0, porQue: r.PorQueFunciona || "", refs: (r.Referencias || []).length,
+    status: nomeSel(r.Status) || "Sugerida", motivo: r.MotivoDescarte || "", posts: (r.Calendario || []).map(x => (x && typeof x === "object") ? x.id : x),
+  };
+}
+function dePost(r) {
+  let slides = [];
+  try {
+    slides = JSON.parse(r.Slides || "[]").map(s => ({ t: s.titulo || s.visual || "", x: s.texto || s.fala_ou_texto || "", img: !!s.usa_imagem }));
+  } catch (e) {}
+  return {
+    id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
+    status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, link: r.LinkPublicado || "",
+  };
+}
+function receberPauta(ideias, posts) {
+  if (ideias) state.ideias = ideias.map(deIdeia);
+  if (posts) state.posts = posts.map(dePost).filter(p => p.data);
+  pauta.carregada = true; pauta.erro = null;
+  render();
+}
+async function carregarPauta() {
+  try {
+    const j = await api({ acao: "pauta" });
+    receberPauta(j.ideias || [], j.posts || []);
+  } catch (e) {
+    pauta.erro = e; render();
   }
-  return `${ymd(d)}T18:00`;
+}
+function semPauta() {
+  if (M.modo === "web" && M.conexao === "login") {
+    return `<div class="glass empty">Entre com a senha para ver a pauta.<div class="actions" style="justify-content:center;margin-top:12px"><button class="btn primary" data-act="ir-marca">Entrar</button></div></div>`;
+  }
+  if (pauta.erro) {
+    return `<div class="msg erro"><span>${esc(textoErro(pauta.erro))}</span><button class="btn" data-act="recarregar-pauta">Tentar de novo</button></div>`;
+  }
+  return `<div class="glass empty">Carregando a pauta do Airtable…</div>`;
 }
 
 /* ---------- Ideias ---------- */
 function renderIdeias() {
+  const el = document.getElementById("p-ideias");
+  const head = `<div class="panel-head"><p>A IA leu as fontes da semana e sugeriu estas ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>`;
+  if (!pauta.carregada) { el.innerHTML = head + `</div>` + semPauta(); return; }
   const lista = state.ideias.filter(i => filtro === "Todas" || i.status === filtro).sort((a, b) => b.score - a.score);
   const contagem = s => state.ideias.filter(i => s === "Todas" || i.status === s).length;
   const fb = (s, label) => `<button aria-pressed="${filtro === s}" data-filtro="${s}">${label} · ${contagem(s)}</button>`;
-  const el = document.getElementById("p-ideias");
-  el.innerHTML = `
-    <div class="panel-head">
-      <p>A IA leu as fontes desta semana e sugeriu estas ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>
-      <div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div>
-    </div>
-    ${lista.length ? `<div class="ideas">${lista.map(cardIdeia).join("")}</div>` : `<div class="empty glass">Nenhuma ideia ainda. Depois que você cadastrar a marca e as fontes, a coleta de segunda traz as sugestões para cá.</div>`}`;
+  el.innerHTML = head + `<div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div></div>
+    ${lista.length ? `<div class="ideas">${lista.map(cardIdeia).join("")}</div>`
+      : `<div class="empty glass">${state.ideias.length ? "Nenhuma ideia neste filtro." : "Nenhuma ideia ainda. A coleta de segunda traz as sugestões para cá."}</div>`}`;
 }
 function cardIdeia(i) {
-  
   let rodape;
   if (i.status === "Sugerida" || i.status === "Guardada") {
     rodape = abertoDescarte === i.id
@@ -391,80 +414,82 @@ function cardIdeia(i) {
            ${i.status === "Sugerida" ? `<button class="btn" data-act="guardar" data-id="${i.id}">Guardar</button>` : ""}
            <button class="btn quiet" data-act="descartar" data-id="${i.id}">Descartar</button></div>`;
   } else if (i.status === "Aprovada") {
-    const p = state.posts.find(p => p.ideiaId === i.id);
-    rodape = `<div class="decided">No calendário${p ? ` para <b>${fmtData(p.data)}</b>` : ""}.</div>`;
+    const p = state.posts.find(x => i.posts.includes(x.id));
+    rodape = `<div class="decided">${p ? `No calendário para <b>${fmtData(p.data)}</b>.` : "Aprovada. Entra no calendário na próxima rodada do fluxo 02."}</div>`;
   } else {
     rodape = `<div class="actions"><span class="decided">Descartada${i.motivo ? `: “${esc(i.motivo)}”` : ""}</span><button class="btn quiet" data-act="restaurar" data-id="${i.id}">Desfazer</button></div>`;
   }
   return `<article class="idea glass ${i.status === "Descartada" ? "dim" : ""}">
     <div class="score"><span class="pill ${i.score < 6 ? "low" : ""}">aderência <strong>${i.score}</strong>/10</span><span class="bar" aria-hidden="true"><i style="width:${i.score * 10}%"></i></span></div>
     <h3>${esc(i.titulo)}</h3>
-    <div class="meta"><span class="chip acc">${i.formato}</span><span class="chip plain">${i.rede}</span><span class="chip plain">${i.pilar}</span></div>
+    <div class="meta"><span class="chip acc">${esc(i.formato)}</span><span class="chip plain">${esc(i.rede)}</span><span class="chip plain">${esc(i.pilar.split(":")[0])}</span></div>
     <p>${esc(i.resumo)}</p>
-    <p class="why">${i.porQue}</p>
-    <div class="src">fonte: ${esc(i.fonte)}</div>
+    ${i.porQue ? `<p class="why">${esc(i.porQue)}</p>` : ""}
+    ${i.refs ? `<div class="src">baseada em ${i.refs} post${i.refs > 1 ? "s" : ""} de referência</div>` : ""}
     ${rodape}
   </article>`;
 }
 
 /* ---------- Calendário ---------- */
 function renderCal() {
-  const inicio = new Date(TODAY); inicio.setDate(inicio.getDate() - ((inicio.getDay() + 6) % 7)); // segunda
+  const el = document.getElementById("p-cal");
+  const head = `<div class="panel-head"><p>Posts que vêm das ideias aprovadas. Cada um entra em criação automaticamente 7 dias antes da data.</p></div>`;
+  if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
+  const hoje = new Date();
+  const inicio = new Date(hoje); inicio.setHours(0, 0, 0, 0); inicio.setDate(inicio.getDate() - ((inicio.getDay() + 6) % 7)); // segunda
+  const fim = new Date(inicio); fim.setDate(fim.getDate() + 21);
   const semanas = [];
   for (let w = 0; w < 3; w++) {
     let dias = "";
     for (let d = 0; d < 7; d++) {
       const dia = new Date(inicio); dia.setDate(inicio.getDate() + w * 7 + d);
       const key = ymd(dia);
-      const posts = state.posts.filter(p => p.data.slice(0, 10) === key).sort((a, b) => a.data.localeCompare(b.data));
-      const cls = key === ymd(TODAY) ? "today" : dia < TODAY ? "past" : "";
+      const posts = state.posts.filter(p => ymd(new Date(p.data)) === key).sort((a, b) => new Date(a.data) - new Date(b.data));
+      const cls = key === ymd(hoje) ? "today" : dia < hoje ? "past" : "";
       dias += `<div class="day ${cls}"><div class="dlabel"><span>${DIAS[dia.getDay()]}</span><span>${String(dia.getDate()).padStart(2, "0")}/${String(dia.getMonth() + 1).padStart(2, "0")}${cls === "today" ? " · hoje" : ""}</span></div>
         <div class="list">${posts.map(cardPost).join("")}</div></div>`;
     }
     semanas.push(`<div class="cal-week">${dias}</div>`);
   }
-  const fora = state.posts.filter(p => { const d = new Date(p.data); const fim = new Date(inicio); fim.setDate(fim.getDate() + 21); return d >= fim; });
-  document.getElementById("p-cal").innerHTML = `
-    <div class="panel-head"><p>Cada post entra em criação automaticamente 7 dias antes da data. Toque em um post em revisão para abrir a prévia.</p></div>
+  const depois = state.posts.filter(p => new Date(p.data) >= fim);
+  el.innerHTML = head + `
+    ${state.posts.length ? "" : `<div class="msg" style="margin-bottom:12px">Ainda não há posts no calendário. Aprove uma ideia na aba Ideias.</div>`}
     <div class="cal glass">${semanas.join("")}</div>
-    ${fora.length ? `<p class="small">Mais adiante: ${fora.map(p => `${esc(p.titulo)} (${fmtData(p.data)})`).join(" · ")}</p>` : ""}
-    <div class="legend">${Object.keys(STATUS).map(chip).join("")}</div>`;
+    ${depois.length ? `<p class="small">Mais adiante: ${depois.map(p => `${esc(p.titulo)} (${fmtData(p.data)})`).join(" · ")}</p>` : ""}
+    <div class="legend">${["Planejado", "EmCriacao", "EmRevisao", "Agendado", "Publicado", "Erro"].map(chip).join("")}</div>`;
 }
 function cardPost(p) {
-  return `<button class="post s-${p.status} ${flashId === p.id ? "flash" : ""}" data-act="abrir" data-id="${p.id}">
+  return `<button class="post s-${esc(p.status)} ${flashId === p.id ? "flash" : ""}" data-act="abrir" data-id="${p.id}">
     <span class="pt">${esc(p.titulo)}</span>
-    <span class="pm">${String(new Date(p.data).getHours()).padStart(2, "0")}h · ${p.rede} · ${p.formato}</span>
+    <span class="pm">${String(new Date(p.data).getHours()).padStart(2, "0")}h · ${esc(p.rede)} · ${esc(p.formato)}</span>
     ${chip(p.status)}
   </button>`;
 }
 
 /* ---------- Revisão ---------- */
 function renderRev() {
-  const lista = state.posts.filter(p => p.status === "EmRevisao" || p.status === "Ajustes").sort((a, b) => a.data.localeCompare(b.data));
-  document.getElementById("p-rev").innerHTML = `
-    <div class="panel-head"><p>Posts prontos esperando seu olhar. Aprove para agendar, ou peça um ajuste: a IA refaz só o que você pedir e o post volta para cá.</p></div>
-    ${lista.length ? `<div class="review">${lista.map(cardRev).join("")}</div>` : `<div class="empty glass">Nada para revisar agora. Quando a IA terminar um post, ele aparece aqui e você recebe um aviso.</div>`}`;
+  const el = document.getElementById("p-rev");
+  const head = `<div class="panel-head"><p>Posts prontos esperando seu olhar. A aprovação e os pedidos de ajuste são feitos pela mensagem do bot no Telegram.</p></div>`;
+  if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
+  const lista = state.posts.filter(p => p.status === "EmRevisao" || p.status === "Ajustes").sort((a, b) => new Date(a.data) - new Date(b.data));
+  el.innerHTML = head + (lista.length ? `<div class="review">${lista.map(cardRev).join("")}</div>`
+    : `<div class="empty glass">Nada para revisar agora. Quando a IA terminar um post, ele aparece aqui e você recebe a prévia no Telegram.</div>`);
 }
 function cardRev(p) {
-  const slides = (p.slides || []).map((s, k) => `<div class="slide"><span class="n">${String(k + 1).padStart(2, "0")}</span><div><div class="st">${esc(s.t)}</div><div class="sx">${esc(s.x)}</div></div>${s.img ? `<span class="img">imagem · Freepik</span>` : "<span></span>"}</div>`).join("");
-  const hist = p.historico.map(h => `<div><b>v${h.versao}:</b> você pediu “${esc(h.comentario)}”${h.resumo ? `<br>${esc(h.resumo)}` : ""}</div>`).join("");
-  let acoes;
-  if (p.status === "Ajustes") acoes = `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste…</div>`;
-  else if (ajusteAberto === p.id) acoes = `<div class="reason"><label class="small" for="ajuste-${p.id}">O que você quer mudar?</label>
-      <textarea id="ajuste-${p.id}" rows="3" placeholder="Ex.: deixa o slide 1 mais provocativo e troca a foto da italiana por uma de inox"></textarea>
-      <div class="actions"><button class="btn primary" data-act="enviar-ajuste" data-id="${p.id}">Enviar para a IA</button><button class="btn quiet" data-act="cancelar-ajuste">Cancelar</button></div></div>`;
-  else acoes = `<div class="actions"><button class="btn primary" data-act="aprovar-post" data-id="${p.id}">Aprovar e agendar</button><button class="btn" data-act="pedir-ajuste" data-id="${p.id}">Pedir ajuste</button></div>`;
+  const slides = p.slides.map((s, k) => `<div class="slide"><span class="n">${String(k + 1).padStart(2, "0")}</span><div><div class="st">${esc(s.t)}</div><div class="sx">${esc(s.x)}</div></div>${s.img ? `<span class="img">imagem · Freepik</span>` : "<span></span>"}</div>`).join("");
+  const acoes = p.status === "Ajustes"
+    ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste…</div>`
+    : `<div class="msg">Para aprovar ou pedir ajuste, use os botões na mensagem do bot no Telegram.</div>`;
   return `<article class="rcard glass" id="rev-${p.id}">
     <div style="display:grid;gap:12px;min-width:0">
-      <div class="slides" tabindex="0" aria-label="Slides do post">${slides}</div>
-      <div class="caption">${esc(p.legenda || "")}</div>
+      ${slides ? `<div class="slides" tabindex="0" aria-label="Slides do post">${slides}</div>` : ""}
+      <div class="caption">${esc(p.legenda || "Legenda ainda não gerada.")}</div>
       <div class="tags">${esc(p.hashtags || "")}</div>
     </div>
     <div class="rside">
-      <div class="meta">${chip(p.status)}<span class="chip plain">v${p.versao}</span><span class="chip plain">${p.rede}</span><span class="chip plain">${p.formato}</span></div>
+      <div class="meta">${chip(p.status)}<span class="chip plain">v${p.versao}</span><span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span></div>
       <h3>${esc(p.titulo)}</h3>
       <div class="small">Publicação: <b>${fmtData(p.data)}</b></div>
-      ${hist ? `<div class="hist">${hist}</div>` : ""}
       ${acoes}
     </div>
   </article>`;
@@ -474,13 +499,24 @@ function cardRev(p) {
 function render() {
   document.querySelectorAll(".track button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
   ["marca", "ideias", "cal", "rev"].forEach(t => (document.getElementById("p-" + t).hidden = t !== tab));
-  document.getElementById("c-ideias").textContent = state.ideias.filter(i => i.status === "Sugerida").length;
-  document.getElementById("c-cal").textContent = state.posts.filter(p => p.status !== "Publicado").length;
-  document.getElementById("c-rev").textContent = state.posts.filter(p => p.status === "EmRevisao").length;
+  const n = x => pauta.carregada ? String(x).padStart(2, "0") : "–";
+  document.getElementById("c-ideias").textContent = n(state.ideias.filter(i => i.status === "Sugerida").length);
+  document.getElementById("c-cal").textContent = n(state.posts.filter(p => p.status !== "Publicado").length);
+  document.getElementById("c-rev").textContent = n(state.posts.filter(p => p.status === "EmRevisao").length);
   renderIdeias(); renderCal(); renderRev();
   flashId = null;
 }
 function ir(t) { tab = t; try { localStorage.setItem(KEY + ":tab", t); } catch (e) {} render(); }
+
+async function mudarIdeia(ideia, campos, ok) {
+  const antes = { status: ideia.status, motivo: ideia.motivo };
+  if (campos.Status) ideia.status = campos.Status;
+  if (campos.MotivoDescarte !== undefined) ideia.motivo = campos.MotivoDescarte;
+  render();
+  const deu = await executar("salvarIdeia", { id: ideia.id, campos }, ok);
+  if (deu) toast(ok);
+  else { ideia.status = antes.status; ideia.motivo = antes.motivo; render(); toast(M.aviso ? M.aviso.texto : "Não foi possível salvar."); }
+}
 
 document.addEventListener("click", e => {
   const tabBtn = e.target.closest(".track button"); if (tabBtn) return ir(tabBtn.dataset.tab);
@@ -490,36 +526,23 @@ document.addEventListener("click", e => {
   const ideia = state.ideias.find(i => i.id === id);
   const post = state.posts.find(p => p.id === id);
 
-  if (act === "aprovar") {
-    ideia.status = "Aprovada";
-    const p = { id: "p" + Date.now(), ideiaId: id, titulo: ideia.titulo, data: proximaData(), rede: ideia.rede, formato: ideia.formato, pilar: ideia.pilar, status: "Planejado", versao: 1, historico: [] };
-    state.posts.push(p); flashId = p.id;
-    toast(`Agendada para ${fmtData(p.data)} no calendário`);
-  }
-  if (act === "guardar") { ideia.status = "Guardada"; toast("Ideia guardada para depois"); }
+  if (act === "ir-marca") return ir("marca");
+  if (act === "recarregar-pauta") { pauta.erro = null; render(); return M.modo === "web" ? carregarPauta() : recarregar(); }
+  if (act === "aprovar") return mudarIdeia(ideia, { Status: "Aprovada" }, "Ideia aprovada. Ela entra no calendário na próxima rodada do fluxo 02.");
+  if (act === "guardar") return mudarIdeia(ideia, { Status: "Guardada" }, "Ideia guardada para depois.");
   if (act === "descartar") { abertoDescarte = id; render(); document.getElementById("motivo-" + id)?.focus(); return; }
-  if (act === "descartar-cancel") abertoDescarte = null;
-  if (act === "descartar-ok") { ideia.motivo = document.getElementById("motivo-" + id).value.trim(); ideia.status = "Descartada"; abertoDescarte = null; toast("Ideia descartada"); }
-  if (act === "restaurar") { ideia.status = "Sugerida"; ideia.motivo = ""; }
-  if (act === "abrir") {
+  if (act === "descartar-cancel") { abertoDescarte = null; return render(); }
+  if (act === "descartar-ok") {
+    const motivo = (document.getElementById("motivo-" + id)?.value || "").trim();
+    abertoDescarte = null;
+    return mudarIdeia(ideia, { Status: "Descartada", MotivoDescarte: motivo }, "Ideia descartada.");
+  }
+  if (act === "restaurar") return mudarIdeia(ideia, { Status: "Sugerida", MotivoDescarte: "" }, "Ideia de volta para decidir.");
+  if (act === "abrir" && post) {
     if (post.status === "EmRevisao" || post.status === "Ajustes") { ir("rev"); document.getElementById("rev-" + id)?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
-    toast(`${STATUS[post.status][0]} · ${fmtData(post.data)}`); return;
+    if (post.link) { window.open(post.link, "_blank", "noopener"); return; }
+    toast(`${(STATUS[post.status] || [post.status])[0]} · ${fmtData(post.data)}`);
   }
-  if (act === "pedir-ajuste") { ajusteAberto = id; render(); document.getElementById("ajuste-" + id)?.focus(); return; }
-  if (act === "cancelar-ajuste") ajusteAberto = null;
-  if (act === "enviar-ajuste") {
-    const txt = document.getElementById("ajuste-" + id).value.trim();
-    if (!txt) { toast("Escreva o que você quer mudar"); return; }
-    post.historico.push({ versao: post.versao, comentario: txt, resumo: "" });
-    post.status = "Ajustes"; ajusteAberto = null;
-    setTimeout(() => {
-      post.versao += 1; post.status = "EmRevisao";
-      post.historico[post.historico.length - 1].resumo = "Simulação: no sistema real, a IA reescreve só o que você pediu e explica aqui o que mudou.";
-      save(); render(); toast(`Nova versão pronta (v${post.versao})`);
-    }, 2200);
-  }
-  if (act === "aprovar-post") { post.status = "Agendado"; flashId = post.id; toast(`Aprovado e agendado para ${fmtData(post.data)}`); }
-  save(); render();
 });
 
 /* ================= Base da marca: lê e grava no Airtable ================= */
@@ -527,6 +550,8 @@ const AT = {
   server: "Airtable",
   base: "app0V0dEQB4ksFTUV",
   marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", Idioma: "fldfVHS529DWsxlKE" } },
+  ideias: { table: "tblkX69MsS5z1MT1v", f: { Titulo: "fldIaygmjuLsE1WFq", Resumo: "fld5lBu8N6tApcJVb", Formato: "fldR8DJtJIF19rmw0", Rede: "fldhnBFmYjiaKU2bw", Pilar: "fldyZHHZuM1mMLby5", Score: "fldN5rkaOAcnBJLsr", PorQueFunciona: "flddAuWW90gQPrvYZ", Status: "fldk2hxweVnMId1U1", MotivoDescarte: "fldM7FdKuv09zIrsE", Referencias: "fldQESoyFaJNIancX", Calendario: "fldPMgJAavbChgFoH" } },
+  cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT" } },
   fontes: { table: "tbl8L7CHTLKOfsuj3", f: { Nome: "fldEtApljYo1QPZ1Y", Tipo: "fldX64mLZhKNzixzA", Categoria: "fld1ee1spLYITJKQA", Rede: "fldQeCH8AftrYahdd", URL: "fldaJvN3bK4W64tZT", Peso: "fld2Mrr5M6bBJgdhb", Ativa: "fldtvwIISCKUv2wVC" } },
 };
 const OPC = {
@@ -589,7 +614,20 @@ function textoErro(e) {
 }
 const NEGADO = ["needs_reauth", "server_not_connected", "blocked_by_policy", "approval_required", "not_in_manifest", "selection_required", "not_granted", "capability_disabled"];
 
+function conectarPauta() {
+  const iI = { baseId: AT.base, tableId: AT.ideias.table, fieldIds: Object.values(AT.ideias.f), pageSize: 100, sort: [{ fieldId: AT.ideias.f.Score, direction: "desc" }] };
+  const iC = { baseId: AT.base, tableId: AT.cal.table, fieldIds: Object.values(AT.cal.f), pageSize: 100, sort: [{ fieldId: AT.cal.f.DataPublicacao }] };
+  M.mcp.watchTool(AT.server, "list_records_for_table", iI, ev => {
+    if (ev.type === "data") receberPauta(lerRegistros(ev.result, AT.ideias.f), null);
+    else { pauta.erro = ev.error; if (NEGADO.includes(ev.error.code)) { state.ideias = []; pauta.carregada = false; } render(); }
+  }, { cache: { staleTime: 30000 }, refetchInterval: 90000 });
+  M.mcp.watchTool(AT.server, "list_records_for_table", iC, ev => {
+    if (ev.type === "data") receberPauta(null, lerRegistros(ev.result, AT.cal.f));
+    else { pauta.erro = ev.error; if (NEGADO.includes(ev.error.code)) { state.posts = []; pauta.carregada = false; } render(); }
+  }, { cache: { staleTime: 30000 }, refetchInterval: 90000 });
+}
 function conectar() {
+  conectarPauta();
   M.mcp.watchTool(AT.server, "list_records_for_table", INPUT_MARCA, ev => {
     if (ev.type === "data") {
       M.marca = lerRegistros(ev.result, AT.marca.f)[0] || null;
@@ -627,7 +665,7 @@ async function tentarDeNovo() {
   M.ocupado = false; renderMarca();
 }
 async function recarregar() {
-  if (M.modo === "web") { try { await carregarWeb(); } catch (e) {} return renderFontes(); }
+  if (M.modo === "web") { try { await carregarWeb(); } catch (e) {} carregarPauta(); return renderFontes(); }
   try { await M.mcp.invalidate(AT.server, "list_records_for_table"); } catch (e) {}
 }
 
@@ -663,6 +701,7 @@ async function entrarWeb(senha, lembrar) {
   try {
     await carregarWeb();
     guardado.salvar(senha, lembrar);
+    carregarPauta();
     M.marcaSuja = false;
   } catch (e) {
     M.senha = ""; M.erro = e; M.conexao = "login";
@@ -678,7 +717,7 @@ async function executar(op, dados, ok) {
     if (M.modo === "web") {
       await api({ acao: op, ...dados });
     } else {
-      const t = op === "salvarMarca" ? AT.marca : AT.fontes;
+      const t = op === "salvarMarca" ? AT.marca : op === "salvarIdeia" ? AT.ideias : AT.fontes;
       if (op === "removerFonte") {
         await M.mcp.callTool(AT.server, "delete_records_for_table", { baseId: AT.base, tableId: t.table, recordIds: [dados.id] });
       } else {
@@ -874,7 +913,7 @@ document.addEventListener("click", async e => {
   if (a === "add-cor") { document.getElementById("m-cores").insertAdjacentHTML("beforeend", linhaCor({ hex: "#FF3347", nome: "" })); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
   if (a === "rm-cor") { b.closest(".cor").remove(); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
   if (a === "entrar") { const s = document.getElementById("m-senha").value; if (!s) return; return entrarWeb(s, document.getElementById("m-lembrar").checked); }
-  if (a === "sair") { guardado.apagar(); M.senha = ""; M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null; M.conexao = "login"; return renderMarca(); }
+  if (a === "sair") { state = { ideias: [], posts: [] }; pauta.carregada = false; render(); guardado.apagar(); M.senha = ""; M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null; M.conexao = "login"; return renderMarca(); }
   if (a === "salvar-marca") return salvarMarca();
   if (a === "tentar") return tentarDeNovo();
   if (a === "nova-fonte") { M.editando = "novo"; M.remover = null; renderFontes(); return document.getElementById("f-nome")?.focus(); }
@@ -910,7 +949,9 @@ document.addEventListener("click", async e => {
 })();
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "m-senha") { e.preventDefault(); document.querySelector('[data-m="entrar"]')?.click(); } });
 
-load(); render();
+render();
+// Fora do claude.ai, atualiza a pauta a cada 90 s enquanto a página está aberta.
+setInterval(() => { if (M.modo === "web" && M.senha && !document.hidden) carregarPauta(); }, 90000);
 </script>
 </body>
 </html>
