@@ -187,6 +187,23 @@ button { cursor: pointer; }
   .day .dlabel { flex-direction: column; justify-content: start; }
 }
 
+/* detalhe do post no calendário */
+.post.sel { border-color: var(--pink); box-shadow: 0 0 0 1px var(--pink); }
+.pdet { margin-top: 16px; padding: 20px; display: grid; gap: 12px; }
+.pdet h3 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 0; }
+.pdet .top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.pdet .leg { white-space: pre-line; font-size: 13px; color: var(--ink-soft); max-height: 160px; overflow: auto; }
+/* revisão em lista */
+.rlist { display: grid; gap: 8px; }
+.rrow { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: center; padding: 14px 18px; text-align: left; width: 100%; color: #fff; border: 1px solid var(--line); }
+.rrow:hover { border-color: var(--line-strong); }
+.rrow[aria-expanded="true"] { border-color: var(--pink); }
+.rrow .rt { font-weight: 600; font-size: 15px; }
+.rrow .rm { font-size: 12px; color: var(--ink-faint); grid-column: 1; }
+.rrow .rx { grid-row: 1 / span 2; grid-column: 2; display: flex; gap: 8px; align-items: center; }
+.rrow .seta { font-size: 18px; color: var(--ink-faint); transition: transform .15s; }
+.rrow[aria-expanded="true"] .seta { transform: rotate(90deg); color: var(--pink); }
+
 /* revisão */
 .review { display: grid; gap: 20px; }
 .rcard { padding: 20px; display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 28px; align-items: start; }
@@ -409,6 +426,7 @@ function receberPauta(ideias, posts) {
   // Na primeira carga, se não houver nada para decidir, abre mostrando todas as ideias.
   if (!pauta.carregada && ideias && filtro === "Sugerida" && !state.ideias.some(i => i.status === "Sugerida")) filtro = "Todas";
   pauta.carregada = true; pauta.erro = null;
+  conferirDisparos();
   render();
 }
 async function carregarPauta() {
@@ -429,17 +447,72 @@ function semPauta() {
   return `<div class="glass empty">Carregando a pauta do Airtable…</div>`;
 }
 
+/* ---------- Disparos: buscar ideias e criar post ---------- */
+let calAberto = null, revAberto = null, timerDisparos = null;
+const DISP_KEY = KEY + ":disparos", DISP_MAX = 12 * 60 * 1000;
+let disparos = (() => { try { return JSON.parse(localStorage.getItem(DISP_KEY) || "{}"); } catch (e) { return {}; } })();
+if (!disparos.posts) disparos.posts = {};
+function salvarDisparos() { try { localStorage.setItem(DISP_KEY, JSON.stringify(disparos)); } catch (e) {} }
+const buscandoIdeias = () => !!disparos.ideias && Date.now() - disparos.ideias.em < DISP_MAX;
+const criando = id => !!disparos.posts[id];
+function conferirDisparos() {
+  const agora = Date.now();
+  if (disparos.ideias) {
+    const novas = state.ideias.filter(i => i.status === "Sugerida").length;
+    if (agora - disparos.ideias.em > DISP_MAX) delete disparos.ideias;
+    else if (novas > disparos.ideias.antes) { delete disparos.ideias; toast("Ideias novas chegaram. Veja em Para decidir."); filtro = "Sugerida"; }
+  }
+  for (const [id, d] of Object.entries(disparos.posts)) {
+    const p = state.posts.find(x => x.id === id);
+    const passou = agora - d.em;
+    if (!p || passou > DISP_MAX) { delete disparos.posts[id]; continue; }
+    if (!["Planejado", "EmCriacao", "Erro"].includes(p.status) || (p.status === "Erro" && passou > 90000)) {
+      delete disparos.posts[id];
+      toast(p.status === "Erro" ? 'Não deu para criar "' + p.titulo + '". Veja o aviso no Telegram.' : '"' + p.titulo + '" está pronto para revisão.');
+    }
+  }
+  salvarDisparos();
+  const ativo = disparos.ideias || Object.keys(disparos.posts).length;
+  if (ativo && !timerDisparos && M.modo === "web") timerDisparos = setInterval(() => carregarPauta(), 45000);
+  if (!ativo && timerDisparos) { clearInterval(timerDisparos); timerDisparos = null; }
+}
+async function disparar(corpo, aoComecar) {
+  try {
+    await api(corpo);
+    aoComecar(); salvarDisparos(); conferirDisparos(); render();
+  } catch (e) {
+    toast("Não deu para começar: " + textoErro(e));
+  }
+}
+function buscarIdeias() {
+  if (buscandoIdeias()) return;
+  disparar({ acao: "buscarIdeias" }, () => {
+    disparos.ideias = { em: Date.now(), antes: state.ideias.filter(i => i.status === "Sugerida").length };
+    toast("Buscando ideias nas fontes. Leva alguns minutos; aviso aqui quando chegarem.");
+  });
+}
+function criarPost(p) {
+  if (criando(p.id)) return;
+  disparar({ acao: "criarPost", id: p.id }, () => {
+    disparos.posts[p.id] = { em: Date.now() };
+    toast('Criando "' + p.titulo + '". Em 2 a 4 minutos ele aparece na Revisão.');
+  });
+}
+
 /* ---------- Ideias ---------- */
 function renderIdeias() {
   const el = document.getElementById("p-ideias");
-  const head = `<div class="panel-head"><p>A IA leu as fontes da semana e sugeriu estas ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>`;
+  const botao = M.modo !== "web" ? ""
+    : buscandoIdeias() ? `<div class="working"><span class="dot"></span>Buscando ideias nas fontes…</div>`
+    : `<button class="btn primary" data-act="buscar-ideias">Buscar ideias novas</button>`;
+  const head = `<div class="panel-head"><p>A IA lê as fontes cadastradas e sugere ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>${botao}`;
   if (!pauta.carregada) { el.innerHTML = head + `</div>` + semPauta(); return; }
   const lista = state.ideias.filter(i => filtro === "Todas" || i.status === filtro).sort((a, b) => b.score - a.score);
   const contagem = s => state.ideias.filter(i => s === "Todas" || i.status === s).length;
   const fb = (s, label) => `<button aria-pressed="${filtro === s}" data-filtro="${s}">${label} · ${contagem(s)}</button>`;
   el.innerHTML = head + `<div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div></div>
     ${lista.length ? `<div class="ideas">${lista.map(cardIdeia).join("")}</div>`
-      : `<div class="empty glass">${state.ideias.length ? "Nenhuma ideia neste filtro." : "Nenhuma ideia ainda. A coleta de segunda traz as sugestões para cá."}</div>`}`;
+      : `<div class="empty glass">${state.ideias.length ? "Nenhuma ideia neste filtro." : "Nenhuma ideia ainda. Clique em Buscar ideias novas."}</div>`}`;
 }
 function cardIdeia(i) {
   let rodape;
@@ -471,7 +544,7 @@ function cardIdeia(i) {
 /* ---------- Calendário ---------- */
 function renderCal() {
   const el = document.getElementById("p-cal");
-  const head = `<div class="panel-head"><p>Posts que vêm das ideias aprovadas. Cada um entra em criação automaticamente 7 dias antes da data.</p></div>`;
+  const head = `<div class="panel-head"><p>Posts que vêm das ideias aprovadas. Clique em um post para ver os detalhes e mandar a IA criar.</p></div>`;
   if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
   const hoje = new Date();
   const inicio = new Date(hoje); inicio.setHours(0, 0, 0, 0); inicio.setDate(inicio.getDate() - ((inicio.getDay() + 6) % 7)); // segunda
@@ -493,15 +566,37 @@ function renderCal() {
   el.innerHTML = head + `
     ${state.posts.length ? "" : `<div class="msg" style="margin-bottom:12px">Ainda não há posts no calendário. Aprove uma ideia na aba Ideias.</div>`}
     <div class="cal glass">${semanas.join("")}</div>
+    ${detalhePost()}
     ${depois.length ? `<p class="small">Mais adiante: ${depois.map(p => `${esc(p.titulo)} (${fmtData(p.data)})`).join(" · ")}</p>` : ""}
     <div class="legend">${["Planejado", "EmCriacao", "EmRevisao", "Agendado", "Publicado", "Erro"].map(chip).join("")}</div>`;
 }
 function cardPost(p) {
-  return `<button class="post s-${esc(p.status)} ${flashId === p.id ? "flash" : ""}" data-act="abrir" data-id="${p.id}">
+  return `<button class="post s-${esc(p.status)} ${flashId === p.id ? "flash" : ""} ${calAberto === p.id ? "sel" : ""}" data-act="abrir" data-id="${p.id}" aria-expanded="${calAberto === p.id}">
     <span class="pt">${esc(p.titulo)}</span>
     <span class="pm">${String(new Date(p.data).getHours()).padStart(2, "0")}h · ${esc(p.rede)} · ${esc(p.formato)}</span>
-    ${chip(p.status)}
+    ${criando(p.id) ? `<span class="chip warn">IA criando…</span>` : chip(p.status)}
   </button>`;
+}
+function detalhePost() {
+  const p = state.posts.find(x => x.id === calAberto);
+  if (!p) return "";
+  const video = ["Reels", "Stories"].includes(p.formato);
+  let acao = "";
+  if (criando(p.id)) acao = `<div class="working"><span class="dot"></span>A IA está criando este post. Em 2 a 4 minutos ele aparece na Revisão.</div>`;
+  else if (["Planejado", "Erro"].includes(p.status)) {
+    acao = M.modo === "web"
+      ? `<div class="actions"><button class="btn primary" data-act="criar-post" data-id="${p.id}">${p.status === "Erro" ? "Tentar criar de novo" : "Criar este post"}</button></div>
+         <p class="small" style="margin:0">${video ? "A IA escreve a legenda e o roteiro das cenas e manda no Telegram." : "A IA escreve a legenda e os slides e gera as imagens. Depois o post vai para a Revisão."}</p>`
+      : `<div class="msg">Para mandar a IA criar este post, abra o painel pelo link do GitHub.</div>`;
+  } else if (["EmRevisao", "Ajustes"].includes(p.status)) acao = `<div class="actions"><button class="btn primary" data-act="ver-revisao" data-id="${p.id}">Ver na Revisão</button></div>`;
+  else if (p.link) acao = `<div class="actions"><a class="btn" href="${esc(p.link)}" target="_blank" rel="noopener">Ver post publicado</a></div>`;
+  return `<section class="pdet glass" id="det-${p.id}">
+    <div class="top"><h3>${esc(p.titulo)}</h3><button class="btn quiet" data-act="fechar-det" aria-label="Fechar">✕</button></div>
+    <div class="meta">${chip(p.status)}<span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span>${p.pilar ? `<span class="chip plain">${esc(p.pilar.split(":")[0])}</span>` : ""}</div>
+    <div class="small">Publicação: <b>${fmtData(p.data)}</b>${p.versao > 1 ? ` · versão ${p.versao}` : ""}</div>
+    ${p.legenda ? `<div class="leg">${esc(p.legenda)}</div>` : `<p class="small" style="margin:0">Ainda sem legenda: o post não foi criado.</p>`}
+    ${acao}
+  </section>`;
 }
 
 /* ---------- Revisão ---------- */
@@ -510,6 +605,17 @@ function renderRev() {
   const head = `<div class="panel-head"><p>Posts prontos esperando seu olhar. Aprove ou peça ajuste aqui mesmo. Os botões do bot no Telegram continuam funcionando.</p></div>`;
   if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
   const lista = state.posts.filter(p => p.status === "EmRevisao" || p.status === "Ajustes").sort((a, b) => new Date(a.data) - new Date(b.data));
+  if (lista.length > 1) {
+    el.innerHTML = head + `<div class="rlist">${lista.map(p => {
+      const aberto = revAberto === p.id;
+      return `<button class="rrow glass" data-act="rev-abrir" data-id="${p.id}" aria-expanded="${aberto}">
+          <span class="rt">${esc(p.titulo)}</span>
+          <span class="rm">${fmtData(p.data)} · ${esc(p.rede)} · ${esc(p.formato)} · v${p.versao}</span>
+          <span class="rx">${chip(p.status)}<span class="seta" aria-hidden="true">›</span></span>
+        </button>${aberto ? cardRev(p) : ""}`;
+    }).join("")}</div>`;
+    return;
+  }
   el.innerHTML = head + (lista.length ? `<div class="review">${lista.map(cardRev).join("")}</div>`
     : `<div class="empty glass">Nada para revisar agora. Quando a IA terminar um post, ele aparece aqui e você recebe a prévia no Telegram.</div>`);
 }
@@ -784,6 +890,11 @@ document.addEventListener("click", e => {
 
   if (act === "ir-marca") return ir("marca");
   if (act === "gerar-artes" && post) return gerarArtes(post);
+  if (act === "buscar-ideias") return buscarIdeias();
+  if (act === "criar-post" && post) return criarPost(post);
+  if (act === "fechar-det") { calAberto = null; return render(); }
+  if (act === "ver-revisao" && post) { revAberto = post.id; ir("rev"); document.getElementById("rev-" + post.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  if (act === "rev-abrir") { revAberto = revAberto === id ? null : id; ajusteAberto = null; render(); if (revAberto) document.getElementById("rev-" + id)?.scrollIntoView({ behavior: "smooth", block: "nearest" }); return; }
   if (act === "post-aprovar" && post) return revisarPost(post, "aprovar");
   if (act === "post-ajustar" && post) { ajusteAberto = id; render(); document.getElementById("ajuste-" + id)?.focus(); return; }
   if (act === "ajuste-cancelar") { ajusteAberto = null; return render(); }
@@ -804,9 +915,8 @@ document.addEventListener("click", e => {
   }
   if (act === "restaurar") return mudarIdeia(ideia, { Status: "Sugerida", MotivoDescarte: "" }, "Ideia de volta para decidir.");
   if (act === "abrir" && post) {
-    if (post.status === "EmRevisao" || post.status === "Ajustes") { ir("rev"); document.getElementById("rev-" + id)?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
-    if (post.link) { window.open(post.link, "_blank", "noopener"); return; }
-    toast(`${(STATUS[post.status] || [post.status])[0]} · ${fmtData(post.data)}`);
+    calAberto = calAberto === id ? null : id; render();
+    if (calAberto) document.getElementById("det-" + id)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 });
 
