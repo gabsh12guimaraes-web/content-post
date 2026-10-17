@@ -4,7 +4,7 @@
 <meta property="og:image" content="marca/content-post-capa.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Poppins:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Poppins:wght@400;500;600;700;800&family=Anton&family=Bebas+Neue&family=Archivo+Black&family=Playfair+Display:ital,wght@0,700;0,800;1,500;1,700&family=DM+Serif+Display:ital@0;1&display=swap">
 <style>
 /* Identidade do admin da Easypeasy Pay: navy quase preto, cartões chapados com borda de 1px,
    acento vermelho-rosa em gradiente, Poppins + IBM Plex Mono, rótulos pequenos em caixa alta,
@@ -521,6 +521,14 @@ body.travado .wrap { visibility: hidden; }
 /* baixar artes */
 .baixar { display: grid; gap: 6px; margin-top: 8px; }
 .baixar .actions { gap: 6px; flex-wrap: wrap; } .baixar .btn { padding: 7px 10px; font-size: 12px; }
+/* modelos novos */
+.ig-slide.previa-canvas { background: #000; }
+.ig-slide.previa-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ig-slide .dest, .ed .dest { font-style: normal; color: var(--b-acc); }
+.diag .modelos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 520px) { .diag .modelos { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.fontes-titulo { flex-wrap: wrap; }
+.fontes-titulo button { font-size: 13px; letter-spacing: 0; text-transform: none; }
 /* banco de imagens */
 .bi-zona { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 22px 16px; border: 1.5px dashed var(--line-strong, rgba(255,255,255,.2)); border-radius: 10px; cursor: pointer; margin: 6px 0 14px; }
 .bi-zona:hover, .bi-zona.sobre { border-color: var(--red, #F8395A); background: rgba(248,57,90,.06); }
@@ -1730,8 +1738,222 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   ctx.fillText(ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →", W - 6 * U, yr + 4.2 * U); ctx.textAlign = "left";
   return cv;
 }
+/* ===== Modelos novos: Impacto, Minimal, Manchete e Cinema ===== */
+const MODELOS_NOVOS = ["impacto", "minimal", "manchete", "cinema"];
+// Fontes do título. "auto" usa a do modelo.
+const FONTES_TITULO = {
+  poppins: { nome: "Poppins", css: "Poppins", peso: 800, upper: false },
+  anton: { nome: "Anton", css: "Anton", peso: 400, upper: true },
+  bebas: { nome: "Bebas Neue", css: "'Bebas Neue'", peso: 400, upper: true },
+  archivo: { nome: "Archivo Black", css: "'Archivo Black'", peso: 400, upper: false },
+  playfair: { nome: "Playfair", css: "'Playfair Display'", peso: 800, upper: false },
+  dmserif: { nome: "DM Serif", css: "'DM Serif Display'", peso: 400, upper: false },
+};
+const FONTE_DO_MODELO = { impacto: "anton", minimal: "poppins", manchete: "anton", cinema: "dmserif" };
+const fonteTitulo = diag => FONTES_TITULO[diag && diag.fonte && diag.fonte !== "auto" ? diag.fonte : FONTE_DO_MODELO[diag && diag.modelo] || "poppins"] || FONTES_TITULO.poppins;
+// *palavra* no título = destaque (cor de destaque da marca; itálico nos modelos com serifa).
+const semMarcas = t => String(t || "").replace(/\*/g, "");
+const destacarHtml = t => esc(t).replace(/\*([^*]+)\*/g, '<em class="dest">$1</em>');
+function partesTexto(t) {
+  const partes = []; let dest = false;
+  for (const pedaco of String(t || "").split("*")) {
+    // pontuação logo depois do destaque ("*fila*, sem") fica colada na palavra anterior
+    const colaInicio = !/^\s/.test(pedaco);
+    pedaco.split(/\s+/).filter(Boolean).forEach((w, k) => partes.push({ w, dest, colado: k === 0 && colaInicio && partes.length > 0 && /^[,.;:!?…)\]]/.test(w) }));
+    dest = !dest;
+  }
+  return partes;
+}
+// Quebra o texto em linhas medindo cada palavra com a fonte dela (normal ou destaque).
+function linhasRicas(ctx, partes, largura, fonteN, fonteD) {
+  const linhas = []; let atual = [], larg = 0;
+  ctx.font = fonteN; const espaco = ctx.measureText(" ").width;
+  for (const p of partes) {
+    ctx.font = p.dest ? fonteD : fonteN; const w = ctx.measureText(p.w).width;
+    if (atual.length && larg + espaco + w > largura) { linhas.push({ itens: atual, larg }); atual = []; larg = 0; }
+    atual.push({ ...p, largura: w }); larg += (atual.length > 1 && !p.colado ? espaco : 0) + w;
+  }
+  if (atual.length) linhas.push({ itens: atual, larg });
+  return { linhas, espaco };
+}
+// Desenha um título rico ajustando o tamanho até caber na caixa (largura x altura máxima).
+function tituloRico(ctx, texto, { x, y, largura, alturaMax, tamanho, minimo, fonte, fonteDestaque, upper, cor, corDestaque, alinhar = "left", entrelinha = 1.02, maxLinhas = 6 }) {
+  const t = upper ? String(texto || "").toUpperCase() : texto;
+  const partes = partesTexto(t);
+  let tam = tamanho, r;
+  for (let k = 0; k < 14; k++) {
+    r = linhasRicas(ctx, partes, largura, fonte(tam), fonteDestaque(tam));
+    if ((r.linhas.length * tam * entrelinha <= alturaMax && r.linhas.length <= maxLinhas) || tam <= minimo) break;
+    tam *= 0.92;
+  }
+  r = linhasRicas(ctx, partes, largura, fonte(tam), fonteDestaque(tam));
+  ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+  let yy = y;
+  for (const l of r.linhas) {
+    yy += tam * entrelinha;
+    let xx = alinhar === "center" ? x + (largura - l.larg) / 2 : alinhar === "right" ? x + largura - l.larg : x;
+    for (const it of l.itens) {
+      if (it.colado && it !== l.itens[0]) xx -= r.espaco;
+      ctx.font = it.dest ? fonteDestaque(tam) : fonte(tam); ctx.fillStyle = it.dest ? corDestaque : cor;
+      ctx.fillText(it.w, xx, yy - tam * 0.12); xx += it.largura + r.espaco;
+    }
+  }
+  return { fim: yy, tamanho: tam, linhas: r.linhas.length, ultima: r.linhas[r.linhas.length - 1] };
+}
+function textoSimples(ctx, texto, { x, y, largura, tam, fonte, cor, alinhar = "left", entrelinha = 1.35, maxLinhas = 6 }) {
+  ctx.font = fonte; ctx.fillStyle = cor; ctx.textAlign = alinhar === "center" ? "center" : alinhar === "right" ? "right" : "left"; ctx.textBaseline = "alphabetic";
+  const linhas = quebrar(ctx, semMarcas(texto), largura).slice(0, maxLinhas);
+  const xx = alinhar === "center" ? x + largura / 2 : alinhar === "right" ? x + largura : x;
+  let yy = y;
+  for (const l of linhas) { yy += tam * entrelinha; ctx.fillText(l, xx, yy - tam * 0.3); }
+  ctx.textAlign = "left";
+  return yy;
+}
+function cobrir(ctx, im, x, y, w, h) {
+  const w0 = im.videoWidth || im.naturalWidth || im.width, h0 = im.videoHeight || im.naturalHeight || im.height;
+  if (!w0 || !h0) return;
+  const k = Math.max(w / w0, h / h0), dw = w0 * k, dh = h0 * k;
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  ctx.restore();
+}
+// Cabeçalho de autor: avatar (símbolo da marca), nome e @.
+function cabecalhoAutor(ctx, U, x, y, logos, cores, nome, claro) {
+  const r = 4.6 * U, perfil = perfilMarca();
+  ctx.save(); ctx.beginPath(); ctx.arc(x + r, y + r, r, 0, Math.PI * 2); ctx.closePath();
+  ctx.fillStyle = cores.acc; ctx.fill(); ctx.clip();
+  const sim = logos && !logos.width ? (claro ? (logos.simLight || logos.light) : (logos.simDark || logos.dark || logos.simLight)) : null;
+  if (sim) { const k = Math.min(r * 1.25 / sim.width, r * 1.25 / sim.height); ctx.drawImage(sim, x + r - sim.width * k / 2, y + r - sim.height * k / 2, sim.width * k, sim.height * k); }
+  else { ctx.fillStyle = "#fff"; ctx.font = `800 ${3.6 * U}px Poppins, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(nome.slice(0, 1).toUpperCase(), x + r, y + r); }
+  ctx.restore();
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = claro ? "#ffffff" : "#111111"; ctx.font = `600 ${3.4 * U}px Poppins, sans-serif`; ctx.fillText(nome, x + r * 2 + 2.4 * U, y + (perfil ? 4.2 : 5.6) * U);
+  if (perfil) { ctx.fillStyle = claro ? "rgba(255,255,255,.72)" : "rgba(17,17,17,.6)"; ctx.font = `500 ${2.9 * U}px Poppins, sans-serif`; ctx.fillText(perfil, x + r * 2 + 2.4 * U, y + 7.8 * U); }
+}
+function contador(ctx, U, W, i, total, claro) {
+  if (total < 2) return;
+  const txt = `${i + 1}/${total}`; ctx.font = `500 ${3.2 * U}px Poppins, sans-serif`;
+  const w = ctx.measureText(txt).width + 6 * U, h = 7 * U, x = W - 5 * U - w, y = 4 * U;
+  ctx.fillStyle = claro ? "rgba(0,0,0,.42)" : "rgba(17,17,17,.38)"; retArred(ctx, x, y, w, h, h / 2); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.textAlign = "center"; ctx.fillText(txt, x + w / 2, y + h / 2); ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+}
+function rodapeChamada(ctx, U, W, H, i, total, cor, alinhar) {
+  const ultimo = i === total - 1 && total > 1;
+  const txt = ultimo ? (perfilMarca() ? "Siga " + perfilMarca() : "Salve este post") : total > 1 ? "Arrasta pro lado →" : "";
+  if (!txt) return;
+  ctx.font = `600 ${3.6 * U}px Poppins, sans-serif`; ctx.fillStyle = cor; ctx.textAlign = alinhar || "right";
+  ctx.fillText(txt, alinhar === "left" ? 7 * U : alinhar === "center" ? W / 2 : W - 7 * U, H - 6 * U); ctx.textAlign = "left";
+}
+function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) {
+  const W = ARTE_L, H = ARTE_A, U = W / 100;
+  const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = W; cv.height = H; }
+  const ctx = cv.getContext("2d");
+  const F = fonteTitulo(diag), m = diag.modelo;
+  const fT = (peso, it) => tam => `${it ? "italic " : ""}${peso} ${tam}px ${F.css}, Poppins, sans-serif`;
+  const serifItalico = tam => `italic 500 ${tam}px 'Playfair Display', Georgia, serif`;
+  const titulo = sl.t || "", texto = sl.x || "";
+  const al = diag.alinhar === "centro" ? "center" : diag.alinhar === "direita" ? "right" : "left";
+  ctx.clearRect(0, 0, W, H); ctx.globalAlpha = 1;
+  if (m === "impacto") {
+    ctx.fillStyle = cores.bg; ctx.fillRect(0, 0, W, H);
+    if (foto) {
+      cobrir(ctx, foto, 0, H * 0.3, W, H * 0.7);
+      const g = ctx.createLinearGradient(0, H * 0.3, 0, H * 0.62); g.addColorStop(0, hexRgba(cores.bg, 1)); g.addColorStop(1, hexRgba(cores.bg, 0)); ctx.fillStyle = g; ctx.fillRect(0, H * 0.3, W, H * 0.33);
+    }
+    const brilho = ctx.createRadialGradient(W * 0.75, H * 0.18, 0, W * 0.75, H * 0.18, W * 0.9);
+    brilho.addColorStop(0, hexRgba(cores.acc, 0.55)); brilho.addColorStop(1, hexRgba(cores.acc, 0)); ctx.fillStyle = brilho; ctx.fillRect(0, 0, W, H);
+    const v = ctx.createLinearGradient(0, H * 0.8, 0, H); v.addColorStop(0, hexRgba(cores.bg, 0)); v.addColorStop(1, hexRgba(cores.bg, 0.55)); ctx.fillStyle = v; ctx.fillRect(0, H * 0.8, W, H * 0.2);
+    cabecalhoAutor(ctx, U, 9 * U, 6 * U, logos, cores, nome, true);
+    contador(ctx, U, W, i, total, true);
+    let y = 17 * U;
+    if (texto) {
+      const partes = partesTexto(texto); const fN = `500 ${3.9 * U}px Poppins, sans-serif`, fD = `600 ${3.9 * U}px Poppins, sans-serif`;
+      const r = linhasRicas(ctx, partes, 82 * U, fN, fD);
+      for (const l of r.linhas.slice(0, 2)) { y += 5 * U; let xx = 9 * U; for (const it of l.itens) { ctx.font = it.dest ? fD : fN; ctx.fillStyle = it.dest ? cores.acc : "rgba(255,255,255,.88)"; ctx.fillText(it.w, xx, y); xx += it.largura + r.espaco; } }
+      y += 2.5 * U;
+    }
+    tituloRico(ctx, titulo, { x: 9 * U, y, largura: 82 * U, alturaMax: (foto ? 40 : 62) * U, tamanho: 17 * U, minimo: 8 * U, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#F6EFE4", corDestaque: cores.acc, alinhar: al, entrelinha: F.upper ? 0.98 : 1.04 });
+    rodapeChamada(ctx, U, W, H, i, total, "rgba(255,255,255,.92)");
+  } else if (m === "minimal") {
+    ctx.fillStyle = "#F5F4F0"; ctx.fillRect(0, 0, W, H);
+    if (foto) {
+      cobrir(ctx, foto, 0, H * 0.46, W, H * 0.54);
+      const g = ctx.createLinearGradient(0, H * 0.46, 0, H * 0.6); g.addColorStop(0, "rgba(245,244,240,1)"); g.addColorStop(1, "rgba(245,244,240,0)"); ctx.fillStyle = g; ctx.fillRect(0, H * 0.46, W, H * 0.15);
+    }
+    cabecalhoAutor(ctx, U, 9 * U, 8 * U, logos, cores, nome, false);
+    if (diag.logo !== "nenhum") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "td", logo: diag.logo && diag.logo !== "auto" ? diag.logo : (logos && logos.simDark ? "simDark" : "auto") }, 6.5 * U, 13 * U, "#111");
+    contador(ctx, U, W, i, total, false);
+    const fim = tituloRico(ctx, titulo, { x: 10 * U, y: (foto ? 17 : 34) * U, largura: 80 * U, alturaMax: (foto ? 24 : 40) * U, tamanho: 10.5 * U, minimo: 6 * U, fonte: fT(F.peso), fonteDestaque: diag.fonte && diag.fonte !== "auto" ? fT(F.peso, true) : serifItalico, upper: F.upper, cor: "#111111", corDestaque: cores.acc, alinhar: al === "left" ? "center" : al, entrelinha: 0.98 });
+    if (texto) textoSimples(ctx, texto, { x: 14 * U, y: fim.fim + 1.5 * U, largura: 72 * U, tam: 3.6 * U, fonte: `400 ${3.6 * U}px Poppins, sans-serif`, cor: "rgba(17,17,17,.62)", alinhar: "center", maxLinhas: 3 });
+    ctx.font = `500 ${2.5 * U}px Poppins, sans-serif`; ctx.fillStyle = foto ? "rgba(255,255,255,.85)" : "rgba(17,17,17,.45)";
+    ctx.fillText(String(nome).toUpperCase(), 9 * U, H - 5 * U);
+    if (perfilMarca()) { ctx.textAlign = "right"; ctx.fillText(perfilMarca().toUpperCase(), W - 9 * U, H - 5 * U); ctx.textAlign = "left"; }
+  } else if (m === "manchete") {
+    ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, W, H);
+    contador(ctx, U, W, i, total, false);
+    const t = tituloRico(ctx, titulo, { x: 5 * U, y: 4 * U, largura: foto ? 76 * U : 86 * U, alturaMax: (foto ? 44 : 70) * U, tamanho: 13.5 * U, minimo: 7 * U, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#0B0B0D", corDestaque: cores.acc, alinhar: "left", entrelinha: 0.96 });
+    // ponto na cor de destaque, ao lado da última linha
+    const raio = 5.6 * U; ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.arc(W - 5 * U - raio, t.fim - raio * 1.1, raio, 0, Math.PI * 2); ctx.fill();
+    let y = t.fim + 2 * U;
+    if (texto) y = textoSimples(ctx, texto, { x: 5 * U, y, largura: 88 * U, tam: 3.7 * U, fonte: `400 ${3.7 * U}px Poppins, sans-serif`, cor: "#1A1A1D", maxLinhas: 3 }) + 2 * U;
+    if (foto) { const y0 = Math.min(y + 1 * U, H * 0.62); ctx.save(); retArred(ctx, 5 * U, y0, 90 * U, H - y0 - 4 * U, 3.4 * U); ctx.clip(); cobrir(ctx, foto, 5 * U, y0, 90 * U, H - y0 - 4 * U); ctx.restore(); }
+    else rodapeChamada(ctx, U, W, H, i, total, "rgba(11,11,13,.6)", "left");
+    if (diag.logo !== "nenhum" && !foto) desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "bd" }, 5 * U, 5 * U, "#111");
+  } else {
+    // cinema
+    ctx.fillStyle = cores.bg; ctx.fillRect(0, 0, W, H);
+    if (foto) cobrir(ctx, foto, 0, 0, W, H);
+    const g = ctx.createLinearGradient(0, H * 0.4, 0, H); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.82)"); ctx.fillStyle = g; ctx.fillRect(0, H * 0.4, W, H * 0.6);
+    const topo = ctx.createLinearGradient(0, 0, 0, H * 0.18); topo.addColorStop(0, "rgba(0,0,0,.35)"); topo.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = topo; ctx.fillRect(0, 0, W, H * 0.18);
+    desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "te" }, 7 * U, 6 * U, "#fff");
+    contador(ctx, U, W, i, total, true);
+    // mede a altura do bloco para encostar na base
+    const fN = fT(F.peso), fD = fT(F.peso, true);
+    const largura = 84 * U; let tam = 8.6 * U, linhas;
+    for (let k = 0; k < 10; k++) { linhas = linhasRicas(ctx, partesTexto(F.upper ? titulo.toUpperCase() : titulo), largura, fN(tam), fD(tam)).linhas.length; if (linhas <= 4) break; tam *= 0.92; }
+    ctx.font = `400 ${3.5 * U}px Poppins, sans-serif`;
+    const linhasTexto = texto ? Math.min(3, quebrar(ctx, semMarcas(texto), 74 * U).length) : 0;
+    const altura = linhas * tam * 1.04 + (linhasTexto ? 2 * U + linhasTexto * 3.5 * U * 1.35 : 0);
+    const y0 = H - 9 * U - altura;
+    const t = tituloRico(ctx, titulo, { x: 8 * U, y: y0, largura, alturaMax: 60 * U, tamanho: tam, minimo: tam, fonte: fN, fonteDestaque: fD, upper: F.upper, cor: "#FFFFFF", corDestaque: "#FFFFFF", alinhar: al === "left" ? "center" : al, entrelinha: 1.04 });
+    if (texto) textoSimples(ctx, texto, { x: 13 * U, y: t.fim + 1.2 * U, largura: 74 * U, tam: 3.5 * U, fonte: `400 ${3.5 * U}px Poppins, sans-serif`, cor: "rgba(255,255,255,.88)", alinhar: "center", maxLinhas: 3 });
+  }
+  return cv;
+}
+// Prévia dos modelos novos: o mesmo desenho da arte final, num canvas da prévia.
+const cacheImg = new Map();
+const imgCache = url => { if (!cacheImg.has(url)) cacheImg.set(url, carregarImg(url).catch(() => null)); return cacheImg.get(url); };
+let logosPrevia = null;
+async function logosDaPrevia() {
+  if (logosPrevia) return logosPrevia;
+  const urls = urlsLogos(true), o = {};
+  for (const [k, u] of Object.entries(urls)) o[k] = u ? await imgCache(u) : null;
+  return (logosPrevia = o);
+}
+let pintando = false, pintarDeNovo = false;
+async function pintarPrevias() {
+  if (pintando) { pintarDeNovo = true; return; }
+  pintando = true;
+  try {
+    const cvs = [...document.querySelectorAll("canvas[data-previa]")];
+    if (cvs.length) {
+      await Promise.all([document.fonts.load(`400 40px Anton`), document.fonts.load(`400 40px 'Bebas Neue'`), document.fonts.load(`400 40px 'Archivo Black'`), document.fonts.load(`800 40px 'Playfair Display'`), document.fonts.load(`italic 500 40px 'Playfair Display'`), document.fonts.load(`400 40px 'DM Serif Display'`), document.fonts.load(`italic 400 40px 'DM Serif Display'`), document.fonts.load(`800 40px Poppins`)]).catch(() => {});
+      const logos = await logosDaPrevia(), cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
+      for (const cv of cvs) {
+        const post = state.posts.find(x => x.id === cv.dataset.previa); if (!post) continue;
+        const slides = post.slides.length ? post.slides : [{ n: 1, t: post.titulo, x: "" }];
+        const i = Number(cv.dataset.i), sl = slides[i]; if (!sl) continue;
+        const { mapa } = imagensDoPost(post);
+        const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : null;
+        desenharModeloNovo(sl, i, slides.length, foto, logos, cores, nome, cv, post.diag);
+      }
+    }
+  } finally { pintando = false; if (pintarDeNovo) { pintarDeNovo = false; pintarPrevias(); } }
+}
 function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
+  if (MODELOS_NOVOS.includes(diag.modelo)) return desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag);
+  sl = { ...sl, t: semMarcas(sl.t), x: semMarcas(sl.x) };
   if (MODELOS_ED.includes(diag.modelo)) return desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag);
   const cv = alvo || document.createElement("canvas");
   if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
@@ -1890,6 +2112,7 @@ async function gravarCanvas(cv, bps, tocarTudo) {
 const blobBase64 = b => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(b); });
 // Uma cena do Reels em 720 × 1280: clipe de fundo, véu, logo e o texto da cena.
 function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag) {
+  texto = semMarcas(texto);
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
   const pos = diag.posicao === "auto" ? "base" : diag.posicao;
   const U = W / 100;
@@ -2015,6 +2238,7 @@ function mudarDiagramacao(p, k, v) {
   if (p.diag[k] === v) return;
   p.diag[k] = v;
   const refazer = p.artesProntas;
+  setTimeout(() => pintarPrevias(), 0);
   if (refazer) { p.artesProntas = false; toast("Diagramação mudou. Gere " + (ehVideoFmt(p) ? "o vídeo final" : "as artes finais") + " de novo para aplicar."); }
   render();
   clearTimeout(timerDiag);
@@ -2078,7 +2302,7 @@ async function gerarArtes(p) {
   if (gerandoArtes) return false;
   gerandoArtes = p.id; render();
   try {
-    await Promise.all([document.fonts.load(`700 ${10 * CQ}px Poppins`), document.fonts.load(`400 ${4.4 * CQ}px Poppins`), document.fonts.load(`600 ${3 * CQ}px Poppins`)]).catch(() => {});
+    await Promise.all([document.fonts.load(`700 ${10 * CQ}px Poppins`), document.fonts.load(`400 ${4.4 * CQ}px Poppins`), document.fonts.load(`600 ${3 * CQ}px Poppins`), document.fonts.load(`400 40px Anton`), document.fonts.load(`400 40px 'Bebas Neue'`), document.fonts.load(`400 40px 'Archivo Black'`), document.fonts.load(`800 40px 'Playfair Display'`), document.fonts.load(`italic 500 40px 'Playfair Display'`), document.fonts.load(`400 40px 'DM Serif Display'`), document.fonts.load(`italic 400 40px 'DM Serif Display'`)]).catch(() => {});
     const cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
     // Carrega as quatro versões do logo; cada arte escolhe a que contrasta com o fundo.
     const urls = urlsLogos(true), logo = {};
@@ -2150,7 +2374,7 @@ function slideEditorial(sl, i, total, img, video, nome, diag) {
     ${temFundo && !cta ? (video ? `<video class="ed-img" src="${esc(video)}" muted loop autoplay playsinline></video>` : `<div class="ed-img" style="background-image:${cssUrl(img)}"></div>`) : ""}
     <div class="ed-topo lp-${pos}">${logo ? `<img src="${esc(logo)}" alt="">` : diag.logo === "nenhum" ? "" : `<b>${esc(nome.toUpperCase())}</b>`}</div>
     ${total > 1 ? `<span class="ed-cont ${pos === "td" ? "esq" : ""}">${i + 1}/${total}</span>` : ""}
-    <div class="ed-corpo"><div class="titulo">${esc(sl.t)}</div>${sl.x ? `<div class="texto">${esc(sl.x)}</div>` : ""}${cta ? `<div class="ed-siga">Siga ${esc(perfil || "o perfil")}</div>` : ""}</div>
+    <div class="ed-corpo"><div class="titulo">${destacarHtml(sl.t)}</div>${sl.x ? `<div class="texto">${esc(semMarcas(sl.x))}</div>` : ""}${cta ? `<div class="ed-siga">Siga ${esc(perfil || "o perfil")}</div>` : ""}</div>
     <div class="ed-rodape"><em>${ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →"}</em></div>
   </div>`;
 }
@@ -2167,8 +2391,16 @@ const MINI_MODELO = (() => {
   };
 })();
 MINI_MODELO.editorial = MINI_MODELO.claro; MINI_MODELO.editorialEscuro = MINI_MODELO.escuro;
-function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo) {
+{
+  const svg = corpo => `<svg viewBox="0 0 40 50" aria-hidden="true">${corpo}</svg>`;
+  MINI_MODELO.impacto = svg(`<defs><radialGradient id="mm-i" cx=".8" cy=".15" r=".9"><stop offset="0" stop-color="#F8395A" stop-opacity=".7"/><stop offset="1" stop-color="#12121c" stop-opacity="0"/></radialGradient></defs><rect width="40" height="50" rx="3" fill="#12121c"/><rect width="40" height="50" rx="3" fill="url(#mm-i)"/><rect x="0" y="27" width="40" height="23" fill="#7d4a63" opacity=".55"/><circle cx="5.5" cy="5" r="2" fill="#F8395A"/><rect x="9" y="4" width="9" height="2" rx="1" fill="#fff"/><rect x="4" y="11" width="32" height="5" fill="#f6efe4"/><rect x="4" y="17" width="28" height="5" fill="#f6efe4"/><rect x="4" y="23" width="18" height="5" fill="#F8395A"/>`);
+  MINI_MODELO.minimal = svg(`<rect width="40" height="50" rx="3" fill="#F5F4F0"/><circle cx="5.5" cy="5.5" r="2" fill="#111"/><rect x="32" y="3.5" width="4" height="4" rx="1" fill="#F8395A"/><rect x="11" y="12" width="18" height="3.6" rx="1" fill="#111"/><rect x="9" y="17" width="22" height="3.6" rx="1" fill="#111"/><rect x="12" y="22" width="16" height="3.6" rx="1.8" fill="#F8395A"/><path d="M14 50 L16 34 Q20 31 24 34 L26 50 Z" fill="#c9a77d"/>`);
+  MINI_MODELO.manchete = svg(`<rect width="40" height="50" rx="3" fill="#fff"/><rect x="3" y="3" width="30" height="4.4" fill="#0b0b0d"/><rect x="3" y="8.2" width="24" height="4.4" fill="#0b0b0d"/><rect x="3" y="13.4" width="27" height="4.4" fill="#0b0b0d"/><circle cx="34" cy="15.5" r="3" fill="#2563eb"/><rect x="3" y="20" width="30" height="1.6" rx=".8" fill="#888"/><rect x="3" y="24" width="34" height="23" rx="2.4" fill="#6f86a6"/>`);
+  MINI_MODELO.cinema = svg(`<defs><linearGradient id="mm-c" x1="0" y1="0" x2="0" y2="1"><stop offset=".35" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".85"/></linearGradient></defs><rect width="40" height="50" rx="3" fill="#8a7a66"/><circle cx="20" cy="17" r="8" fill="#5a4a3e"/><rect width="40" height="50" rx="3" fill="url(#mm-c)"/><rect x="4" y="4" width="9" height="2.4" rx="1" fill="#fff"/><rect x="8" y="34" width="24" height="3.4" rx="1" fill="#fff"/><rect x="10" y="38.6" width="20" height="3.4" rx="1" fill="#fff" opacity=".85"/><rect x="12" y="44" width="16" height="1.4" rx=".7" fill="#fff" opacity=".7"/>`);
+}
+function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo, postId) {
   const d = diag || { modelo: "foto", logo: "auto", logoPos: "te" };
+  if (!prontas && !semModelo && postId && MODELOS_NOVOS.includes(d.modelo)) return `<div class="ig-slide previa-canvas"><canvas data-previa="${esc(postId)}" data-i="${i}" width="${ARTE_L}" height="${ARTE_A}" aria-label="Prévia do slide ${i + 1}"></canvas>${video ? `<span class="tag-video">tem vídeo: a prévia mostra a foto</span>` : ""}</div>`;
   if (!prontas && !semModelo && MODELOS_ED.includes(d.modelo)) return slideEditorial(sl, i, total, img, video, nome, d);
   const ultimo = i === total - 1 && total > 1;
   const temFundo = !!(img || video);
@@ -2184,7 +2416,7 @@ function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModel
     <div class="veu"></div>
     ${d.logo === "nenhum" ? "" : `<div class="marca-agua">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.replaceWith(document.createTextNode('${esc(nome).replace(/'/g, "")}'))">` : esc(nome)}</div>`}
     ${total > 1 ? `<span class="contador">${i + 1}/${total}</span>` : ""}
-    <div class="conteudo"><span class="barra"></span><div class="titulo">${esc(sl.t)}</div>${sl.x ? `<div class="texto">${esc(sl.x)}</div>` : ""}</div>
+    <div class="conteudo"><span class="barra"></span><div class="titulo">${destacarHtml(sl.t)}</div>${sl.x ? `<div class="texto">${esc(semMarcas(sl.x))}</div>` : ""}</div>
     ${total > 1 && !ultimo ? `<span class="seta">arraste →</span>` : ""}
   </div>`;
 }
@@ -2206,7 +2438,7 @@ function cardRev(p) {
   } else {
     const videosProntos = {};
     if (prontas) slides.forEach((sl, i) => { const a = p.arquivos[i]; if (ehArqVideo(a)) videosProntos[sl.n] = a.url; });
-    html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome, prontas ? videosProntos[sl.n] : clipes[sl.n], p.diag, p.formato === "Stories")).join("");
+    html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome, prontas ? videosProntos[sl.n] : clipes[sl.n], p.diag, p.formato === "Stories", p.id)).join("");
   }
   const pontos = slides.length > 1 ? `<div class="ig-pontos" aria-hidden="true">${slides.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
   const nomeArte = ehVideo ? "vídeo final" : "artes finais";
@@ -2244,17 +2476,20 @@ function cardRev(p) {
   const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
   const versoes = urlsLogos(false);
   const fundoEscuro = p.diag.fundo === "escuro";
-  const segM = ehVideo || p.formato === "Stories" ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"]].map(([v, t]) =>
-      `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" ? MINI_MODELO.foto : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
+  const segM = ehVideo || p.formato === "Stories" ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]].map(([v, t]) =>
+      `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" || MODELOS_NOVOS.includes(v) ? MINI_MODELO[v] : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
+      ${!ehVideo && MODELOS_NOVOS.includes(p.diag.modelo) ? `<span class="small">Fonte do título</span><div class="seg fontes-titulo" role="group" aria-label="Fonte do título">${[["auto", "Do modelo", "Poppins"]].concat(Object.entries(FONTES_TITULO).map(([k, f]) => [k, f.nome, f.css])).map(([v, t, css]) =>
+        `<button data-act="diag" data-id="${p.id}" data-k="fonte" data-v="${v}" aria-pressed="${(p.diag.fonte || "auto") === v}" style="font-family:${css.replace(/"/g, "'")}, sans-serif">${t}</button>`).join("")}</div>
+        <p class="small" style="margin:0">Dica: na aba Textos, coloque uma palavra do título entre *asteriscos* para destacar.</p>` : ""}
       ${MODELOS_ED.includes(p.diag.modelo) ? `<span class="small">Fundo</span><div class="seg fundos" role="group" aria-label="Fundo">${[["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", cores.bg]].map(([v, t, c]) =>
         `<button data-act="diag" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "claro") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>` : ""}`;
   const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
-  const editorial = !ehVideo && MODELOS_ED.includes(p.diag.modelo);
+  const editorial = !ehVideo && (MODELOS_ED.includes(p.diag.modelo) || MODELOS_NOVOS.includes(p.diag.modelo));
   const posicoes = editorial ? [["te", "Topo esquerda"], ["tc", "Topo centro"], ["td", "Topo direita"]] : [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
   const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}`;
   const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação${ajuda("diagramacao")}</span>${segM}<span class="small">Texto</span>
       <div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
-      ${editorial ? "" : `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>`}
+      ${editorial || MODELOS_NOVOS.includes(p.diag.modelo) ? "" : `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>`}
       ${segL}${segLP}
       <p class="small" style="margin:0">A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.</p></div>`;
   const podeEditar = !ehVideo && p.status !== "Ajustes";
@@ -2263,7 +2498,7 @@ function cardRev(p) {
   else if (podeEditar) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post${ajuda("textos")}</span>
       ${slides.map((sl, i) => `<fieldset><legend>${slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
         <div class="bi-slide">${mapa[sl.n] ? `<img src="${esc(mapa[sl.n])}" alt="">` : `<span class="small">Sem foto</span>`}<button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">${mapa[sl.n] ? "Trocar pela do banco" : "Pôr uma foto do banco"}</button></div>
-        <label class="field"><span>Título</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
+        <label class="field"><span>Título (use *palavra* para destacar)</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
         <label class="field"><span>Texto</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label></fieldset>`).join("")}
       <label class="field"><span>Legenda (descrição do post)</span><textarea id="et-leg-${p.id}" rows="5" maxlength="2200">${esc(p.legenda || "")}</textarea></label>
       <label class="field"><span>Hashtags</span><input id="et-tags-${p.id}" maxlength="600" value="${esc(p.hashtags || "")}"></label>
@@ -2312,6 +2547,7 @@ function render() {
   renderIdeias(); renderCal(); renderRev(); renderAgend();
   flashId = null;
   sincronizarCasca();
+  requestAnimationFrame(() => pintarPrevias());
 }
 function ir(t) { tab = t; try { localStorage.setItem(KEY + ":tab", t); } catch (e) {} document.body.classList.remove("menu-aberto"); const v = document.querySelector(".veu-menu"); if (v) v.hidden = true; render(); window.scrollTo({ top: 0 }); }
 const PAGINAS = {
