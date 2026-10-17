@@ -371,6 +371,14 @@ button { cursor: pointer; }
 .ed .ed-av img { width: 72%; height: 72%; object-fit: contain; }
 .ig[data-al="centro"] .ed:not(.ed-cta) .ed-corpo { text-align: center; justify-items: center; }
 .ig[data-al="direita"] .ed:not(.ed-cta) .ed-corpo { text-align: right; justify-items: end; }
+.diag .modelos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.diag .modelos button { display: grid; justify-items: center; gap: 5px; padding: 7px 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink-soft); font: 600 11px/1.2 inherit; font-family: inherit; cursor: pointer; text-align: center; }
+.diag .modelos button svg { width: 100%; max-width: 54px; height: auto; display: block; border-radius: 3px; }
+.diag .modelos button[aria-pressed="true"] { border-color: var(--red, #F8395A); color: var(--ink); box-shadow: 0 0 0 1px var(--red, #F8395A); }
+.editor-textos { display: grid; gap: 10px; }
+.editor-textos fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 6px; margin: 0; }
+.editor-textos legend { font-size: 12px; font-weight: 700; padding: 0 4px; }
+.editor-textos input, .editor-textos textarea { width: 100%; }
 .diag .seg.pos-logo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ig-aviso { font-size: 11px; color: var(--ink-faint); padding: 0 14px 12px; background: #0b0b0d; }
 
@@ -458,6 +466,8 @@ body.travado .wrap { visibility: hidden; }
 
 .check-tratar { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted, #9aa0b4); margin: 2px 0 10px; font-weight: 500; }
 .check-tratar input { margin-top: 2px; accent-color: var(--red, #F8395A); }
+.auth-rodape { margin: 4px 0 0; text-align: center; font-size: 13px; color: var(--ink-soft); }
+.auth-rodape button { background: none; border: 0; padding: 0 2px; color: var(--red, #F8395A); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 /* logo da Content Post */
 .cp-logo { display: inline-flex; align-items: center; gap: 10px; }
 .cp-simbolo { width: 30px; height: 30px; flex: none; display: block; }
@@ -805,7 +815,7 @@ function dePost(r) {
   } catch (e) {}
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
-    status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, link: r.LinkPublicado || "",
+    status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
     ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", logo: "auto", logoPos: "te" }; try { return Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { return pad; } })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
@@ -1687,12 +1697,36 @@ function mudarDiagramacao(p, k, v) {
     } catch (e) { toast("Não deu para salvar a diagramação: " + textoErro(e)); }
   }, 500);
 }
-let gerandoArtes = null, ajusteAberto = null, revisando = null, timersRevisao = [];
-async function revisarPost(p, acao, comentario) {
+let gerandoArtes = null, ajusteAberto = null, revisando = null, timersRevisao = [], textoAberto = null, salvandoTexto = null;
+// Salva título e texto de cada slide, a legenda e as hashtags. As artes precisam ser geradas de novo.
+async function salvarTextos(p) {
+  const val = sel => [...document.querySelectorAll(sel)];
+  const brutos = p.slidesBrutos.length ? p.slidesBrutos.map(x => ({ ...x })) : p.slides.map(sl => ({ n: sl.n, titulo: sl.t, texto: sl.x }));
+  for (const el of val(`[data-et][data-post="${p.id}"]`)) {
+    const n = Number(el.dataset.n), alvo = brutos.find((x, i) => (Number(x.n) || i + 1) === n);
+    if (alvo) alvo[el.dataset.et === "t" ? "titulo" : "texto"] = el.value.trim();
+  }
+  const legenda = (document.getElementById("et-leg-" + p.id)?.value || "").trim();
+  const hashtags = (document.getElementById("et-tags-" + p.id)?.value || "").trim();
+  salvandoTexto = p.id; render();
+  try {
+    if (M.modo === "web") await api({ acao: "salvarTextos", id: p.id, slides: brutos, legenda, hashtags });
+    else {
+      const f = { [AT.cal.f.Slides]: JSON.stringify(brutos), [AT.cal.f.Legenda]: legenda, [AT.cal.f.Hashtags]: hashtags, [AT.cal.f.ArtesProntas]: false };
+      await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.cal.table, records: [{ id: p.id, fields: f }] });
+    }
+    p.slidesBrutos = brutos; p.legenda = legenda; p.hashtags = hashtags;
+    p.slides = brutos.map((x, i) => ({ n: Number(x.n) || i + 1, t: x.titulo || x.visual || "", x: x.texto || x.fala_ou_texto || "", img: !!x.usa_imagem }));
+    const tinha = p.artesProntas; p.artesProntas = false; textoAberto = null;
+    toast(tinha ? "Textos salvos. Gere as artes finais de novo para aplicar." : "Textos salvos.");
+  } catch (e) { toast("Não deu para salvar os textos: " + textoErro(e)); }
+  salvandoTexto = null; render();
+}
+async function revisarPost(p, acao, comentario, extra) {
   if (revisando) return;
   revisando = p.id; render();
   try {
-    await api({ acao: acao === "aprovar" ? "aprovarPost" : "ajustarPost", id: p.id, comentario: comentario || "" });
+    await api({ acao: acao === "aprovar" ? "aprovarPost" : "ajustarPost", id: p.id, comentario: comentario || "", ...(extra || {}) });
     revisando = null; ajusteAberto = null;
     if (acao === "aprovar") {
       p.status = "Agendado"; flashId = p.id; render();
@@ -1766,6 +1800,17 @@ function slideEditorial(sl, i, total, img, video, nome, diag) {
     <div class="ed-rodape"><em>${ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →"}</em></div>
   </div>`;
 }
+// Miniatura de cada modelo: onde ficam a imagem, o título e o texto.
+const MINI_MODELO = (() => {
+  const svg = corpo => `<svg viewBox="0 0 40 50" aria-hidden="true">${corpo}</svg>`;
+  const linhas = (x, y, w, cor) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" fill="${cor}"/><rect x="${x}" y="${y + 5}" width="${w * 0.7}" height="3" rx="1.5" fill="${cor}"/>`;
+  return {
+    foto: svg(`<defs><linearGradient id="mm-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d93b5"/><stop offset="1" stop-color="#1b2133"/></linearGradient></defs><rect width="40" height="50" rx="3" fill="url(#mm-f)"/><circle cx="26" cy="15" r="7" fill="#f3c76a" opacity=".85"/><rect x="5" y="5" width="9" height="2.5" rx="1" fill="#fff"/>${linhas(5, 32, 26, "#fff")}<rect x="5" y="43" width="18" height="2" rx="1" fill="#fff" opacity=".6"/>`),
+    claro: svg(`<rect width="40" height="50" rx="3" fill="#F4F4F6"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#111"/><rect x="4" y="7" width="32" height="15" rx="2" fill="#9fb3c8"/><circle cx="20" cy="14.5" r="4.5" fill="#f3c76a"/>${linhas(4, 26, 28, "#111")}<rect x="4" y="37" width="32" height="7" rx="1.5" fill="#dcdce2"/>`),
+    escuro: svg(`<rect width="40" height="50" rx="3" fill="#141826"/><rect width="40" height="21" rx="3" fill="#6f86a6"/><rect y="12" width="40" height="9" fill="#141826" opacity=".55"/><circle cx="20" cy="9" r="4.5" fill="#f3c76a"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#fff"/>${linhas(4, 25, 28, "#fff")}<rect x="4" y="36" width="32" height="7" rx="1.5" fill="#fff" opacity=".14"/>`),
+    lateral: svg(`<rect width="40" height="50" rx="3" fill="#F4F4F6"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#111"/><rect x="22" y="7" width="14" height="37" rx="2" fill="#9fb3c8"/><circle cx="29" cy="20" r="4" fill="#f3c76a"/>${linhas(4, 10, 15, "#111")}<rect x="4" y="22" width="15" height="13" rx="1.5" fill="#dcdce2"/>`),
+  };
+})();
 function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo) {
   const d = diag || { modelo: "foto", logo: "auto", logoPos: "te" };
   if (!prontas && !semModelo && MODELOS_ED.includes(d.modelo)) return slideEditorial(sl, i, total, img, video, nome, d);
@@ -1824,7 +1869,11 @@ function cardRev(p) {
   let decisao;
   if (M.modo !== "web") decisao = `<div class="msg">Para aprovar ou pedir ajuste pelo painel, abra o link do GitHub. Aqui no claude.ai, use os botões do bot no Telegram.</div>`;
   else if (revisando === p.id) decisao = `<div class="working"><span class="dot"></span>Enviando…</div>`;
-  else if (ajusteAberto === p.id) decisao = `<div class="reason"><label class="small" for="ajuste-${p.id}">O que você quer mudar?</label>
+  else if (ajusteAberto === p.id) decisao = `<div class="reason">
+      ${slides.length > 1 ? `<label class="field"><span>Onde ajustar</span>
+      <select id="ajuste-alvo-${p.id}"><option value="0">O post inteiro</option>${slides.map((sl, i) => `<option value="${sl.n}">${ehVideo ? "Só a cena" : "Só o slide"} ${i + 1}${sl.t || sl.x ? ": " + esc(String(sl.t || sl.x).slice(0, 40)) : ""}</option>`).join("")}</select></label>` : ""}
+      ${ehVideo ? "" : `<label class="check-tratar"><input id="ajuste-img-${p.id}" type="checkbox"> Gerar uma imagem nova ${slides.length > 1 ? "(só do slide escolhido, ou de todos se for o post inteiro)" : ""}</label>`}
+      <label class="small" for="ajuste-${p.id}">O que você quer mudar?</label>
       <textarea id="ajuste-${p.id}" rows="4" maxlength="2000" placeholder="Ex.: deixe o título do slide 2 mais curto e troque a foto da capa por algo mais claro"></textarea>
       <div class="actions"><button class="btn primary" data-act="ajuste-enviar" data-id="${p.id}">Enviar ajuste</button><button class="btn quiet" data-act="ajuste-cancelar">Cancelar</button></div></div>`;
   else decisao = `<div class="actions"><button class="btn primary" data-act="post-aprovar" data-id="${p.id}" ${falta || revisando ? "disabled" : ""}>Aprovar e agendar</button>
@@ -1835,7 +1884,8 @@ function cardRev(p) {
   const segP = [["auto", "Automática"], ["topo", "Topo"], ["meio", "Meio"], ["base", "Base"]].map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="posicao" data-v="${v}" aria-pressed="${p.diag.posicao === v}">${t}</button>`).join("");
   const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
   const versoes = urlsLogos(false);
-  const segM = ehVideo ? "" : `<span class="small">Modelo</span>${seg("modelo", [["foto", "Foto de fundo"], ["claro", "Editorial claro"], ["escuro", "Editorial escuro"], ["lateral", "Imagem lateral"]])}`;
+  const segM = ehVideo ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["claro", "Editorial claro"], ["escuro", "Editorial escuro"], ["lateral", "Imagem lateral"]].map(([v, t]) =>
+      `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${MINI_MODELO[v]}<span>${t}</span></button>`).join("")}</div>`;
   const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
   const editorial = !ehVideo && MODELOS_ED.includes(p.diag.modelo);
   const posicoes = editorial ? [["te", "Topo esquerda"], ["tc", "Topo centro"], ["td", "Topo direita"]] : [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
@@ -1845,9 +1895,20 @@ function cardRev(p) {
       ${editorial ? "" : `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>`}
       ${segL}${segLP}
       <p class="small" style="margin:0">A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.</p></div>`;
+  const podeEditar = !ehVideo && p.status !== "Ajustes";
+  let textos = "";
+  if (podeEditar && salvandoTexto === p.id) textos = `<div class="working"><span class="dot"></span>Salvando os textos…</div>`;
+  else if (podeEditar && textoAberto === p.id) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post</span>
+      ${slides.map((sl, i) => `<fieldset><legend>${slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
+        <label class="field"><span>Título</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
+        <label class="field"><span>Texto</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label></fieldset>`).join("")}
+      <label class="field"><span>Legenda (descrição do post)</span><textarea id="et-leg-${p.id}" rows="5" maxlength="2200">${esc(p.legenda || "")}</textarea></label>
+      <label class="field"><span>Hashtags</span><input id="et-tags-${p.id}" maxlength="600" value="${esc(p.hashtags || "")}"></label>
+      <div class="actions"><button class="btn primary" data-act="textos-salvar" data-id="${p.id}">Salvar textos</button><button class="btn quiet" data-act="textos-cancelar">Cancelar</button></div></div>`;
+  else if (podeEditar) textos = `<div class="actions"><button class="btn" data-act="textos-editar" data-id="${p.id}">Editar textos</button></div>`;
   const acoes = p.status === "Ajustes"
     ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui e no Telegram em 1 ou 2 minutos.</div>`
-    : `${diag}${artes}${decisao}`;
+    : `${diag}${textos}${artes}${decisao}`;
   return `<article class="rcard glass" id="rev-${p.id}">
     <div class="ig ${ehVideo ? "vertical" : ""}" data-al="${esc(p.diag.alinhar)}" data-pos="${esc(p.diag.posicao)}" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
       <div class="ig-top"><span class="ig-avatar">${simboloMarca(cores.bg) ? `<img src="${esc(simboloMarca(cores.bg))}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
@@ -1948,10 +2009,20 @@ document.addEventListener("click", e => {
   if (act === "post-ajustar" && post) { ajusteAberto = id; render(); document.getElementById("ajuste-" + id)?.focus(); return; }
   if (act === "ajuste-cancelar") { ajusteAberto = null; return render(); }
   if (act === "ajuste-enviar" && post) {
-    const txt = (document.getElementById("ajuste-" + id)?.value || "").trim();
+    let txt = (document.getElementById("ajuste-" + id)?.value || "").trim();
+    const slide = Number(document.getElementById("ajuste-alvo-" + id)?.value || 0);
+    const novaImagem = !!document.getElementById("ajuste-img-" + id)?.checked;
+    if (!txt && novaImagem) txt = slide ? "Troque a imagem deste slide por outra, combinando com o texto." : "Troque as imagens por outras, combinando com o texto.";
     if (!txt) { toast("Escreva o que você quer mudar."); return; }
-    return revisarPost(post, "ajustar", txt);
+    // A instrução vai junto do comentário, para o Claude mexer só no slide escolhido.
+    const pos = slide ? post.slides.findIndex(x => x.n === slide) + 1 : 0;
+    const prefixo = slide ? `[Ajuste somente ${ehVideoFmt(post) ? "na cena" : "no slide"} ${pos}. Não altere os outros, nem a legenda, nem as hashtags.${novaImagem ? " Gere uma imagem nova para ele." : ""}] `
+      : novaImagem ? "[Gere imagens novas para os slides com imagem.] " : "";
+    return revisarPost(post, "ajustar", prefixo + txt, { slide, novaImagem });
   }
+  if (act === "textos-editar" && post) { textoAberto = id; return render(); }
+  if (act === "textos-cancelar") { textoAberto = null; return render(); }
+  if (act === "textos-salvar" && post) return salvarTextos(post);
   if (act === "recarregar-pauta") { pauta.erro = null; render(); return M.modo === "web" ? carregarPauta() : recarregar(); }
   if (act === "aprovar" && ideia) return abrirAgenda(ideia);
   if (act === "guardar") return mudarIdeia(ideia, { Status: "Guardada" }, "Ideia guardada para depois.");
@@ -2327,6 +2398,26 @@ function renderAuth() {
     </form>`);
     return;
   }
+  if (U.tela === "cadastro" || U.tela === "cadastroEnviado") {
+    el.innerHTML = casca(U.tela === "cadastroEnviado" ? `<div class="glass auth-card">${marcaDoLogin()}
+      <h1>Pedido enviado</h1>
+      <p class="hint">Sua conta foi criada e está aguardando a aprovação de um administrador. Assim que for aprovada, entre com o e-mail e a senha que você escolheu.</p>
+      <button class="btn primary" data-u="voltar-login" type="button">Voltar para o login</button></div>`
+    : `<form class="glass auth-card" id="f-cadastro" onsubmit="return false">
+      ${marcaDoLogin()}
+      <h1>Criar nova conta</h1>
+      <p class="hint">Um administrador precisa aprovar seu acesso antes do primeiro login.</p>
+      <label class="field"><span>Seu nome</span><input id="cn-nome" autocomplete="name" maxlength="100"></label>
+      <label class="field"><span>E-mail</span><input id="cn-email" type="email" autocomplete="email"></label>
+      <label class="field"><span>Crie uma senha (mínimo 8 caracteres)</span><input id="cn-senha" type="password" autocomplete="new-password"></label>
+      <label class="field"><span>Repita a senha</span><input id="cn-senha2" type="password" autocomplete="new-password"></label>
+      ${erro}
+      <button class="btn primary" data-u="solicitar-conta" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Enviando…" : "Criar conta"}</button>
+      <p class="auth-rodape">Já tem conta? <button type="button" data-u="voltar-login">Entrar</button></p>
+    </form>`);
+    if (U.tela === "cadastro" && !U.ocupado) document.getElementById("cn-nome")?.focus();
+    return;
+  }
   el.innerHTML = casca(`<form class="glass auth-card" id="f-login" onsubmit="return false">
     ${marcaDoLogin()}
     <h1>Entrar</h1>
@@ -2336,6 +2427,7 @@ function renderAuth() {
     ${erro}
     <button class="btn primary" data-u="entrar" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Entrando…" : "Entrar"}</button>
     <p class="hint">Esqueceu a senha? Peça para um administrador definir uma nova em Equipe.</p>
+    <p class="auth-rodape">Ainda não tem conta? <button type="button" data-u="ir-cadastro">Criar nova conta</button></p>
   </form>`);
   if (!U.ocupado) document.getElementById("l-email")?.focus();
 }
@@ -2365,7 +2457,7 @@ function formUsuario(u) {
 function desenharEquipe() {
   const linhas = EQ.lista.map(u => EQ.editando === u.id ? formUsuario(u) : `<div class="urow ${u.ativo ? "" : "off"}">
       <div><div class="un">${esc(u.nome || "(sem nome)")}</div><div class="ue">${esc(u.email)}${u.ultimoAcesso ? " · último acesso " + fmtData(u.ultimoAcesso) : " · nunca entrou"}</div></div>
-      <div class="actions"><span class="chip ${u.papel === "Admin" ? "acc" : "plain"}">${u.papel === "Admin" ? "Admin" : "Editor"}</span>${u.ativo ? "" : `<span class="chip bad">Desativado</span>`}<button class="btn quiet" data-u="eq-editar" data-id="${u.id}">Editar</button></div>
+      <div class="actions"><span class="chip ${u.papel === "Admin" ? "acc" : "plain"}">${u.papel === "Admin" ? "Admin" : "Editor"}</span>${u.ativo ? "" : u.ultimoAcesso ? `<span class="chip bad">Desativado</span>` : `<span class="chip warn">Aguardando aprovação</span><button class="btn primary" data-u="eq-aprovar" data-id="${u.id}">Aprovar</button>`}<button class="btn quiet" data-u="eq-editar" data-id="${u.id}">Editar</button></div>
     </div>`).join("");
   abrirDlg(`<h2>Equipe</h2>
     <p class="hint">Quem pode entrar no painel. Editores cuidam da pauta; administradores também criam e desativam contas.</p>
@@ -2410,6 +2502,22 @@ document.addEventListener("click", async e => {
     return primeiroAcesso(d);
   }
   if (a === "voltar-login") { U.tela = "login"; U.erro = ""; return renderAuth(); }
+  if (a === "ir-cadastro") { U.tela = "cadastro"; U.erro = ""; return renderAuth(); }
+  if (a === "solicitar-conta") {
+    const nome = val("cn-nome"), email = val("cn-email"), senha = document.getElementById("cn-senha").value;
+    if (!nome || !email) { U.erro = "Preencha o nome e o e-mail."; return renderAuth(); }
+    if (senha.length < 8) { U.erro = "A senha precisa ter pelo menos 8 caracteres."; return renderAuth(); }
+    if (senha !== document.getElementById("cn-senha2").value) { U.erro = "As senhas não são iguais."; return renderAuth(); }
+    U.ocupado = true; U.erro = ""; renderAuth();
+    try { await chamar(API, {}, { acao: "solicitarConta", nome, email, senha }); U.tela = "cadastroEnviado"; }
+    catch (err) { if (err.semUsuarios) { U.tela = "primeiro"; U.erro = "Ainda não há nenhum usuário: crie a conta de administrador."; } else U.erro = textoErro(err); }
+    U.ocupado = false; return renderAuth();
+  }
+  if (a === "eq-aprovar") {
+    try { await api({ acao: "salvarUsuario", usuario: { id: b.dataset.id, ativo: true } }); EQ.lista = (await api({ acao: "listarUsuarios" })).usuarios || []; toast("Acesso aprovado. A pessoa já pode entrar."); }
+    catch (err) { EQ.erro = textoErro(err); }
+    return desenharEquipe();
+  }
   if (a === "sair") return sair();
   if (a === "fechar") return fecharDlg();
   if (a === "equipe") return abrirEquipe();

@@ -327,6 +327,53 @@ button { cursor: pointer; }
 .ig[data-pos="base"] .ig-slide .conteudo { top: auto; bottom: 10cqw; }
 .ig[data-pos="topo"] .ig-slide .veu { background: linear-gradient(0deg, rgba(10,12,21,.10) 0%, rgba(10,12,21,.25) 40%, rgba(10,12,21,.94) 100%); }
 .ig[data-pos="meio"] .ig-slide .veu { background: rgba(10,12,21,.55); }
+/* logo: versão e posição no modelo foto de fundo */
+.ig-slide.lp-tc .marca-agua { left: 50%; transform: translateX(-50%); }
+.ig-slide.lp-td .marca-agua { left: auto; right: 6cqw; }
+.ig-slide.lp-td .contador { right: auto; left: 6cqw; }
+.ig-slide.lp-be .marca-agua, .ig-slide.lp-bc .marca-agua, .ig-slide.lp-bd .marca-agua { top: auto; bottom: 5cqw; }
+.ig-slide.lp-bc .marca-agua { left: 50%; transform: translateX(-50%); }
+.ig-slide.lp-bd .marca-agua { left: auto; right: 6cqw; }
+.ig-slide.lp-be .seta, .ig-slide.lp-bc .seta, .ig-slide.lp-bd .seta { display: none; }
+.ig[data-pos="base"] .ig-slide.lp-be .conteudo, .ig[data-pos="base"] .ig-slide.lp-bc .conteudo, .ig[data-pos="base"] .ig-slide.lp-bd .conteudo,
+.ig[data-pos="auto"] .ig-slide.lp-be:not(.sem-foto) .conteudo, .ig[data-pos="auto"] .ig-slide.lp-bc:not(.sem-foto) .conteudo, .ig[data-pos="auto"] .ig-slide.lp-bd:not(.sem-foto) .conteudo { bottom: 16cqw; }
+/* modelos editoriais */
+.ig-slide.ed { background: #F4F4F6; color: #111; }
+.ig-slide.ed.escuro { background: var(--b-bg); color: #fff; }
+.ed .ed-img { position: absolute; left: 6cqw; top: 13cqw; width: 88cqw; height: 47cqw; border-radius: 3cqw; background: #d9d9de center / cover no-repeat; object-fit: cover; }
+.ed.escuro .ed-img { left: 0; top: 0; width: 100cqw; height: 58cqw; border-radius: 0; }
+.ed.escuro.com-img::before { content: ""; position: absolute; left: 0; right: 0; top: 30cqw; height: 28.5cqw; background: linear-gradient(transparent, var(--b-bg)); z-index: 1; }
+.ed.lateral .ed-img { left: 52cqw; top: 13cqw; width: 42cqw; height: 96cqw; }
+.ed .ed-topo { position: absolute; top: 4.5cqw; left: 6cqw; right: 6cqw; height: 4.5cqw; display: flex; justify-content: center; align-items: center; z-index: 2; }
+.ed .ed-topo.lp-te { justify-content: flex-start; } .ed .ed-topo.lp-td { justify-content: flex-end; }
+.ed .ed-topo img { height: 100%; width: auto; } .ed .ed-topo b { font-size: 3.4cqw; letter-spacing: .08em; }
+.ed .ed-cont { position: absolute; top: 3.8cqw; right: 6cqw; z-index: 2; font-size: 3cqw; font-weight: 600; padding: 1cqw 2.6cqw; border-radius: 99px; background: rgba(0,0,0,.08); }
+.ed.escuro .ed-cont { background: rgba(255,255,255,.14); } .ed .ed-cont.esq { right: auto; left: 6cqw; }
+.ed .ed-corpo { position: absolute; left: 6cqw; right: 6cqw; top: 26cqw; display: grid; gap: 3cqw; z-index: 2; justify-items: start; }
+.ed.com-img .ed-corpo { top: 66cqw; } .ed.escuro.com-img .ed-corpo { top: 60cqw; } .ed.lateral.com-img .ed-corpo { top: 18cqw; right: 53cqw; }
+.ed .titulo { font-weight: 800; font-size: 8.4cqw; line-height: 1.04; letter-spacing: -.02em; text-wrap: balance; }
+.ed:not(.com-img) .titulo { font-size: 10.5cqw; } .ed.lateral.com-img .titulo { font-size: 7cqw; }
+.ed .texto { font-size: 4cqw; line-height: 1.35; color: #55565E; background: #E7E7EC; border-radius: 2.4cqw; padding: 3.4cqw; max-width: none; justify-self: stretch; }
+.ed.escuro .texto { color: rgba(255,255,255,.72); background: rgba(255,255,255,.08); }
+.ed.ed-cta .ed-corpo { top: 50%; transform: translateY(-60%); justify-items: center; text-align: center; }
+.ed .ed-siga { font-size: 4.2cqw; font-weight: 600; background: #E7E7EC; border-radius: 2.4cqw; padding: 2.4cqw 5cqw; }
+.ed.escuro .ed-siga { background: rgba(255,255,255,.1); }
+.ed .ed-rodape { position: absolute; left: 6cqw; right: 6cqw; bottom: 4cqw; display: flex; align-items: center; gap: 2.4cqw; font-size: 3.2cqw; z-index: 2; }
+.ed .ed-rodape small { display: block; font-size: 2.6cqw; opacity: .6; font-weight: 500; }
+.ed .ed-rodape em { margin-left: auto; font-style: normal; font-weight: 700; font-size: 2.6cqw; opacity: .5; letter-spacing: .02em; }
+.ed .ed-av { width: 6.4cqw; height: 6.4cqw; border-radius: 50%; background: var(--b-acc); color: #fff; display: grid; place-items: center; overflow: hidden; font-weight: 800; flex: none; }
+.ed .ed-av img { width: 72%; height: 72%; object-fit: contain; }
+.ig[data-al="centro"] .ed:not(.ed-cta) .ed-corpo { text-align: center; justify-items: center; }
+.ig[data-al="direita"] .ed:not(.ed-cta) .ed-corpo { text-align: right; justify-items: end; }
+.diag .modelos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.diag .modelos button { display: grid; justify-items: center; gap: 5px; padding: 7px 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink-soft); font: 600 11px/1.2 inherit; font-family: inherit; cursor: pointer; text-align: center; }
+.diag .modelos button svg { width: 100%; max-width: 54px; height: auto; display: block; border-radius: 3px; }
+.diag .modelos button[aria-pressed="true"] { border-color: var(--red, #F8395A); color: var(--ink); box-shadow: 0 0 0 1px var(--red, #F8395A); }
+.editor-textos { display: grid; gap: 10px; }
+.editor-textos fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 6px; margin: 0; }
+.editor-textos legend { font-size: 12px; font-weight: 700; padding: 0 4px; }
+.editor-textos input, .editor-textos textarea { width: 100%; }
+.diag .seg.pos-logo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ig-aviso { font-size: 11px; color: var(--ink-faint); padding: 0 14px 12px; background: #0b0b0d; }
 
 /* login */
@@ -356,9 +403,13 @@ body.travado .wrap { visibility: hidden; }
 .cal-nav { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .cal-nav h3 { font-size: 20px; font-weight: 600; min-width: 170px; }
 .cal-nav .actions { gap: 6px; }
-.ano { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px; padding-bottom: 2px; }
+.ano { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-bottom: 12px; padding-bottom: 2px; overscroll-behavior-x: contain; cursor: grab; }
+.ano .tri { flex: 0 0 100%; scroll-snap-align: start; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 1px; }
+.ano button span { display: flex; gap: 4px; align-items: baseline; } .ano button small { font-size: 10px; opacity: .6; }
+.ano button i { font-style: normal; font-size: 10px; color: var(--ink-faint); text-transform: none; }
+.tri-rotulo { font-size: 13px; font-weight: 600; min-width: 108px; text-align: center; text-transform: capitalize; color: var(--ink-soft); }
 .ano::-webkit-scrollbar { display: none; }
-.ano button { flex: none; border: 1px solid var(--line); background: var(--glass); color: var(--ink-soft); border-radius: 12px; padding: 6px 12px; font-size: 12px; display: grid; justify-items: center; gap: 2px; text-transform: capitalize; min-width: 58px; }
+.ano button { border: 1px solid var(--line); background: var(--glass); color: var(--ink-soft); border-radius: 12px; padding: 8px 10px; font-size: 13px; display: grid; justify-items: center; gap: 2px; text-transform: capitalize; min-width: 0; user-select: none; }
 .ano button b { font-size: 15px; color: var(--ink); font-weight: 600; }
 .ano button[aria-pressed="true"] { border-color: var(--pink); color: var(--ink); box-shadow: 0 0 0 1px var(--pink); }
 .ano button.vazio b { color: var(--ink-faint); }
@@ -407,6 +458,10 @@ body.travado .wrap { visibility: hidden; }
 .arow .actions { justify-content: flex-end; }
 @media (max-width: 640px) { .arow { grid-template-columns: 56px minmax(0, 1fr); } .arow .actions { grid-column: 1 / -1; justify-content: flex-start; } }
 
+.check-tratar { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted, #9aa0b4); margin: 2px 0 10px; font-weight: 500; }
+.check-tratar input { margin-top: 2px; accent-color: var(--red, #F8395A); }
+.auth-rodape { margin: 4px 0 0; text-align: center; font-size: 13px; color: var(--ink-soft); }
+.auth-rodape button { background: none; border: 0; padding: 0 2px; color: var(--red, #F8395A); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 /* logo da Content Post */
 .cp-logo { display: inline-flex; align-items: center; gap: 10px; }
 .cp-simbolo { width: 30px; height: 30px; flex: none; display: block; }
@@ -752,8 +807,8 @@ function dePost(r) {
   } catch (e) {}
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
-    status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, link: r.LinkPublicado || "",
-    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { try { return Object.assign({ alinhar: "esquerda", posicao: "auto" }, JSON.parse(r.Diagramacao || "{}")); } catch (e) { return { alinhar: "esquerda", posicao: "auto" }; } })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
+    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", logo: "auto", logoPos: "te" }; try { return Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { return pad; } })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -1123,10 +1178,16 @@ function renderCal() {
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   const ano = mesVisto.getFullYear(), mes = mesVisto.getMonth();
   const doMes = (a, m) => state.posts.filter(p => { const d = new Date(p.data); return d.getFullYear() === a && d.getMonth() === m; });
-  const tiraAno = MESES.map((n, m) => {
-    const q = doMes(ano, m).length;
-    return `<button data-cal-mes="${m}" aria-pressed="${m === mes}" class="${q ? "" : "vazio"}">${n.slice(0, 3)}<b>${q}</b></button>`;
-  }).join("");
+  // Faixa de meses em páginas de 3 (trimestres), do ano passado ao ano que vem.
+  const anoBase = hoje.getFullYear() - 1, paginas = [];
+  for (let t = 0; t < 12; t++) {
+    const meses = [0, 1, 2].map(k => { const a = anoBase + Math.floor((t * 3 + k) / 12), m = (t * 3 + k) % 12; return { a, m }; });
+    paginas.push(`<div class="tri" data-tri="${t}">${meses.map(({ a, m }) => {
+      const q = doMes(a, m).length;
+      return `<button data-cal-mes="${a}-${m}" aria-pressed="${a === ano && m === mes}" class="${q ? "" : "vazio"}"><span>${MESES[m].slice(0, 3)} <small>${String(a).slice(2)}</small></span><b>${q}</b><i>${q === 1 ? "post" : "posts"}</i></button>`;
+    }).join("")}</div>`);
+  }
+  const triAtual = Math.max(0, Math.min(11, (ano - anoBase) * 4 + Math.floor(mes / 3)));
   const inicio = new Date(ano, mes, 1); inicio.setDate(1 - ((inicio.getDay() + 6) % 7)); // segunda da 1ª semana
   const fimMes = new Date(ano, mes + 1, 0);
   const semanas = [];
@@ -1149,9 +1210,9 @@ function renderCal() {
     ${state.posts.length ? "" : `<div class="msg" style="margin-bottom:12px">Ainda não há posts no calendário. Leve uma ideia para o calendário na aba Ideias.</div>`}
     <div class="cal-nav">
       <h3>${MESES[mes][0].toUpperCase() + MESES[mes].slice(1)} de ${ano}</h3>
-      <div class="actions"><button class="btn" data-cal="ant" aria-label="Mês anterior">‹</button><button class="btn" data-cal="hoje">Hoje</button><button class="btn" data-cal="prox" aria-label="Próximo mês">›</button></div>
+      <div class="actions"><button class="btn" data-cal="ant" aria-label="3 meses antes">‹</button><span class="tri-rotulo" id="tri-rotulo"></span><button class="btn" data-cal="prox" aria-label="Próximos 3 meses">›</button><button class="btn quiet" data-cal="hoje">Hoje</button></div>
     </div>
-    <div class="ano" role="group" aria-label="Meses de ${ano}">${tiraAno}</div>
+    <div class="ano" id="cal-ano" role="group" aria-label="Meses, de 3 em 3. Arraste para os lados." data-tri-atual="${triAtual}">${paginas.join("")}</div>
     <div class="cal glass">
       <div class="cal-head">${["seg", "ter", "qua", "qui", "sex", "sáb", "dom"].map(d => `<span>${d}</span>`).join("")}</div>
       ${semanas.join("")}
@@ -1159,15 +1220,47 @@ function renderCal() {
     </div>
     ${detalhePost()}
     <div class="legend">${["Planejado", "EmCriacao", "EmRevisao", "Agendado", "Publicado", "Erro"].map(chip).join("")}</div>`;
+  ligarFaixaMeses(triAtual);
+}
+// Faixa de trimestres: abre no trimestre do mês visto, as setas pulam 3 meses e o rótulo acompanha a rolagem.
+let triVisto = null;
+function ligarFaixaMeses(triAtual) {
+  const faixa = document.getElementById("cal-ano"); if (!faixa) return;
+  const ir = (t, suave) => faixa.scrollTo({ left: t * faixa.clientWidth, behavior: suave ? "smooth" : "auto" });
+  const alvo = triVisto === null ? triAtual : triVisto;
+  ir(alvo, false);
+  // Com a aba escondida a faixa não tem largura; posiciona quando ela aparecer ou mudar de tamanho.
+  let larg = faixa.clientWidth;
+  new ResizeObserver(() => { if (faixa.clientWidth && faixa.clientWidth !== larg) { const t = larg ? Math.round(faixa.scrollLeft / larg) : alvo; larg = faixa.clientWidth; ir(t, false); rotulo(); } }).observe(faixa);
+  const rotulo = () => {
+    if (!faixa.clientWidth) return;
+    const t = Math.round(faixa.scrollLeft / faixa.clientWidth); triVisto = t;
+    const b = faixa.querySelectorAll(".tri")[t]; const r = document.getElementById("tri-rotulo");
+    if (b && r) { const ms = [...b.querySelectorAll("[data-cal-mes]")].map(x => x.dataset.calMes.split("-").map(Number)); r.textContent = MESES[ms[0][1]].slice(0, 3) + " – " + MESES[ms[2][1]].slice(0, 3) + " " + ms[2][0]; }
+  };
+  rotulo();
+  faixa.addEventListener("scroll", () => { clearTimeout(faixa._t); faixa._t = setTimeout(rotulo, 80); }, { passive: true });
+  // Arrastar com o mouse também passa os trimestres.
+  let x0 = null, s0 = 0, moveu = false;
+  faixa.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse") return; x0 = e.clientX; s0 = faixa.scrollLeft; moveu = false; });
+  faixa.addEventListener("pointermove", e => { if (x0 === null) return; const dx = e.clientX - x0; if (Math.abs(dx) > 6) { moveu = true; faixa.style.scrollSnapType = "none"; faixa.scrollLeft = s0 - dx; } });
+  const soltar = () => { if (x0 === null) return; x0 = null; faixa.style.scrollSnapType = ""; if (moveu) ir(Math.round(faixa.scrollLeft / faixa.clientWidth), true); };
+  faixa.addEventListener("pointerup", soltar); faixa.addEventListener("pointerleave", soltar);
+  faixa.addEventListener("click", e => { if (moveu) { e.stopPropagation(); e.preventDefault(); moveu = false; } }, true);
 }
 document.addEventListener("click", e => {
   const m = e.target.closest("[data-cal-mes]");
   const n = e.target.closest("[data-cal]");
   if (!m && !n) return;
-  if (m) mesVisto = new Date(mesVisto.getFullYear(), Number(m.dataset.calMes), 1);
-  else if (n.dataset.cal === "ant") mesVisto = new Date(mesVisto.getFullYear(), mesVisto.getMonth() - 1, 1);
-  else if (n.dataset.cal === "prox") mesVisto = new Date(mesVisto.getFullYear(), mesVisto.getMonth() + 1, 1);
-  else { const d = new Date(); mesVisto = new Date(d.getFullYear(), d.getMonth(), 1); }
+  const faixa = document.getElementById("cal-ano");
+  if (!m && faixa && (n.dataset.cal === "ant" || n.dataset.cal === "prox")) {
+    // As setas só passam a faixa de 3 em 3 meses; o mês aberto muda quando você clica em um deles.
+    const t = Math.round(faixa.scrollLeft / faixa.clientWidth) + (n.dataset.cal === "prox" ? 1 : -1);
+    faixa.scrollTo({ left: Math.max(0, t) * faixa.clientWidth, behavior: "smooth" });
+    return;
+  }
+  if (m) { const [a, mm] = m.dataset.calMes.split("-").map(Number); mesVisto = new Date(a, mm, 1); }
+  else { const d = new Date(); mesVisto = new Date(d.getFullYear(), d.getMonth(), 1); triVisto = null; }
   renderCal();
 });
 function cardPost(p) {
@@ -1313,8 +1406,105 @@ function capa(ctx, im, W = ARTE_L, H = ARTE_A) {
   const w = w0 * r, h = h0 * r;
   ctx.drawImage(im, (W - w) / 2, (H - h) / 2, w, h);
 }
+// Desenha o logo na versão e posição escolhidas (ou a versão que contrasta com o fundo, no automático).
+function desenharLogo(ctx, W, H, U, logos, nome, diag, lh, margem, corNome) {
+  const pos = (diag && diag.logoPos) || "te", escolha = (diag && diag.logo) || "auto";
+  if (escolha === "nenhum") return;
+  const larguraMax = W * 0.45;
+  const y = pos[0] === "b" ? H - margem - lh : margem;
+  const xDe = w => pos[1] === "c" ? (W - w) / 2 : pos[1] === "d" ? W - 6 * U - w : 6 * U;
+  let logo = null;
+  if (logos && logos.width) logo = logos;
+  else if (logos) {
+    if (escolha !== "auto" && logos[escolha]) logo = logos[escolha];
+    else logo = escolherLogo(logos, fundoClaroEm(ctx, xDe(larguraMax * 0.6), y, larguraMax * 0.6, lh), false);
+  }
+  if (logo) { const w = Math.min(logo.width * (lh / logo.height), larguraMax); ctx.drawImage(logo, xDe(w), y, w, lh); return; }
+  ctx.fillStyle = corNome || "#fff"; ctx.font = `700 ${lh * 0.52}px Poppins, sans-serif`; ctx.textBaseline = "middle"; ctx.textAlign = "left";
+  ctx.fillText(nome, xDe(ctx.measureText(nome).width), y + lh / 2); ctx.textBaseline = "alphabetic";
+}
+function retArred(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function capaEm(ctx, im, x, y, w, h, r) {
+  const w0 = im.videoWidth || im.naturalWidth || im.width, h0 = im.videoHeight || im.naturalHeight || im.height;
+  if (!w0 || !h0) return;
+  ctx.save(); retArred(ctx, x, y, w, h, r || 0); ctx.clip();
+  const k = Math.max(w / w0, h / h0), dw = w0 * k, dh = h0 * k;
+  ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  ctx.restore();
+}
+// Modelos editoriais (claro, escuro, imagem lateral), no estilo dos carrosséis com cabeçalho, card de imagem e rodapé.
+function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
+  const W = ARTE_L, H = ARTE_A, U = CQ;
+  const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = W; cv.height = H; }
+  const ctx = cv.getContext("2d");
+  const escuro = diag.modelo === "escuro", lateral = diag.modelo === "lateral";
+  const ultimo = i === total - 1 && total > 1, cta = ultimo && !foto;
+  const fundo = escuro ? cores.bg : "#F4F4F6", tinta = escuro ? "#FFFFFF" : "#111111", suave = escuro ? "rgba(255,255,255,.72)" : "#55565E", caixa = escuro ? "rgba(255,255,255,.08)" : "#E7E7EC";
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = fundo; ctx.fillRect(0, 0, W, H);
+  let topoTexto = 26 * U, largTexto = 88 * U;
+  const xTexto = 6 * U;
+  if (foto && !cta) {
+    if (escuro) {
+      capaEm(ctx, foto, 0, 0, W, 58 * U, 0);
+      const g = ctx.createLinearGradient(0, 30 * U, 0, 58.5 * U); g.addColorStop(0, hexRgba(cores.bg, 0)); g.addColorStop(1, hexRgba(cores.bg, 1));
+      ctx.fillStyle = g; ctx.fillRect(0, 30 * U, W, 28.6 * U); topoTexto = 60 * U;
+    } else if (lateral) { capaEm(ctx, foto, 52 * U, 13 * U, 42 * U, 96 * U, 3 * U); topoTexto = 18 * U; largTexto = 41 * U; }
+    else { capaEm(ctx, foto, 6 * U, 13 * U, 88 * U, 47 * U, 3 * U); topoTexto = 66 * U; }
+  }
+  const posLogo = String(diag.logoPos || "tc")[0] === "b" ? "tc" : (diag.logoPos || "tc");
+  desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: posLogo }, 4.5 * U, 4.5 * U, tinta);
+  if (total > 1) {
+    const txt = `${i + 1}/${total}`;
+    ctx.font = `600 ${3 * U}px Poppins, sans-serif`;
+    const w = ctx.measureText(txt).width + 5.2 * U, h = 5.6 * U, x = posLogo === "td" ? 6 * U : W - 6 * U - w, y = 3.8 * U;
+    ctx.fillStyle = escuro ? "rgba(255,255,255,.14)" : "rgba(0,0,0,.08)"; retArred(ctx, x, y, w, h, h / 2); ctx.fill();
+    ctx.fillStyle = tinta; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * U, y + h / 2); ctx.textBaseline = "alphabetic";
+  }
+  const al = cta ? "centro" : (diag.alinhar || "esquerda");
+  const xAl = al === "centro" ? xTexto + largTexto / 2 : al === "direita" ? xTexto + largTexto : xTexto;
+  const limite = 110 * U;
+  let tT = (foto && !cta ? (lateral ? 7 : 8.4) : 10.5) * U, tX = (lateral ? 3.6 : 4) * U, linT = [], linX = [], alt = 0;
+  for (let k = 0; k < 8; k++) {
+    ctx.font = `800 ${tT}px Poppins, sans-serif`; linT = quebrar(ctx, sl.t, largTexto);
+    ctx.font = `400 ${tX}px Poppins, sans-serif`; linX = quebrar(ctx, sl.x, largTexto - 6.8 * U);
+    alt = linT.length * tT * 1.05 + (linX.length ? 3 * U + linX.length * tX * 1.35 + 6.8 * U : 0) + (cta ? 15 * U : 0);
+    if ((cta ? 30 * U : topoTexto) + alt <= limite) break;
+    tT *= 0.9; tX *= 0.93;
+  }
+  let y = cta ? Math.max(28 * U, (H - alt) / 2 - 6 * U) : topoTexto;
+  ctx.textAlign = al === "centro" ? "center" : al === "direita" ? "right" : "left";
+  ctx.fillStyle = tinta; ctx.font = `800 ${tT}px Poppins, sans-serif`;
+  for (const l of linT) { y += tT * 1.05; ctx.fillText(l, xAl, y - tT * 0.2); }
+  if (linX.length) {
+    y += 3 * U;
+    const hCaixa = linX.length * tX * 1.35 + 6.8 * U;
+    ctx.fillStyle = caixa; retArred(ctx, xTexto, y, largTexto, hCaixa, 2.4 * U); ctx.fill();
+    ctx.fillStyle = suave; ctx.font = `400 ${tX}px Poppins, sans-serif`;
+    const xc = al === "centro" ? xTexto + largTexto / 2 : al === "direita" ? xTexto + largTexto - 3.4 * U : xTexto + 3.4 * U;
+    let yc = y + 3.4 * U;
+    for (const l of linX) { yc += tX * 1.35; ctx.fillText(l, xc, yc - tX * 0.3); }
+    y += hCaixa;
+  }
+  if (cta) {
+    const perfil = perfilMarca();
+    const txt = perfil ? "Siga " + perfil : "Siga o perfil";
+    ctx.font = `600 ${4.2 * U}px Poppins, sans-serif`;
+    const w = ctx.measureText(txt).width + 10 * U, h = 9 * U, x = (W - w) / 2;
+    y += 6 * U;
+    ctx.fillStyle = caixa; retArred(ctx, x, y, w, h, 2.4 * U); ctx.fill();
+    ctx.fillStyle = tinta; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, W / 2, y + h / 2); ctx.textBaseline = "alphabetic";
+  }
+  // rodapé: só o "arraste" à direita
+  ctx.textAlign = "left";
+  const yr = H - 10 * U;
+  ctx.fillStyle = escuro ? "rgba(255,255,255,.5)" : "rgba(17,17,17,.45)"; ctx.font = `700 ${2.6 * U}px Poppins, sans-serif`; ctx.textAlign = "right";
+  ctx.fillText(ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →", W - 6 * U, yr + 4.2 * U); ctx.textAlign = "left";
+  return cv;
+}
 function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
+  if (MODELOS_ED.includes(diag.modelo)) return desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag);
   const cv = alvo || document.createElement("canvas");
   if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
   const ctx = cv.getContext("2d");
@@ -1339,20 +1529,12 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
     }
   }
   // logo (versão clara ou escura conforme o fundo) ou nome da marca
-  const lx = 6 * CQ, ly = 5 * CQ, lh = 6.5 * CQ;
-  const logo = logos && (logos.width ? logos : escolherLogo(logos, fundoClaroEm(ctx, lx, ly, ARTE_L * 0.4, lh), false));
-  if (logo) {
-    const lw = logo.width * (lh / logo.height);
-    ctx.drawImage(logo, lx, ly, Math.min(lw, ARTE_L * 0.5), lh);
-  } else {
-    ctx.fillStyle = "#fff"; ctx.font = `700 ${3.4 * CQ}px Poppins, sans-serif`; ctx.textBaseline = "middle";
-    ctx.fillText(nome, lx, ly + lh / 2);
-  }
+  desenharLogo(ctx, ARTE_L, ARTE_A, CQ, logos, nome, diag, 6.5 * CQ, 5 * CQ, "#fff");
   // contador
   if (total > 1) {
     const txt = `${i + 1}/${total}`;
     ctx.font = `600 ${3 * CQ}px Poppins, sans-serif`;
-    const w = ctx.measureText(txt).width + 5.2 * CQ, h = 5.6 * CQ, x = ARTE_L - 6 * CQ - w, y = 5 * CQ;
+    const w = ctx.measureText(txt).width + 5.2 * CQ, h = 5.6 * CQ, x = diag.logoPos === "td" ? 6 * CQ : ARTE_L - 6 * CQ - w, y = 5 * CQ;
     ctx.fillStyle = "rgba(0,0,0,.45)";
     ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
     ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * CQ, y + h / 2);
@@ -1367,7 +1549,8 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const linhasTxt = quebrar(ctx, sl.x, largTit * 0.92);
   const altBarra = 1.4 * CQ, gap = 3 * CQ, lhTit = tamTit * 1.05, lhTxt = tamTxt * 1.35;
   const altura = altBarra + gap + linhasTit.length * lhTit + (linhasTxt.length ? gap + linhasTxt.length * lhTxt : 0);
-  let y = pos === "base" ? ARTE_A - 10 * CQ - altura : pos === "meio" ? (ARTE_A - altura) / 2 : (foto ? 16 : 22) * CQ;
+  const logoEmBaixo = String(diag.logoPos || "")[0] === "b" && diag.logo !== "nenhum";
+  let y = pos === "base" ? ARTE_A - 10 * CQ - altura - (logoEmBaixo ? 8 * CQ : 0) : pos === "meio" ? (ARTE_A - altura) / 2 : (foto ? 16 : 22) * CQ;
   const al = diag.alinhar, xTxt = al === "centro" ? ARTE_L / 2 : al === "direita" ? ARTE_L - 6 * CQ : esq;
   const xBarra = al === "centro" ? ARTE_L / 2 - 6 * CQ : al === "direita" ? ARTE_L - 18 * CQ : esq;
   ctx.fillStyle = cta ? "#fff" : cores.acc;
@@ -1382,7 +1565,7 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
     for (const l of linhasTxt) { y += lhTxt; ctx.fillText(l, xTxt, y - lhTxt * 0.22); }
   }
   ctx.textAlign = "left";
-  if (total > 1 && !ultimo) {
+  if (total > 1 && !ultimo && !logoEmBaixo) {
     ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.font = `600 ${3.2 * CQ}px Poppins, sans-serif`; ctx.textAlign = "right";
     ctx.fillText("arraste →", ARTE_L - 6 * CQ, ARTE_A - 6 * CQ); ctx.textAlign = "left";
   }
@@ -1438,10 +1621,7 @@ function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag) {
     g.addColorStop(0, hexRgba(cores.bg, 0)); g.addColorStop(1, hexRgba(cores.bg, 0.9));
     ctx.fillStyle = g; pos === "topo" ? ctx.fillRect(0, 0, W, H * 0.55) : ctx.fillRect(0, H * 0.45, W, H * 0.55);
   }
-  const lx = 6 * U, ly = 6 * U, lh = 7 * U;
-  const logo = logos && (logos.width ? logos : escolherLogo(logos, fundoClaroEm(ctx, lx, ly, W * 0.4, lh), false));
-  if (logo) ctx.drawImage(logo, lx, ly, Math.min(logo.width * (lh / logo.height), W * 0.45), lh);
-  else { ctx.fillStyle = "#fff"; ctx.font = `700 ${4.2 * U}px Poppins, sans-serif`; ctx.textBaseline = "middle"; ctx.fillText(nome, lx, ly + lh / 2); }
+  desenharLogo(ctx, W, H, U, logos, nome, diag, 7 * U, 6 * U, "#fff");
   if (!texto) return;
   const a = Math.min(1, (t || 0) / 350); // o texto entra suave no começo da cena
   ctx.globalAlpha = a;
@@ -1509,12 +1689,36 @@ function mudarDiagramacao(p, k, v) {
     } catch (e) { toast("Não deu para salvar a diagramação: " + textoErro(e)); }
   }, 500);
 }
-let gerandoArtes = null, ajusteAberto = null, revisando = null, timersRevisao = [];
-async function revisarPost(p, acao, comentario) {
+let gerandoArtes = null, ajusteAberto = null, revisando = null, timersRevisao = [], textoAberto = null, salvandoTexto = null;
+// Salva título e texto de cada slide, a legenda e as hashtags. As artes precisam ser geradas de novo.
+async function salvarTextos(p) {
+  const val = sel => [...document.querySelectorAll(sel)];
+  const brutos = p.slidesBrutos.length ? p.slidesBrutos.map(x => ({ ...x })) : p.slides.map(sl => ({ n: sl.n, titulo: sl.t, texto: sl.x }));
+  for (const el of val(`[data-et][data-post="${p.id}"]`)) {
+    const n = Number(el.dataset.n), alvo = brutos.find((x, i) => (Number(x.n) || i + 1) === n);
+    if (alvo) alvo[el.dataset.et === "t" ? "titulo" : "texto"] = el.value.trim();
+  }
+  const legenda = (document.getElementById("et-leg-" + p.id)?.value || "").trim();
+  const hashtags = (document.getElementById("et-tags-" + p.id)?.value || "").trim();
+  salvandoTexto = p.id; render();
+  try {
+    if (M.modo === "web") await api({ acao: "salvarTextos", id: p.id, slides: brutos, legenda, hashtags });
+    else {
+      const f = { [AT.cal.f.Slides]: JSON.stringify(brutos), [AT.cal.f.Legenda]: legenda, [AT.cal.f.Hashtags]: hashtags, [AT.cal.f.ArtesProntas]: false };
+      await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.cal.table, records: [{ id: p.id, fields: f }] });
+    }
+    p.slidesBrutos = brutos; p.legenda = legenda; p.hashtags = hashtags;
+    p.slides = brutos.map((x, i) => ({ n: Number(x.n) || i + 1, t: x.titulo || x.visual || "", x: x.texto || x.fala_ou_texto || "", img: !!x.usa_imagem }));
+    const tinha = p.artesProntas; p.artesProntas = false; textoAberto = null;
+    toast(tinha ? "Textos salvos. Gere as artes finais de novo para aplicar." : "Textos salvos.");
+  } catch (e) { toast("Não deu para salvar os textos: " + textoErro(e)); }
+  salvandoTexto = null; render();
+}
+async function revisarPost(p, acao, comentario, extra) {
   if (revisando) return;
   revisando = p.id; render();
   try {
-    await api({ acao: acao === "aprovar" ? "aprovarPost" : "ajustarPost", id: p.id, comentario: comentario || "" });
+    await api({ acao: acao === "aprovar" ? "aprovarPost" : "ajustarPost", id: p.id, comentario: comentario || "", ...(extra || {}) });
     revisando = null; ajusteAberto = null;
     if (acao === "aprovar") {
       p.status = "Agendado"; flashId = p.id; render();
@@ -1566,17 +1770,55 @@ async function gerarArtes(p) {
   }
 }
 const cssUrl = u => "url('" + String(u).replace(/['\\()]/g, encodeURIComponent) + "')";
-function slidePost(sl, i, total, img, prontas, logo, nome, video) {
+const perfilMarca = () => { const v = String((M.marca && M.marca.Perfil) || "").trim().replace(/^@+/, ""); return v ? "@" + v : ""; };
+const MODELOS_ED = ["claro", "escuro", "lateral"];
+function logoEscolhido(diag, fundoClaro) {
+  const d = diag || {}, op = urlsLogos(false);
+  if (d.logo === "nenhum") return "";
+  if (d.logo && d.logo !== "auto" && op[d.logo]) return op[d.logo];
+  return escolherLogo(op, fundoClaro, false) || "";
+}
+function slideEditorial(sl, i, total, img, video, nome, diag) {
+  const escuro = diag.modelo === "escuro";
+  const ultimo = i === total - 1 && total > 1, temFundo = !!(img || video), cta = ultimo && !temFundo;
+  const logo = logoEscolhido(diag, !escuro), sim = escolherLogo(urlsLogos(false), !escuro, true);
+  const pos = String(diag.logoPos || "tc")[0] === "b" ? "tc" : (diag.logoPos || "tc");
+  const perfil = perfilMarca();
+  return `<div class="ig-slide ed ${esc(diag.modelo)} ${cta ? "ed-cta" : ""} ${temFundo && !cta ? "com-img" : ""}">
+    ${temFundo && !cta ? (video ? `<video class="ed-img" src="${esc(video)}" muted loop autoplay playsinline></video>` : `<div class="ed-img" style="background-image:${cssUrl(img)}"></div>`) : ""}
+    <div class="ed-topo lp-${pos}">${logo ? `<img src="${esc(logo)}" alt="">` : diag.logo === "nenhum" ? "" : `<b>${esc(nome.toUpperCase())}</b>`}</div>
+    ${total > 1 ? `<span class="ed-cont ${pos === "td" ? "esq" : ""}">${i + 1}/${total}</span>` : ""}
+    <div class="ed-corpo"><div class="titulo">${esc(sl.t)}</div>${sl.x ? `<div class="texto">${esc(sl.x)}</div>` : ""}${cta ? `<div class="ed-siga">Siga ${esc(perfil || "o perfil")}</div>` : ""}</div>
+    <div class="ed-rodape"><em>${ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →"}</em></div>
+  </div>`;
+}
+// Miniatura de cada modelo: onde ficam a imagem, o título e o texto.
+const MINI_MODELO = (() => {
+  const svg = corpo => `<svg viewBox="0 0 40 50" aria-hidden="true">${corpo}</svg>`;
+  const linhas = (x, y, w, cor) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" fill="${cor}"/><rect x="${x}" y="${y + 5}" width="${w * 0.7}" height="3" rx="1.5" fill="${cor}"/>`;
+  return {
+    foto: svg(`<defs><linearGradient id="mm-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d93b5"/><stop offset="1" stop-color="#1b2133"/></linearGradient></defs><rect width="40" height="50" rx="3" fill="url(#mm-f)"/><circle cx="26" cy="15" r="7" fill="#f3c76a" opacity=".85"/><rect x="5" y="5" width="9" height="2.5" rx="1" fill="#fff"/>${linhas(5, 32, 26, "#fff")}<rect x="5" y="43" width="18" height="2" rx="1" fill="#fff" opacity=".6"/>`),
+    claro: svg(`<rect width="40" height="50" rx="3" fill="#F4F4F6"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#111"/><rect x="4" y="7" width="32" height="15" rx="2" fill="#9fb3c8"/><circle cx="20" cy="14.5" r="4.5" fill="#f3c76a"/>${linhas(4, 26, 28, "#111")}<rect x="4" y="37" width="32" height="7" rx="1.5" fill="#dcdce2"/>`),
+    escuro: svg(`<rect width="40" height="50" rx="3" fill="#141826"/><rect width="40" height="21" rx="3" fill="#6f86a6"/><rect y="12" width="40" height="9" fill="#141826" opacity=".55"/><circle cx="20" cy="9" r="4.5" fill="#f3c76a"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#fff"/>${linhas(4, 25, 28, "#fff")}<rect x="4" y="36" width="32" height="7" rx="1.5" fill="#fff" opacity=".14"/>`),
+    lateral: svg(`<rect width="40" height="50" rx="3" fill="#F4F4F6"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#111"/><rect x="22" y="7" width="14" height="37" rx="2" fill="#9fb3c8"/><circle cx="29" cy="20" r="4" fill="#f3c76a"/>${linhas(4, 10, 15, "#111")}<rect x="4" y="22" width="15" height="13" rx="1.5" fill="#dcdce2"/>`),
+  };
+})();
+function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo) {
+  const d = diag || { modelo: "foto", logo: "auto", logoPos: "te" };
+  if (!prontas && !semModelo && MODELOS_ED.includes(d.modelo)) return slideEditorial(sl, i, total, img, video, nome, d);
   const ultimo = i === total - 1 && total > 1;
   const temFundo = !!(img || video);
-  if (!temFundo) { const c = coresMarca(); logo = escolherLogo(urlsLogos(false), luminanciaHex(ultimo ? c.acc : c.bg) > 0.45, false) || logo; }
-  const classes = ["ig-slide", temFundo ? "" : "sem-foto", prontas && temFundo ? "arte" : "", ultimo && !temFundo ? "cta" : ""].join(" ");
+  const c = coresMarca();
+  if (d.logo === "nenhum") logo = "";
+  else if (d.logo && d.logo !== "auto" && urlsLogos(false)[d.logo]) logo = urlsLogos(false)[d.logo];
+  else if (!temFundo) logo = escolherLogo(urlsLogos(false), luminanciaHex(ultimo ? c.acc : c.bg) > 0.45, false) || logo;
+  const classes = ["ig-slide", temFundo ? "" : "sem-foto", prontas && temFundo ? "arte" : "", ultimo && !temFundo ? "cta" : "", "lp-" + (d.logoPos || "te")].join(" ");
   return `<div class="${classes}">
     ${video ? `<video class="foto" src="${esc(video)}" ${img ? `poster="${esc(img)}"` : ""} muted loop autoplay playsinline ${prontas ? "controls" : ""}></video>`
       : img ? `<div class="foto" style="background-image:${cssUrl(img)}"></div>` : ""}
     ${video && !prontas ? `<span class="tag-video">clipe do Magnific</span>` : ""}
     <div class="veu"></div>
-    <div class="marca-agua">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.replaceWith(document.createTextNode('${esc(nome).replace(/'/g, "")}'))">` : esc(nome)}</div>
+    ${d.logo === "nenhum" ? "" : `<div class="marca-agua">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.replaceWith(document.createTextNode('${esc(nome).replace(/'/g, "")}'))">` : esc(nome)}</div>`}
     ${total > 1 ? `<span class="contador">${i + 1}/${total}</span>` : ""}
     <div class="conteudo"><span class="barra"></span><div class="titulo">${esc(sl.t)}</div>${sl.x ? `<div class="texto">${esc(sl.x)}</div>` : ""}</div>
     ${total > 1 && !ultimo ? `<span class="seta">arraste →</span>` : ""}
@@ -1594,13 +1836,13 @@ function cardRev(p) {
     const final = p.artesProntas ? p.arquivos.find(ehArqVideo) : null;
     prontas = !!final;
     html = final
-      ? slidePost({ n: 1, t: "", x: "" }, 0, 1, final.thumbnails && final.thumbnails.large ? final.thumbnails.large.url : "", true, logo, nome, final.url)
-      : slides.map((sl, i) => slidePost({ n: sl.n, t: sl.x || sl.t, x: "" }, i, slides.length, "", false, logo, nome, clipes[sl.n])).join("");
+      ? slidePost({ n: 1, t: "", x: "" }, 0, 1, final.thumbnails && final.thumbnails.large ? final.thumbnails.large.url : "", true, logo, nome, final.url, p.diag, true)
+      : slides.map((sl, i) => slidePost({ n: sl.n, t: sl.x || sl.t, x: "" }, i, slides.length, "", false, logo, nome, clipes[sl.n], p.diag, true)).join("");
     if (final) slides = [slides[0] || { n: 1 }];
   } else {
     const videosProntos = {};
     if (prontas) slides.forEach((sl, i) => { const a = p.arquivos[i]; if (ehArqVideo(a)) videosProntos[sl.n] = a.url; });
-    html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome, prontas ? videosProntos[sl.n] : clipes[sl.n])).join("");
+    html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome, prontas ? videosProntos[sl.n] : clipes[sl.n], p.diag, false)).join("");
   }
   const pontos = slides.length > 1 ? `<div class="ig-pontos" aria-hidden="true">${slides.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
   const nomeArte = ehVideo ? "vídeo final" : "artes finais";
@@ -1619,7 +1861,11 @@ function cardRev(p) {
   let decisao;
   if (M.modo !== "web") decisao = `<div class="msg">Para aprovar ou pedir ajuste pelo painel, abra o link do GitHub. Aqui no claude.ai, use os botões do bot no Telegram.</div>`;
   else if (revisando === p.id) decisao = `<div class="working"><span class="dot"></span>Enviando…</div>`;
-  else if (ajusteAberto === p.id) decisao = `<div class="reason"><label class="small" for="ajuste-${p.id}">O que você quer mudar?</label>
+  else if (ajusteAberto === p.id) decisao = `<div class="reason">
+      ${slides.length > 1 ? `<label class="field"><span>Onde ajustar</span>
+      <select id="ajuste-alvo-${p.id}"><option value="0">O post inteiro</option>${slides.map((sl, i) => `<option value="${sl.n}">${ehVideo ? "Só a cena" : "Só o slide"} ${i + 1}${sl.t || sl.x ? ": " + esc(String(sl.t || sl.x).slice(0, 40)) : ""}</option>`).join("")}</select></label>` : ""}
+      ${ehVideo ? "" : `<label class="check-tratar"><input id="ajuste-img-${p.id}" type="checkbox"> Gerar uma imagem nova ${slides.length > 1 ? "(só do slide escolhido, ou de todos se for o post inteiro)" : ""}</label>`}
+      <label class="small" for="ajuste-${p.id}">O que você quer mudar?</label>
       <textarea id="ajuste-${p.id}" rows="4" maxlength="2000" placeholder="Ex.: deixe o título do slide 2 mais curto e troque a foto da capa por algo mais claro"></textarea>
       <div class="actions"><button class="btn primary" data-act="ajuste-enviar" data-id="${p.id}">Enviar ajuste</button><button class="btn quiet" data-act="ajuste-cancelar">Cancelar</button></div></div>`;
   else decisao = `<div class="actions"><button class="btn primary" data-act="post-aprovar" data-id="${p.id}" ${falta || revisando ? "disabled" : ""}>Aprovar e agendar</button>
@@ -1628,13 +1874,33 @@ function cardRev(p) {
   const ic = { esquerda: "M4 6h16M4 10h10M4 14h16M4 18h10", centro: "M4 6h16M7 10h10M4 14h16M7 18h10", direita: "M4 6h16M10 10h10M4 14h16M10 18h10" };
   const segA = ["esquerda", "centro", "direita"].map(a => `<button data-act="diag" data-id="${p.id}" data-k="alinhar" data-v="${a}" aria-pressed="${p.diag.alinhar === a}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="${ic[a]}"/></svg>${a === "centro" ? "Centro" : a[0].toUpperCase() + a.slice(1)}</button>`).join("");
   const segP = [["auto", "Automática"], ["topo", "Topo"], ["meio", "Meio"], ["base", "Base"]].map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="posicao" data-v="${v}" aria-pressed="${p.diag.posicao === v}">${t}</button>`).join("");
-  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação do texto</span>
+  const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
+  const versoes = urlsLogos(false);
+  const segM = ehVideo ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["claro", "Editorial claro"], ["escuro", "Editorial escuro"], ["lateral", "Imagem lateral"]].map(([v, t]) =>
+      `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${MINI_MODELO[v]}<span>${t}</span></button>`).join("")}</div>`;
+  const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
+  const editorial = !ehVideo && MODELOS_ED.includes(p.diag.modelo);
+  const posicoes = editorial ? [["te", "Topo esquerda"], ["tc", "Topo centro"], ["td", "Topo direita"]] : [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
+  const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}`;
+  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação</span>${segM}<span class="small">Texto</span>
       <div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
-      <div class="seg" role="group" aria-label="Posição do texto">${segP}</div>
+      ${editorial ? "" : `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>`}
+      ${segL}${segLP}
       <p class="small" style="margin:0">A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.</p></div>`;
+  const podeEditar = !ehVideo && p.status !== "Ajustes";
+  let textos = "";
+  if (podeEditar && salvandoTexto === p.id) textos = `<div class="working"><span class="dot"></span>Salvando os textos…</div>`;
+  else if (podeEditar && textoAberto === p.id) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post</span>
+      ${slides.map((sl, i) => `<fieldset><legend>${slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
+        <label class="field"><span>Título</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
+        <label class="field"><span>Texto</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label></fieldset>`).join("")}
+      <label class="field"><span>Legenda (descrição do post)</span><textarea id="et-leg-${p.id}" rows="5" maxlength="2200">${esc(p.legenda || "")}</textarea></label>
+      <label class="field"><span>Hashtags</span><input id="et-tags-${p.id}" maxlength="600" value="${esc(p.hashtags || "")}"></label>
+      <div class="actions"><button class="btn primary" data-act="textos-salvar" data-id="${p.id}">Salvar textos</button><button class="btn quiet" data-act="textos-cancelar">Cancelar</button></div></div>`;
+  else if (podeEditar) textos = `<div class="actions"><button class="btn" data-act="textos-editar" data-id="${p.id}">Editar textos</button></div>`;
   const acoes = p.status === "Ajustes"
     ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui e no Telegram em 1 ou 2 minutos.</div>`
-    : `${diag}${artes}${decisao}`;
+    : `${diag}${textos}${artes}${decisao}`;
   return `<article class="rcard glass" id="rev-${p.id}">
     <div class="ig ${ehVideo ? "vertical" : ""}" data-al="${esc(p.diag.alinhar)}" data-pos="${esc(p.diag.posicao)}" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
       <div class="ig-top"><span class="ig-avatar">${simboloMarca(cores.bg) ? `<img src="${esc(simboloMarca(cores.bg))}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
@@ -1735,10 +2001,20 @@ document.addEventListener("click", e => {
   if (act === "post-ajustar" && post) { ajusteAberto = id; render(); document.getElementById("ajuste-" + id)?.focus(); return; }
   if (act === "ajuste-cancelar") { ajusteAberto = null; return render(); }
   if (act === "ajuste-enviar" && post) {
-    const txt = (document.getElementById("ajuste-" + id)?.value || "").trim();
+    let txt = (document.getElementById("ajuste-" + id)?.value || "").trim();
+    const slide = Number(document.getElementById("ajuste-alvo-" + id)?.value || 0);
+    const novaImagem = !!document.getElementById("ajuste-img-" + id)?.checked;
+    if (!txt && novaImagem) txt = slide ? "Troque a imagem deste slide por outra, combinando com o texto." : "Troque as imagens por outras, combinando com o texto.";
     if (!txt) { toast("Escreva o que você quer mudar."); return; }
-    return revisarPost(post, "ajustar", txt);
+    // A instrução vai junto do comentário, para o Claude mexer só no slide escolhido.
+    const pos = slide ? post.slides.findIndex(x => x.n === slide) + 1 : 0;
+    const prefixo = slide ? `[Ajuste somente ${ehVideoFmt(post) ? "na cena" : "no slide"} ${pos}. Não altere os outros, nem a legenda, nem as hashtags.${novaImagem ? " Gere uma imagem nova para ele." : ""}] `
+      : novaImagem ? "[Gere imagens novas para os slides com imagem.] " : "";
+    return revisarPost(post, "ajustar", prefixo + txt, { slide, novaImagem });
   }
+  if (act === "textos-editar" && post) { textoAberto = id; return render(); }
+  if (act === "textos-cancelar") { textoAberto = null; return render(); }
+  if (act === "textos-salvar" && post) return salvarTextos(post);
   if (act === "recarregar-pauta") { pauta.erro = null; render(); return M.modo === "web" ? carregarPauta() : recarregar(); }
   if (act === "aprovar" && ideia) return abrirAgenda(ideia);
   if (act === "guardar") return mudarIdeia(ideia, { Status: "Guardada" }, "Ideia guardada para depois.");
@@ -1760,7 +2036,7 @@ document.addEventListener("click", e => {
 const AT = {
   server: "Airtable",
   base: "app0V0dEQB4ksFTUV",
-  marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", LogoDark: "fldyR5igpxNIOGKc0", SimboloLight: "fldWdkZXOjQgWGN7y", SimboloDark: "fld5Om4WDErIKRmuW", MoodBoard: "fldWw8Y4MDFLk1jwY", Idioma: "fldfVHS529DWsxlKE" } },
+  marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", LogoDark: "fldyR5igpxNIOGKc0", SimboloLight: "fldWdkZXOjQgWGN7y", SimboloDark: "fld5Om4WDErIKRmuW", MoodBoard: "fldWw8Y4MDFLk1jwY", Idioma: "fldfVHS529DWsxlKE", Perfil: "fldPvsmXa5gfDnBO2" } },
   ideias: { table: "tblkX69MsS5z1MT1v", f: { Titulo: "fldIaygmjuLsE1WFq", Resumo: "fld5lBu8N6tApcJVb", Formato: "fldR8DJtJIF19rmw0", Rede: "fldhnBFmYjiaKU2bw", Pilar: "fldyZHHZuM1mMLby5", Score: "fldN5rkaOAcnBJLsr", PorQueFunciona: "flddAuWW90gQPrvYZ", Status: "fldk2hxweVnMId1U1", MotivoDescarte: "fldM7FdKuv09zIrsE", Referencias: "fldQESoyFaJNIancX", Calendario: "fldPMgJAavbChgFoH" } },
   cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT", Arquivos: "fld0XuKmLrlR77Kl1", ImagensSlides: "fldinvYLBv5a7Lv35", Fotos: "fldyADExC0MK0ZS1S", ArtesProntas: "fldBEUCyMlEcAcljW", Ideia: "fldhYQFuaqkueq9yk", Clipes: "fldOIRvNezYeao3Pd", ClipesSlides: "fldJ2R6RO0mYS5d7u", Diagramacao: "fldnB7tLHQFNm89vK" } },
   fontes: { table: "tbl8L7CHTLKOfsuj3", f: { Nome: "fldEtApljYo1QPZ1Y", Tipo: "fldX64mLZhKNzixzA", Categoria: "fld1ee1spLYITJKQA", Rede: "fldQeCH8AftrYahdd", URL: "fldaJvN3bK4W64tZT", Peso: "fld2Mrr5M6bBJgdhb", Ativa: "fldtvwIISCKUv2wVC" } },
@@ -1790,7 +2066,95 @@ function slotLogo(m, campo, titulo, sub, fundo) {
     <div class="actions">${web ? `<label class="btn">${a ? "Trocar" : "Enviar"}<input type="file" class="arquivo-oculto" data-arquivo="${campo}" accept="image/png,image/svg+xml,image/webp,image/jpeg"></label>` : ""}${a ? `<button type="button" class="btn quiet" data-m="logo-rm" data-id="${campo}">Remover</button>` : ""}</div>
   </div>`;
 }
+// Tratamento do logo, feito no navegador: fundo liso vira transparente, sobras são recortadas
+// e o logo fica com margem padrão (símbolos em quadrado), pronto para entrar nas artes.
+let tratarLogos = true;
+const PAR_LOGO = { Logo: "LogoDark", LogoDark: "Logo", SimboloLight: "SimboloDark", SimboloDark: "SimboloLight" };
+const ehSimbolo = campo => campo.startsWith("Simbolo");
+function carregarArquivoImg(f) {
+  return new Promise((ok, falha) => { const u = URL.createObjectURL(f), im = new Image(); im.onload = () => ok(im); im.onerror = () => falha(new Error("não deu para abrir a imagem")); im.src = u; });
+}
+function tirarFundo(dados, w, h) {
+  const d = dados.data, px = (x, y) => (y * w + x) * 4;
+  // Cor do fundo: os quatro cantos precisam ser opacos e parecidos; senão o arquivo já é transparente ou é uma foto.
+  const cantos = [px(0, 0), px(w - 1, 0), px(0, h - 1), px(w - 1, h - 1)];
+  if (cantos.some(i => d[i + 3] < 200)) return false;
+  const ref = [0, 1, 2].map(c => cantos.reduce((s, i) => s + d[i + c], 0) / 4);
+  const dist = i => Math.hypot(d[i] - ref[0], d[i + 1] - ref[1], d[i + 2] - ref[2]);
+  if (cantos.some(i => dist(i) > 40)) return false;
+  // Preenche a partir das bordas: só some o fundo que encosta na borda (o miolo de letras como "o" também, se for da mesma cor e tocar o fundo).
+  const visto = new Uint8Array(w * h), fila = [];
+  for (let x = 0; x < w; x++) fila.push(x, (h - 1) * w + x);
+  for (let y = 0; y < h; y++) fila.push(y * w, y * w + w - 1);
+  const DURO = 38, SUAVE = 90;
+  while (fila.length) {
+    const k = fila.pop(); if (visto[k]) continue; visto[k] = 1;
+    const i = k * 4, dd = dist(i);
+    if (dd > SUAVE) continue;
+    // Borda suave: perto do fundo fica transparente, na transição fica semitransparente.
+    d[i + 3] = dd <= DURO ? 0 : Math.round(d[i + 3] * (dd - DURO) / (SUAVE - DURO));
+    if (dd > DURO) continue;
+    const x = k % w, y = (k / w) | 0;
+    if (x > 0) fila.push(k - 1); if (x < w - 1) fila.push(k + 1); if (y > 0) fila.push(k - w); if (y < h - 1) fila.push(k + w);
+  }
+  // Miolo de letras (o, e, a...): áreas pequenas da cor do fundo, fechadas pelo desenho, também ficam transparentes.
+  // Áreas grandes ficam, para não apagar texto claro dentro de um selo colorido.
+  const limite = w * h * 0.004;
+  for (let k0 = 0; k0 < w * h; k0++) {
+    if (visto[k0] || d[k0 * 4 + 3] < 200 || dist(k0 * 4) > 20) continue;
+    const comp = [], pilha = [k0]; visto[k0] = 1;
+    while (pilha.length) {
+      const k = pilha.pop(); comp.push(k);
+      const x = k % w, y = (k / w) | 0;
+      for (const n of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, y > 0 ? k - w : -1, y < h - 1 ? k + w : -1])
+        if (n >= 0 && !visto[n] && d[n * 4 + 3] >= 200 && dist(n * 4) <= 20) { visto[n] = 1; pilha.push(n); }
+    }
+    if (comp.length <= limite) for (const k of comp) d[k * 4 + 3] = 0;
+  }
+  return true;
+}
+function recortar(dados, w, h) {
+  const d = dados.data; let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 12) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+const blobPara = cv => new Promise(ok => cv.toBlob(ok, "image/png"));
+async function tratarLogo(f, campo) {
+  const im = await carregarArquivoImg(f);
+  const w0 = im.naturalWidth || 1200, h0 = im.naturalHeight || 600, k = Math.min(1, 1600 / Math.max(w0, h0)) || 1;
+  const escala = /svg/.test(f.type) ? Math.max(1, 1200 / Math.max(w0, h0)) : k;
+  const w = Math.max(1, Math.round(w0 * escala)), h = Math.max(1, Math.round(h0 * escala));
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const ctx = cv.getContext("2d"); ctx.drawImage(im, 0, 0, w, h);
+  const dados = ctx.getImageData(0, 0, w, h);
+  const semFundo = tirarFundo(dados, w, h);
+  const caixa = recortar(dados, w, h);
+  if (!caixa) throw new Error("a imagem ficou vazia depois de tirar o fundo");
+  ctx.putImageData(dados, 0, 0);
+  // Margem padrão de 6% do maior lado; símbolo vai centralizado num quadrado.
+  const m = Math.round(Math.max(caixa.w, caixa.h) * 0.06);
+  const out = document.createElement("canvas");
+  out.width = ehSimbolo(campo) ? Math.max(caixa.w, caixa.h) + m * 2 : caixa.w + m * 2;
+  out.height = ehSimbolo(campo) ? out.width : caixa.h + m * 2;
+  out.getContext("2d").drawImage(cv, caixa.x, caixa.y, caixa.w, caixa.h, (out.width - caixa.w) / 2, (out.height - caixa.h) / 2, caixa.w, caixa.h);
+  return { canvas: out, semFundo };
+}
+// Versão oposta: a tinta neutra (preto ou branco) troca de lado e as cores da marca ficam como estão.
+function versaoOposta(cv, campoOposto) {
+  const out = document.createElement("canvas"); out.width = cv.width; out.height = cv.height;
+  const ctx = out.getContext("2d"); ctx.drawImage(cv, 0, 0);
+  const img = ctx.getImageData(0, 0, out.width, out.height), d = img.data;
+  const paraClaro = campoOposto === "Logo" || campoOposto === "SimboloLight", alvo = paraClaro ? 255 : 17;
+  for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3]) continue;
+    const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]), lum = (d[i] * 0.2126 + d[i + 1] * 0.7152 + d[i + 2] * 0.0722) / 255;
+    if (mx - mn < 46 && (paraClaro ? lum < 0.55 : lum > 0.45)) d[i] = d[i + 1] = d[i + 2] = alvo;
+  }
+  ctx.putImageData(img, 0, 0);
+  return out;
+}
 const arquivoBase64 = f => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(f); });
+document.addEventListener("change", e => { if (e.target.id === "m-tratar") tratarLogos = e.target.checked; });
 document.addEventListener("change", async e => {
   const inp = e.target.closest("[data-arquivo]"); if (!inp || !inp.files || !inp.files.length) return;
   const campo = inp.dataset.arquivo, arquivos = [...inp.files];
@@ -1799,10 +2163,25 @@ document.addEventListener("change", async e => {
     for (let i = 0; i < arquivos.length; i++) {
       const f = arquivos[i];
       if (f.size > 5 * 1024 * 1024) { toast(`"${f.name}" passa de 5 MB.`); continue; }
+      if (campo !== "MoodBoard" && tratarLogos) {
+        toast("Tratando o logo…");
+        const t = await tratarLogo(f, campo).catch(e => { toast("Não deu para tratar, vou enviar o original: " + e.message); return null; });
+        if (t) {
+          const nome = f.name.replace(/\.[^.]+$/, "") + "-tratado.png";
+          await api({ acao: "enviarArquivoMarca", id: M.marca.id, campo, tipo: "image/png", nome, base64: await arquivoBase64(await blobPara(t.canvas)) });
+          const oposto = PAR_LOGO[campo], vazio = !((M.marca[oposto] || [])[0]);
+          if (vazio) {
+            toast("Criando a versão " + (oposto === "Logo" || oposto === "SimboloLight" ? "light" : "dark") + "…");
+            await api({ acao: "enviarArquivoMarca", id: M.marca.id, campo: oposto, tipo: "image/png", nome: f.name.replace(/\.[^.]+$/, "") + "-" + oposto.toLowerCase() + ".png", base64: await arquivoBase64(await blobPara(versaoOposta(t.canvas, oposto))) });
+          }
+          toast((t.semFundo ? "Fundo removido e logo recortado." : "Logo recortado (o arquivo já tinha fundo transparente ou um fundo que não é liso).") + (vazio ? " A versão oposta foi criada; troque se tiver a oficial." : ""));
+          continue;
+        }
+      }
       toast(arquivos.length > 1 ? `Enviando ${i + 1} de ${arquivos.length}…` : "Enviando…");
       await api({ acao: "enviarArquivoMarca", id: M.marca.id, campo, tipo: f.type, nome: f.name, base64: await arquivoBase64(f) });
     }
-    toast("Arquivo salvo na marca.");
+    if (campo === "MoodBoard" || !tratarLogos) toast("Arquivo salvo na marca.");
     await carregarWeb(); renderMarca();
   } catch (err) { toast("Não deu para enviar: " + textoErro(err)); }
   inp.value = "";
@@ -2011,6 +2390,26 @@ function renderAuth() {
     </form>`);
     return;
   }
+  if (U.tela === "cadastro" || U.tela === "cadastroEnviado") {
+    el.innerHTML = casca(U.tela === "cadastroEnviado" ? `<div class="glass auth-card">${marcaDoLogin()}
+      <h1>Pedido enviado</h1>
+      <p class="hint">Sua conta foi criada e está aguardando a aprovação de um administrador. Assim que for aprovada, entre com o e-mail e a senha que você escolheu.</p>
+      <button class="btn primary" data-u="voltar-login" type="button">Voltar para o login</button></div>`
+    : `<form class="glass auth-card" id="f-cadastro" onsubmit="return false">
+      ${marcaDoLogin()}
+      <h1>Criar nova conta</h1>
+      <p class="hint">Um administrador precisa aprovar seu acesso antes do primeiro login.</p>
+      <label class="field"><span>Seu nome</span><input id="cn-nome" autocomplete="name" maxlength="100"></label>
+      <label class="field"><span>E-mail</span><input id="cn-email" type="email" autocomplete="email"></label>
+      <label class="field"><span>Crie uma senha (mínimo 8 caracteres)</span><input id="cn-senha" type="password" autocomplete="new-password"></label>
+      <label class="field"><span>Repita a senha</span><input id="cn-senha2" type="password" autocomplete="new-password"></label>
+      ${erro}
+      <button class="btn primary" data-u="solicitar-conta" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Enviando…" : "Criar conta"}</button>
+      <p class="auth-rodape">Já tem conta? <button type="button" data-u="voltar-login">Entrar</button></p>
+    </form>`);
+    if (U.tela === "cadastro" && !U.ocupado) document.getElementById("cn-nome")?.focus();
+    return;
+  }
   el.innerHTML = casca(`<form class="glass auth-card" id="f-login" onsubmit="return false">
     ${marcaDoLogin()}
     <h1>Entrar</h1>
@@ -2020,6 +2419,7 @@ function renderAuth() {
     ${erro}
     <button class="btn primary" data-u="entrar" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Entrando…" : "Entrar"}</button>
     <p class="hint">Esqueceu a senha? Peça para um administrador definir uma nova em Equipe.</p>
+    <p class="auth-rodape">Ainda não tem conta? <button type="button" data-u="ir-cadastro">Criar nova conta</button></p>
   </form>`);
   if (!U.ocupado) document.getElementById("l-email")?.focus();
 }
@@ -2049,7 +2449,7 @@ function formUsuario(u) {
 function desenharEquipe() {
   const linhas = EQ.lista.map(u => EQ.editando === u.id ? formUsuario(u) : `<div class="urow ${u.ativo ? "" : "off"}">
       <div><div class="un">${esc(u.nome || "(sem nome)")}</div><div class="ue">${esc(u.email)}${u.ultimoAcesso ? " · último acesso " + fmtData(u.ultimoAcesso) : " · nunca entrou"}</div></div>
-      <div class="actions"><span class="chip ${u.papel === "Admin" ? "acc" : "plain"}">${u.papel === "Admin" ? "Admin" : "Editor"}</span>${u.ativo ? "" : `<span class="chip bad">Desativado</span>`}<button class="btn quiet" data-u="eq-editar" data-id="${u.id}">Editar</button></div>
+      <div class="actions"><span class="chip ${u.papel === "Admin" ? "acc" : "plain"}">${u.papel === "Admin" ? "Admin" : "Editor"}</span>${u.ativo ? "" : u.ultimoAcesso ? `<span class="chip bad">Desativado</span>` : `<span class="chip warn">Aguardando aprovação</span><button class="btn primary" data-u="eq-aprovar" data-id="${u.id}">Aprovar</button>`}<button class="btn quiet" data-u="eq-editar" data-id="${u.id}">Editar</button></div>
     </div>`).join("");
   abrirDlg(`<h2>Equipe</h2>
     <p class="hint">Quem pode entrar no painel. Editores cuidam da pauta; administradores também criam e desativam contas.</p>
@@ -2094,6 +2494,22 @@ document.addEventListener("click", async e => {
     return primeiroAcesso(d);
   }
   if (a === "voltar-login") { U.tela = "login"; U.erro = ""; return renderAuth(); }
+  if (a === "ir-cadastro") { U.tela = "cadastro"; U.erro = ""; return renderAuth(); }
+  if (a === "solicitar-conta") {
+    const nome = val("cn-nome"), email = val("cn-email"), senha = document.getElementById("cn-senha").value;
+    if (!nome || !email) { U.erro = "Preencha o nome e o e-mail."; return renderAuth(); }
+    if (senha.length < 8) { U.erro = "A senha precisa ter pelo menos 8 caracteres."; return renderAuth(); }
+    if (senha !== document.getElementById("cn-senha2").value) { U.erro = "As senhas não são iguais."; return renderAuth(); }
+    U.ocupado = true; U.erro = ""; renderAuth();
+    try { await chamar(API, {}, { acao: "solicitarConta", nome, email, senha }); U.tela = "cadastroEnviado"; }
+    catch (err) { if (err.semUsuarios) { U.tela = "primeiro"; U.erro = "Ainda não há nenhum usuário: crie a conta de administrador."; } else U.erro = textoErro(err); }
+    U.ocupado = false; return renderAuth();
+  }
+  if (a === "eq-aprovar") {
+    try { await api({ acao: "salvarUsuario", usuario: { id: b.dataset.id, ativo: true } }); EQ.lista = (await api({ acao: "listarUsuarios" })).usuarios || []; toast("Acesso aprovado. A pessoa já pode entrar."); }
+    catch (err) { EQ.erro = textoErro(err); }
+    return desenharEquipe();
+  }
   if (a === "sair") return sair();
   if (a === "fechar") return fecharDlg();
   if (a === "equipe") return abrirEquipe();
@@ -2147,7 +2563,7 @@ async function executar(op, dados, ok) {
 
 const v = id => (document.getElementById(id)?.value ?? "").trim();
 async function salvarMarca() {
-  const f = { Nome: "Nome", Posicionamento: "Posicionamento", Publico: "Publico", TomDeVoz: "TomDeVoz", Evitar: "Evitar", ExemplosBons: "ExemplosBons", Pilares: "Pilares", Redes: "Redes", FrequenciaSemanal: "FrequenciaSemanal", Idioma: "Idioma", Cores: "Cores", Logo: "Logo" };
+  const f = { Perfil: "Perfil", Nome: "Nome", Posicionamento: "Posicionamento", Publico: "Publico", TomDeVoz: "TomDeVoz", Evitar: "Evitar", ExemplosBons: "ExemplosBons", Pilares: "Pilares", Redes: "Redes", FrequenciaSemanal: "FrequenciaSemanal", Idioma: "Idioma", Cores: "Cores", Logo: "Logo" };
   const pilares = [...document.querySelectorAll('#m-pilares [aria-pressed="true"]')].map(b => b.dataset.valor);
   const redes = [...document.querySelectorAll('#m-redes [aria-pressed="true"]')].map(b => b.dataset.valor);
   if (!v("m-nome")) { M.aviso = { tipo: "erro", texto: "Preencha pelo menos o nome da marca." }; return renderStatus(); }
@@ -2157,6 +2573,7 @@ async function salvarMarca() {
     [f.Evitar]: v("m-evitar"), [f.ExemplosBons]: v("m-exemplos"), [f.Pilares]: pilares, [f.Redes]: redes,
     [f.FrequenciaSemanal]: Number.isFinite(freq) ? freq : null,
     [f.Idioma]: v("m-idioma") || null,
+    [f.Perfil]: v("m-perfil").replace(/^@+/, "") || null,
     [f.Cores]: [...document.querySelectorAll("#m-cores .cor")].map(r => {
       const hex = r.querySelector(".hex").value.trim().toUpperCase();
       return /^#[0-9A-F]{6}$/.test(hex) ? (hex + " " + r.querySelector(".nome").value.trim()).trim() : null;
@@ -2268,12 +2685,14 @@ function renderMarca() {
         <div class="field full"><span>Pilares de conteúdo</span>${toggles("m-pilares", todosPilares, pil)}
           <span class="actions"><input id="m-novo-pilar" placeholder="Novo pilar" style="max-width:220px"><button type="button" class="btn quiet" data-m="add-pilar">+ Adicionar</button></span></div>
         <div class="field full"><span>Redes onde publica</span>${toggles("m-redes", OPC.Redes, red)}</div>
+        <label class="field"><span>Perfil nas redes (@)</span><input id="m-perfil" placeholder="@suamarca" value="${esc(m.Perfil ? "@" + String(m.Perfil).replace(/^@+/, "") : "")}"></label>
         <label class="field"><span>Idioma das postagens</span><select id="m-idioma">${opcoes(OPC.Idioma, selNome(m.Idioma) || "Português (Brasil)")}</select></label>
         <div class="field full"><span>Cores da marca</span>
           <div class="paleta" id="m-paleta" aria-hidden="true">${lerCores(m.Cores).map(c => `<i style="background:${c.hex}"></i>`).join("")}</div>
           <div class="cores" id="m-cores">${lerCores(m.Cores).map(linhaCor).join("")}</div>
           <span class="actions"><button type="button" class="btn quiet" data-m="add-cor">+ Adicionar cor</button></span></div>
         <div class="field full"><span>Logos</span>
+          <label class="check-tratar"><input type="checkbox" id="m-tratar" ${tratarLogos ? "checked" : ""}> Tratar ao enviar: tirar o fundo, recortar as sobras e criar a versão light ou dark que faltar</label>
           <div class="logos">${slotLogo(m, "Logo", "Logo light", "Para fundos escuros", "escuro")}${slotLogo(m, "LogoDark", "Logo dark", "Para fundos claros", "claro")}${slotLogo(m, "SimboloLight", "Símbolo light", "Só o símbolo, fundos escuros", "escuro")}${slotLogo(m, "SimboloDark", "Símbolo dark", "Só o símbolo, fundos claros", "claro")}</div>
           <p class="hint" style="margin:0">Nas artes, o painel usa a versão que contrasta com o fundo de cada imagem. PNG ou SVG com fundo transparente, até 5 MB.</p></div>
         <div class="field full"><span>Mood board (opcional)</span>
