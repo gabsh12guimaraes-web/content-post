@@ -85,6 +85,7 @@ mark { background: rgba(248,57,90,.35); color: #fff; border-radius: 3px; }
     <a href="#textos">Editar textos</a>
     <a href="#ajustes">Pedir ajuste</a>
     <a href="#agendados">Agendados e publicação</a>
+    <a href="#redes">Publicar em várias redes</a>
     <b>Configuração</b>
     <a href="#integracoes">Integrações</a>
     <a href="#claude">Claude (Anthropic)</a>
@@ -285,6 +286,21 @@ mark { background: rgba(248,57,90,.35); color: #fff; border-radius: 3px; }
       <p>Se a publicação falhar, o post vai para <span class="status">Erro</span> com o motivo. Corrija (por exemplo, reconectando o Instagram no Zernio) e escolha uma nova data.</p>
     </section>
 
+    <section class="artigo" id="redes">
+      <h2>Publicar em várias redes</h2>
+      <p>Cada post pode sair em mais de uma rede ao mesmo tempo. Na revisão (e em Agendados, antes de publicar), marque em <strong>Publicar em</strong> as redes que quiser. Só aparecem disponíveis as que estão conectadas no seu <a href="#zernio">Zernio</a>.</p>
+      <table>
+        <tr><th>Rede</th><th>Como o post sai</th></tr>
+        <tr><td><strong>Instagram</strong></td><td>Como foi criado: carrossel, Reels, estático ou Stories.</td></tr>
+        <tr><td><strong>Facebook</strong></td><td>Na página: até 10 imagens, vídeo como Reel e Stories. Não mistura fotos e vídeo no mesmo post.</td></tr>
+        <tr><td><strong>TikTok</strong></td><td>Vídeo, ou fotos em modo carrossel (até 35, com música sugerida pelo TikTok). Publicado como público.</td></tr>
+        <tr><td><strong>X</strong></td><td>Legenda encurtada para 280 caracteres e até 4 imagens (ou 1 vídeo).</td></tr>
+        <tr><td><strong>Threads</strong></td><td>Legenda encurtada para 500 caracteres e até 10 imagens (ou 1 vídeo).</td></tr>
+      </table>
+      <p>Stories só vão para o Instagram e o Facebook. Se uma rede falhar, as outras são publicadas assim mesmo, e o post mostra em qual rede deu erro e por quê. Em Agendados aparece um botão <strong>Ver no…</strong> para cada rede publicada.</p>
+      <div class="alerta"><p>No TikTok, ao aprovar você confirma que revisou a prévia e concorda com a Confirmação de Uso de Música do TikTok. Os posts são marcados como conteúdo feito com IA.</p></div>
+    </section>
+
     <section class="artigo" id="integracoes">
       <h2>Integrações</h2>
       <p>A plataforma usa quatro serviços. Cada organização cadastra as próprias chaves em <strong>Integrações</strong> (só donos e admins). As chaves ficam cifradas e nunca voltam para a tela; aparecem só os 4 últimos caracteres para você saber qual está salva.</p>
@@ -293,7 +309,7 @@ mark { background: rgba(248,57,90,.35); color: #fff; border-radius: 3px; }
         <tr><td><a href="#claude">Claude (Anthropic)</a></td><td>Escreve ideias, posts e ajustes</td><td>Sim</td></tr>
         <tr><td><a href="#magnific">Magnific (Freepik)</a></td><td>Gera as fotos e os clipes de vídeo</td><td>Sim, para posts com imagem</td></tr>
         <tr><td><a href="#apify">Apify</a></td><td>Coleta posts das fontes do Instagram e TikTok</td><td>Não. Sem ela, as ideias saem só dos temas.</td></tr>
-        <tr><td><a href="#zernio">Zernio</a></td><td>Publica no Instagram e nas outras redes</td><td>Sim, para publicar</td></tr>
+        <tr><td><a href="#zernio">Zernio</a></td><td>Publica no Instagram, Facebook, TikTok, X e Threads</td><td>Sim, para publicar</td></tr>
       </table>
       <h3>Como cadastrar uma chave</h3>
       <ol>
@@ -341,11 +357,11 @@ mark { background: rgba(248,57,90,.35); color: #fff; border-radius: 3px; }
       <h2>Zernio</h2>
       <ol>
         <li>Crie a conta em <a href="https://zernio.com" target="_blank" rel="noopener">zernio.com</a>.</li>
-        <li>Conecte o Instagram da marca (e as outras redes que quiser) no painel do Zernio. O Instagram precisa ser conta profissional (comercial ou criador).</li>
+        <li>Conecte as redes da marca no painel do Zernio: Instagram (conta profissional), página do Facebook, TikTok, X e Threads.</li>
         <li>Gere uma chave de API no painel do Zernio e copie.</li>
         <li>Cole em Integrações › Zernio, salve e teste.</li>
       </ol>
-      <p>A plataforma publica na primeira conta conectada de cada rede. O plano grátis do Zernio permite cerca de 20 posts por mês.</p>
+      <p>A plataforma publica na primeira conta conectada de cada rede. Veja <a href="#redes">Publicar em várias redes</a>. O plano grátis do Zernio permite cerca de 20 posts por mês, e cada rede conta como uma publicação.</p>
     </section>
 
     <section class="artigo" id="airtable">
