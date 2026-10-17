@@ -863,7 +863,7 @@ function dePost(r) {
   } catch (e) {}
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
-    status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
+    status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
     erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "claro", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
@@ -942,7 +942,7 @@ function abrirPedidoIdeias() {
       <div class="field"><span>Quantas ideias</span><div class="seg">${["5", "10", "15", "20"].map(q => `<button type="button" data-pi="qtd" data-v="${q}" aria-pressed="${PI.quantidade === q}">${q}</button>`).join("")}</div></div>
       <div class="field"><span>Formatos</span><div class="seg">
         <button type="button" data-pi="mix" aria-pressed="${!PI.formatos.length}">Misturado</button>
-        ${FORM.map(([v, t]) => `<button type="button" data-pi="fmt" data-v="${v}" aria-pressed="${PI.formatos.includes(v)}">Só ${t}</button>`).join("")}
+        ${FORM.map(([v, t]) => `<button type="button" data-pi="fmt" data-v="${v}" aria-pressed="${PI.formatos.includes(v)}">${t}</button>`).join("")}
       </div><span class="hint" style="text-transform:none;letter-spacing:0;font-weight:400">Pode marcar mais de um formato. "Misturado" deixa a IA escolher.</span></div>
       <div class="actions"><button class="btn quiet" type="button" data-pi="cancelar">Cancelar</button><button class="btn primary" type="button" data-pi="buscar">Buscar ideias</button></div>
     </form>`);
@@ -975,10 +975,18 @@ const PERGUNTAS = {
   duracao: { titulo: "Duração", op: [["15", "15 s"], ["30", "30 s"], ["45", "45 s"]] },
   cenas: { titulo: "Cenas", op: [["auto", "A IA decide"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"]] },
   textoNaTela: { titulo: "Texto na tela", op: [["sim", "Sim"], ["nao", "Não"]] },
+  story: { titulo: "Tipo do story", op: [["imagem", "Imagem estática"], ["continuo", "Vídeo contínuo"], ["varios", "Vários vídeos curtos"]] },
+  fundoStory: { campo: "fundo", titulo: "Fundo", op: [["fotos", "Foto"], ["texto", "Só texto"]] },
   objetivo: { titulo: "Objetivo do post", op: [["", "A IA decide"], ["engajar", "Engajar"], ["educar", "Educar"], ["vender", "Vender"], ["institucional", "Marca"]] },
 };
-function perguntasDo(formato) {
-  if (["Reels", "Stories"].includes(formato)) return ["duracao", "cenas", "textoNaTela", "objetivo"];
+function perguntasDo(formato, r) {
+  if (formato === "Stories") {
+    const t = (r && r.story) || "varios";
+    if (t === "imagem") return ["story", "fundoStory", "objetivo"];
+    if (t === "continuo") return ["story", "textoNaTela", "objetivo"];
+    return ["story", "duracao", "cenas", "textoNaTela", "objetivo"];
+  }
+  if (formato === "Reels") return ["duracao", "cenas", "textoNaTela", "objetivo"];
   if (formato === "Estatico") return ["fundoEst", "objetivo"];
   return ["capa", "fundo", "slides", "objetivo"];
 }
@@ -986,17 +994,18 @@ function abrirBriefing(p) {
   const video = ["Reels", "Stories"].includes(p.formato);
   BR.post = p.id;
   BR.r = video ? { duracao: "30", cenas: "auto", textoNaTela: "sim", objetivo: "" } : { capa: "foto", fundo: "fotos", slides: "auto", objetivo: "" };
+  if (p.formato === "Stories") Object.assign(BR.r, { story: "varios", fundo: "fotos" });
   desenharBriefing();
 }
 function desenharBriefing() {
   const p = state.posts.find(x => x.id === BR.post); if (!p) return fecharDlg();
-  const blocos = perguntasDo(p.formato).map(k => {
+  const blocos = perguntasDo(p.formato, BR.r).map(k => {
     const q = PERGUNTAS[k], campo = q.campo || k;
     return `<div class="field"><span>${esc(q.titulo)}</span><div class="seg" role="group" aria-label="${esc(q.titulo)}">${q.op.map(([v, t]) =>
       `<button type="button" data-b="op" data-k="${campo}" data-v="${v}" aria-pressed="${String(BR.r[campo] ?? "") === v}">${esc(t)}</button>`).join("")}</div></div>`;
   }).join("");
   const r = BR.r;
-  const videos = ["Reels", "Stories"].includes(p.formato) ? Number(r.cenas) || 4 : (r.capa === "video" ? 1 : 0) + (r.fundo === "videos" ? (Number(r.slides) || 7) - 2 : r.fundo === "misto" ? 2 : 0);
+  const videos = p.formato === "Stories" && r.story === "imagem" ? 0 : p.formato === "Stories" && r.story === "continuo" ? 1 : ["Reels", "Stories"].includes(p.formato) ? Number(r.cenas) || 4 : (r.capa === "video" ? 1 : 0) + (r.fundo === "videos" ? (Number(r.slides) || 7) - 2 : r.fundo === "misto" ? 2 : 0);
   abrirDlg(`<h2>Como vai ser este post?</h2>
     <p class="hint">${esc(p.titulo)} · ${esc(p.formato)} · ${esc(p.rede)}</p>
     <form onsubmit="return false" style="display:grid;gap:14px">
@@ -1015,6 +1024,10 @@ document.addEventListener("click", e => {
   if (b.dataset.b === "criar") {
     const p = state.posts.find(x => x.id === BR.post); fecharDlg();
     const br = { ...BR.r };
+    if (p && p.formato === "Stories") {
+      if (br.story === "imagem") { delete br.duracao; delete br.cenas; delete br.textoNaTela; }
+      else { delete br.fundo; if (br.story === "continuo") delete br.cenas; }
+    }
     for (const k of Object.keys(br)) if (br[k] === "" || br[k] === undefined) delete br[k];
     if (br.observacoes) br.observacoes = br.observacoes.trim();
     if (p) criarPost(p, br);
@@ -1426,7 +1439,9 @@ function fotosCheias(p) {
   return mapa;
 }
 
-const ehVideoFmt = p => ["Reels", "Stories"].includes(p.formato);
+// Story em imagem estática não é vídeo: vira uma arte vertical.
+const ehStoryImagem = p => p.formato === "Stories" && p.briefing && p.briefing.story === "imagem";
+const ehVideoFmt = p => ["Reels", "Stories"].includes(p.formato) && !ehStoryImagem(p);
 const ehArqVideo = a => !!a && (String(a.type || "").startsWith("video/") || /\.mp4(\?|$)/i.test(String(a.filename || a.url || "")));
 // Liga cada cena (Reels) ou slide (carrossel) ao seu clipe: a ordem das chaves de ClipesSlides bate com a ordem de Clipes.
 function clipesDoPost(p) {
@@ -1806,6 +1821,14 @@ async function gerarArtes(p) {
     for (const [k, u] of Object.entries(urls)) logo[k] = u ? await carregarImg(u).catch(() => null) : null;
     let artes = [];
     if (ehVideoFmt(p)) artes = await gerarVideoFinal(p, logo, cores, nome);
+    else if (ehStoryImagem(p)) {
+      toast("Gerando a arte do story…");
+      const sl = p.slides[0] || { n: 1, t: p.titulo, x: "" };
+      const fotos = fotosCheias(p), foto = fotos[sl.n] ? await carregarImg(fotos[sl.n]) : document.createElement("canvas");
+      const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920;
+      desenharCena(cv.getContext("2d"), 1080, 1920, foto, [sl.t, sl.x].filter(Boolean).join(" · "), logo, cores, nome, 1000, p.diag);
+      artes = [{ tipo: "image/jpeg", base64: await paraBase64(cv) }];
+    }
     else {
       const fotos = fotosCheias(p), clipes = clipesDoPost(p);
       const slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
@@ -1919,7 +1942,7 @@ function cardRev(p) {
   } else {
     const videosProntos = {};
     if (prontas) slides.forEach((sl, i) => { const a = p.arquivos[i]; if (ehArqVideo(a)) videosProntos[sl.n] = a.url; });
-    html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome, prontas ? videosProntos[sl.n] : clipes[sl.n], p.diag, false)).join("");
+    html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome, prontas ? videosProntos[sl.n] : clipes[sl.n], p.diag, p.formato === "Stories")).join("");
   }
   const pontos = slides.length > 1 ? `<div class="ig-pontos" aria-hidden="true">${slides.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
   const nomeArte = ehVideo ? "vídeo final" : "artes finais";
@@ -1957,7 +1980,7 @@ function cardRev(p) {
   const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
   const versoes = urlsLogos(false);
   const fundoEscuro = p.diag.fundo === "escuro";
-  const segM = ehVideo ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"]].map(([v, t]) =>
+  const segM = ehVideo || p.formato === "Stories" ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"]].map(([v, t]) =>
       `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" ? MINI_MODELO.foto : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
       ${MODELOS_ED.includes(p.diag.modelo) ? `<span class="small">Fundo</span><div class="seg fundos" role="group" aria-label="Fundo">${[["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", cores.bg]].map(([v, t, c]) =>
         `<button data-act="diag" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "claro") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>` : ""}`;
@@ -1987,7 +2010,7 @@ function cardRev(p) {
     ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui em alguns minutos.</div>`
     : `${abas}${aba === "textos" ? textos : diag}<div class="barra-decisao">${artes}${decisao}</div>`;
   return `<article class="rcard glass" id="rev-${p.id}">
-    <div class="ig ${ehVideo ? "vertical" : ""}" data-al="${esc(p.diag.alinhar)}" data-pos="${esc(p.diag.posicao)}" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
+    <div class="ig ${ehVideo || p.formato === "Stories" ? "vertical" : ""}" data-al="${esc(p.diag.alinhar)}" data-pos="${esc(p.diag.posicao)}" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
       <div class="ig-top"><span class="ig-avatar">${simboloMarca(cores.bg) ? `<img src="${esc(simboloMarca(cores.bg))}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
         <span><div class="ig-nome">${esc(nome)}</div><div class="ig-sub">${esc(p.rede)} · ${esc(p.formato)}</div></span></div>
       <div class="ig-trilho" data-trilho="${p.id}" tabindex="0" aria-label="Slides do post">${html}</div>
