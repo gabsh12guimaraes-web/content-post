@@ -410,8 +410,12 @@ body.travado .wrap { visibility: hidden; }
 .urow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line); }
 .urow .un { font-weight: 600; }
 .uso { height: 6px; border-radius: 99px; background: var(--line); margin-top: 8px; overflow: hidden; } .uso i { display: block; height: 100%; background: var(--red, #F8395A); }
-.planos-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-.plano-card { display: grid; gap: 8px; align-content: start; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(0,0,0,.2); font-size: 13px; }
+.planos-grade { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.plano-card { display: grid; grid-template-columns: minmax(0, 1fr) auto 120px; gap: 6px 16px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: rgba(0,0,0,.2); font-size: 13px; }
+.plano-card .pc-info { display: grid; gap: 4px; } .plano-card .pc-info b { font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .plano-card .pc-info span { color: var(--ink-soft); }
+.plano-card .pc-preco { display: grid; justify-items: end; gap: 2px; text-align: right; }
+.plano-card > .btn, .plano-card > .chip, .plano-card > .small { justify-self: stretch; }
+@media (max-width: 520px) { .plano-card { grid-template-columns: minmax(0, 1fr) auto; } .plano-card > .btn, .plano-card > .chip, .plano-card > .small { grid-column: 1 / -1; } }
 .plano-card.dest { border-color: var(--red, #F8395A); }
 .plano-card .preco { font-size: 22px; font-weight: 800; } .plano-card .preco small { font-size: 12px; font-weight: 500; opacity: .7; }
 .plano-card .btn { justify-content: center; text-align: center; }
@@ -2750,16 +2754,15 @@ function desenharPlano() {
     const c = p.ciclos.find(k => k.ciclo === PL.ciclo) || p.ciclos[0];
     const meu = s.plano === p.id && s.ciclo === c.ciclo && s.ativo;
     return `<div class="plano-card ${p.id === "profissional" ? "dest" : ""}">
-      <b>${esc(p.nome)}</b><span class="preco">${reais(c.porMes)}<small>/mês</small></span>
-      <span class="small">${c.meses > 1 ? "cobrado " + reais(c.total) + " a cada " + c.meses + " meses" : "cobrado todo mês"}</span>
-      <span>${p.posts} posts por mês com IA<br>${p.ideias} buscas de ideias</span>
+      <div class="pc-info"><b>${esc(p.nome)}${p.id === "profissional" ? ` <span class="chip acc">Mais escolhido</span>` : ""}</b><span>${p.posts} posts por mês com IA<br>${p.ideias} buscas de ideias</span></div>
+      <div class="pc-preco"><span class="preco">${reais(c.porMes)}<small>/mês</small></span><span class="small">${c.meses > 1 ? "cobrado " + reais(c.total) + " a cada " + c.meses + " meses" : "cobrado todo mês"}</span></div>
       ${meu ? `<span class="chip ok">Seu plano</span>` : c.checkout ? `<a class="btn ${p.id === "profissional" ? "primary" : ""}" href="${esc(c.checkout)}" target="_blank" rel="noopener">Assinar</a>` : `<span class="small">Checkout ainda não configurado</span>`}
     </div>`;
   }).join("");
   abrirDlg(`<h2>Plano · ${esc(U.organizacao.nome)}${ajuda("plano")}</h2>
     ${PL.aviso ? `<div class="msg erro">${esc(PL.aviso)}</div>` : ""}
     <div class="urow"><div><div class="un">${atual}</div>
-      <div class="ue">Posts ${s.periodo === "teste" ? "no teste" : "neste mês"}: ${s.posts.usados} de ${s.isenta ? "∞" : s.posts.limite} · Buscas de ideias: ${s.ideias.usadas} de ${s.isenta ? "∞" : s.ideias.limite}</div>
+      <div class="ue">Posts ${s.periodo === "teste" && !s.isenta ? "no teste" : "neste mês"}: ${s.posts.usados} de ${s.isenta ? "∞" : s.posts.limite} · Buscas de ideias: ${s.ideias.usadas} de ${s.isenta ? "∞" : s.ideias.limite}</div>
       ${s.isenta ? "" : barra(s.posts.usados, s.posts.limite)}</div></div>
     ${s.cobranca ? "" : `<p class="hint">Os limites ainda não estão valendo: a cobrança será ligada quando os planos forem lançados.</p>`}
     <div class="seg" role="group" aria-label="Ciclo" style="margin:14px 0 10px">${ciclos.map(([v, t]) => `<button data-u="ciclo" data-v="${v}" aria-pressed="${PL.ciclo === v}">${t}${v === "anual" ? " (-17%)" : v === "semestral" ? " (-8%)" : ""}</button>`).join("")}</div>
