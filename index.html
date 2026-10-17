@@ -452,6 +452,8 @@ body.travado .wrap { visibility: hidden; }
 .arow .actions { justify-content: flex-end; }
 @media (max-width: 640px) { .arow { grid-template-columns: 56px minmax(0, 1fr); } .arow .actions { grid-column: 1 / -1; justify-content: flex-start; } }
 
+.check-tratar { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted, #9aa0b4); margin: 2px 0 10px; font-weight: 500; }
+.check-tratar input { margin-top: 2px; accent-color: var(--red, #F8395A); }
 /* logo da Content Post */
 .cp-logo { display: inline-flex; align-items: center; gap: 10px; }
 .cp-simbolo { width: 30px; height: 30px; flex: none; display: block; }
@@ -1966,7 +1968,95 @@ function slotLogo(m, campo, titulo, sub, fundo) {
     <div class="actions">${web ? `<label class="btn">${a ? "Trocar" : "Enviar"}<input type="file" class="arquivo-oculto" data-arquivo="${campo}" accept="image/png,image/svg+xml,image/webp,image/jpeg"></label>` : ""}${a ? `<button type="button" class="btn quiet" data-m="logo-rm" data-id="${campo}">Remover</button>` : ""}</div>
   </div>`;
 }
+// Tratamento do logo, feito no navegador: fundo liso vira transparente, sobras são recortadas
+// e o logo fica com margem padrão (símbolos em quadrado), pronto para entrar nas artes.
+let tratarLogos = true;
+const PAR_LOGO = { Logo: "LogoDark", LogoDark: "Logo", SimboloLight: "SimboloDark", SimboloDark: "SimboloLight" };
+const ehSimbolo = campo => campo.startsWith("Simbolo");
+function carregarArquivoImg(f) {
+  return new Promise((ok, falha) => { const u = URL.createObjectURL(f), im = new Image(); im.onload = () => ok(im); im.onerror = () => falha(new Error("não deu para abrir a imagem")); im.src = u; });
+}
+function tirarFundo(dados, w, h) {
+  const d = dados.data, px = (x, y) => (y * w + x) * 4;
+  // Cor do fundo: os quatro cantos precisam ser opacos e parecidos; senão o arquivo já é transparente ou é uma foto.
+  const cantos = [px(0, 0), px(w - 1, 0), px(0, h - 1), px(w - 1, h - 1)];
+  if (cantos.some(i => d[i + 3] < 200)) return false;
+  const ref = [0, 1, 2].map(c => cantos.reduce((s, i) => s + d[i + c], 0) / 4);
+  const dist = i => Math.hypot(d[i] - ref[0], d[i + 1] - ref[1], d[i + 2] - ref[2]);
+  if (cantos.some(i => dist(i) > 40)) return false;
+  // Preenche a partir das bordas: só some o fundo que encosta na borda (o miolo de letras como "o" também, se for da mesma cor e tocar o fundo).
+  const visto = new Uint8Array(w * h), fila = [];
+  for (let x = 0; x < w; x++) fila.push(x, (h - 1) * w + x);
+  for (let y = 0; y < h; y++) fila.push(y * w, y * w + w - 1);
+  const DURO = 38, SUAVE = 90;
+  while (fila.length) {
+    const k = fila.pop(); if (visto[k]) continue; visto[k] = 1;
+    const i = k * 4, dd = dist(i);
+    if (dd > SUAVE) continue;
+    // Borda suave: perto do fundo fica transparente, na transição fica semitransparente.
+    d[i + 3] = dd <= DURO ? 0 : Math.round(d[i + 3] * (dd - DURO) / (SUAVE - DURO));
+    if (dd > DURO) continue;
+    const x = k % w, y = (k / w) | 0;
+    if (x > 0) fila.push(k - 1); if (x < w - 1) fila.push(k + 1); if (y > 0) fila.push(k - w); if (y < h - 1) fila.push(k + w);
+  }
+  // Miolo de letras (o, e, a...): áreas pequenas da cor do fundo, fechadas pelo desenho, também ficam transparentes.
+  // Áreas grandes ficam, para não apagar texto claro dentro de um selo colorido.
+  const limite = w * h * 0.004;
+  for (let k0 = 0; k0 < w * h; k0++) {
+    if (visto[k0] || d[k0 * 4 + 3] < 200 || dist(k0 * 4) > 20) continue;
+    const comp = [], pilha = [k0]; visto[k0] = 1;
+    while (pilha.length) {
+      const k = pilha.pop(); comp.push(k);
+      const x = k % w, y = (k / w) | 0;
+      for (const n of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, y > 0 ? k - w : -1, y < h - 1 ? k + w : -1])
+        if (n >= 0 && !visto[n] && d[n * 4 + 3] >= 200 && dist(n * 4) <= 20) { visto[n] = 1; pilha.push(n); }
+    }
+    if (comp.length <= limite) for (const k of comp) d[k * 4 + 3] = 0;
+  }
+  return true;
+}
+function recortar(dados, w, h) {
+  const d = dados.data; let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 12) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+const blobPara = cv => new Promise(ok => cv.toBlob(ok, "image/png"));
+async function tratarLogo(f, campo) {
+  const im = await carregarArquivoImg(f);
+  const w0 = im.naturalWidth || 1200, h0 = im.naturalHeight || 600, k = Math.min(1, 1600 / Math.max(w0, h0)) || 1;
+  const escala = /svg/.test(f.type) ? Math.max(1, 1200 / Math.max(w0, h0)) : k;
+  const w = Math.max(1, Math.round(w0 * escala)), h = Math.max(1, Math.round(h0 * escala));
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const ctx = cv.getContext("2d"); ctx.drawImage(im, 0, 0, w, h);
+  const dados = ctx.getImageData(0, 0, w, h);
+  const semFundo = tirarFundo(dados, w, h);
+  const caixa = recortar(dados, w, h);
+  if (!caixa) throw new Error("a imagem ficou vazia depois de tirar o fundo");
+  ctx.putImageData(dados, 0, 0);
+  // Margem padrão de 6% do maior lado; símbolo vai centralizado num quadrado.
+  const m = Math.round(Math.max(caixa.w, caixa.h) * 0.06);
+  const out = document.createElement("canvas");
+  out.width = ehSimbolo(campo) ? Math.max(caixa.w, caixa.h) + m * 2 : caixa.w + m * 2;
+  out.height = ehSimbolo(campo) ? out.width : caixa.h + m * 2;
+  out.getContext("2d").drawImage(cv, caixa.x, caixa.y, caixa.w, caixa.h, (out.width - caixa.w) / 2, (out.height - caixa.h) / 2, caixa.w, caixa.h);
+  return { canvas: out, semFundo };
+}
+// Versão oposta: a tinta neutra (preto ou branco) troca de lado e as cores da marca ficam como estão.
+function versaoOposta(cv, campoOposto) {
+  const out = document.createElement("canvas"); out.width = cv.width; out.height = cv.height;
+  const ctx = out.getContext("2d"); ctx.drawImage(cv, 0, 0);
+  const img = ctx.getImageData(0, 0, out.width, out.height), d = img.data;
+  const paraClaro = campoOposto === "Logo" || campoOposto === "SimboloLight", alvo = paraClaro ? 255 : 17;
+  for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3]) continue;
+    const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]), lum = (d[i] * 0.2126 + d[i + 1] * 0.7152 + d[i + 2] * 0.0722) / 255;
+    if (mx - mn < 46 && (paraClaro ? lum < 0.55 : lum > 0.45)) d[i] = d[i + 1] = d[i + 2] = alvo;
+  }
+  ctx.putImageData(img, 0, 0);
+  return out;
+}
 const arquivoBase64 = f => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(f); });
+document.addEventListener("change", e => { if (e.target.id === "m-tratar") tratarLogos = e.target.checked; });
 document.addEventListener("change", async e => {
   const inp = e.target.closest("[data-arquivo]"); if (!inp || !inp.files || !inp.files.length) return;
   const campo = inp.dataset.arquivo, arquivos = [...inp.files];
@@ -1975,10 +2065,25 @@ document.addEventListener("change", async e => {
     for (let i = 0; i < arquivos.length; i++) {
       const f = arquivos[i];
       if (f.size > 5 * 1024 * 1024) { toast(`"${f.name}" passa de 5 MB.`); continue; }
+      if (campo !== "MoodBoard" && tratarLogos) {
+        toast("Tratando o logo…");
+        const t = await tratarLogo(f, campo).catch(e => { toast("Não deu para tratar, vou enviar o original: " + e.message); return null; });
+        if (t) {
+          const nome = f.name.replace(/\.[^.]+$/, "") + "-tratado.png";
+          await api({ acao: "enviarArquivoMarca", id: M.marca.id, campo, tipo: "image/png", nome, base64: await arquivoBase64(await blobPara(t.canvas)) });
+          const oposto = PAR_LOGO[campo], vazio = !((M.marca[oposto] || [])[0]);
+          if (vazio) {
+            toast("Criando a versão " + (oposto === "Logo" || oposto === "SimboloLight" ? "light" : "dark") + "…");
+            await api({ acao: "enviarArquivoMarca", id: M.marca.id, campo: oposto, tipo: "image/png", nome: f.name.replace(/\.[^.]+$/, "") + "-" + oposto.toLowerCase() + ".png", base64: await arquivoBase64(await blobPara(versaoOposta(t.canvas, oposto))) });
+          }
+          toast((t.semFundo ? "Fundo removido e logo recortado." : "Logo recortado (o arquivo já tinha fundo transparente ou um fundo que não é liso).") + (vazio ? " A versão oposta foi criada; troque se tiver a oficial." : ""));
+          continue;
+        }
+      }
       toast(arquivos.length > 1 ? `Enviando ${i + 1} de ${arquivos.length}…` : "Enviando…");
       await api({ acao: "enviarArquivoMarca", id: M.marca.id, campo, tipo: f.type, nome: f.name, base64: await arquivoBase64(f) });
     }
-    toast("Arquivo salvo na marca.");
+    if (campo === "MoodBoard" || !tratarLogos) toast("Arquivo salvo na marca.");
     await carregarWeb(); renderMarca();
   } catch (err) { toast("Não deu para enviar: " + textoErro(err)); }
   inp.value = "";
@@ -2452,6 +2557,7 @@ function renderMarca() {
           <div class="cores" id="m-cores">${lerCores(m.Cores).map(linhaCor).join("")}</div>
           <span class="actions"><button type="button" class="btn quiet" data-m="add-cor">+ Adicionar cor</button></span></div>
         <div class="field full"><span>Logos</span>
+          <label class="check-tratar"><input type="checkbox" id="m-tratar" ${tratarLogos ? "checked" : ""}> Tratar ao enviar: tirar o fundo, recortar as sobras e criar a versão light ou dark que faltar</label>
           <div class="logos">${slotLogo(m, "Logo", "Logo light", "Para fundos escuros", "escuro")}${slotLogo(m, "LogoDark", "Logo dark", "Para fundos claros", "claro")}${slotLogo(m, "SimboloLight", "Símbolo light", "Só o símbolo, fundos escuros", "escuro")}${slotLogo(m, "SimboloDark", "Símbolo dark", "Só o símbolo, fundos claros", "claro")}</div>
           <p class="hint" style="margin:0">Nas artes, o painel usa a versão que contrasta com o fundo de cada imagem. PNG ou SVG com fundo transparente, até 5 MB.</p></div>
         <div class="field full"><span>Mood board (opcional)</span>
