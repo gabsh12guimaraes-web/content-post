@@ -401,9 +401,13 @@ body.travado .wrap { visibility: hidden; }
 .cal-nav { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .cal-nav h3 { font-size: 20px; font-weight: 600; min-width: 170px; }
 .cal-nav .actions { gap: 6px; }
-.ano { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px; padding-bottom: 2px; }
+.ano { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-bottom: 12px; padding-bottom: 2px; overscroll-behavior-x: contain; cursor: grab; }
+.ano .tri { flex: 0 0 100%; scroll-snap-align: start; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 1px; }
+.ano button span { display: flex; gap: 4px; align-items: baseline; } .ano button small { font-size: 10px; opacity: .6; }
+.ano button i { font-style: normal; font-size: 10px; color: var(--ink-faint); text-transform: none; }
+.tri-rotulo { font-size: 13px; font-weight: 600; min-width: 108px; text-align: center; text-transform: capitalize; color: var(--ink-soft); }
 .ano::-webkit-scrollbar { display: none; }
-.ano button { flex: none; border: 1px solid var(--line); background: var(--glass); color: var(--ink-soft); border-radius: 12px; padding: 6px 12px; font-size: 12px; display: grid; justify-items: center; gap: 2px; text-transform: capitalize; min-width: 58px; }
+.ano button { border: 1px solid var(--line); background: var(--glass); color: var(--ink-soft); border-radius: 12px; padding: 8px 10px; font-size: 13px; display: grid; justify-items: center; gap: 2px; text-transform: capitalize; min-width: 0; user-select: none; }
 .ano button b { font-size: 15px; color: var(--ink); font-weight: 600; }
 .ano button[aria-pressed="true"] { border-color: var(--pink); color: var(--ink); box-shadow: 0 0 0 1px var(--pink); }
 .ano button.vazio b { color: var(--ink-faint); }
@@ -1172,10 +1176,16 @@ function renderCal() {
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   const ano = mesVisto.getFullYear(), mes = mesVisto.getMonth();
   const doMes = (a, m) => state.posts.filter(p => { const d = new Date(p.data); return d.getFullYear() === a && d.getMonth() === m; });
-  const tiraAno = MESES.map((n, m) => {
-    const q = doMes(ano, m).length;
-    return `<button data-cal-mes="${m}" aria-pressed="${m === mes}" class="${q ? "" : "vazio"}">${n.slice(0, 3)}<b>${q}</b></button>`;
-  }).join("");
+  // Faixa de meses em páginas de 3 (trimestres), do ano passado ao ano que vem.
+  const anoBase = hoje.getFullYear() - 1, paginas = [];
+  for (let t = 0; t < 12; t++) {
+    const meses = [0, 1, 2].map(k => { const a = anoBase + Math.floor((t * 3 + k) / 12), m = (t * 3 + k) % 12; return { a, m }; });
+    paginas.push(`<div class="tri" data-tri="${t}">${meses.map(({ a, m }) => {
+      const q = doMes(a, m).length;
+      return `<button data-cal-mes="${a}-${m}" aria-pressed="${a === ano && m === mes}" class="${q ? "" : "vazio"}"><span>${MESES[m].slice(0, 3)} <small>${String(a).slice(2)}</small></span><b>${q}</b><i>${q === 1 ? "post" : "posts"}</i></button>`;
+    }).join("")}</div>`);
+  }
+  const triAtual = Math.max(0, Math.min(11, (ano - anoBase) * 4 + Math.floor(mes / 3)));
   const inicio = new Date(ano, mes, 1); inicio.setDate(1 - ((inicio.getDay() + 6) % 7)); // segunda da 1ª semana
   const fimMes = new Date(ano, mes + 1, 0);
   const semanas = [];
@@ -1198,9 +1208,9 @@ function renderCal() {
     ${state.posts.length ? "" : `<div class="msg" style="margin-bottom:12px">Ainda não há posts no calendário. Leve uma ideia para o calendário na aba Ideias.</div>`}
     <div class="cal-nav">
       <h3>${MESES[mes][0].toUpperCase() + MESES[mes].slice(1)} de ${ano}</h3>
-      <div class="actions"><button class="btn" data-cal="ant" aria-label="Mês anterior">‹</button><button class="btn" data-cal="hoje">Hoje</button><button class="btn" data-cal="prox" aria-label="Próximo mês">›</button></div>
+      <div class="actions"><button class="btn" data-cal="ant" aria-label="3 meses antes">‹</button><span class="tri-rotulo" id="tri-rotulo"></span><button class="btn" data-cal="prox" aria-label="Próximos 3 meses">›</button><button class="btn quiet" data-cal="hoje">Hoje</button></div>
     </div>
-    <div class="ano" role="group" aria-label="Meses de ${ano}">${tiraAno}</div>
+    <div class="ano" id="cal-ano" role="group" aria-label="Meses, de 3 em 3. Arraste para os lados." data-tri-atual="${triAtual}">${paginas.join("")}</div>
     <div class="cal glass">
       <div class="cal-head">${["seg", "ter", "qua", "qui", "sex", "sáb", "dom"].map(d => `<span>${d}</span>`).join("")}</div>
       ${semanas.join("")}
@@ -1208,15 +1218,47 @@ function renderCal() {
     </div>
     ${detalhePost()}
     <div class="legend">${["Planejado", "EmCriacao", "EmRevisao", "Agendado", "Publicado", "Erro"].map(chip).join("")}</div>`;
+  ligarFaixaMeses(triAtual);
+}
+// Faixa de trimestres: abre no trimestre do mês visto, as setas pulam 3 meses e o rótulo acompanha a rolagem.
+let triVisto = null;
+function ligarFaixaMeses(triAtual) {
+  const faixa = document.getElementById("cal-ano"); if (!faixa) return;
+  const ir = (t, suave) => faixa.scrollTo({ left: t * faixa.clientWidth, behavior: suave ? "smooth" : "auto" });
+  const alvo = triVisto === null ? triAtual : triVisto;
+  ir(alvo, false);
+  // Com a aba escondida a faixa não tem largura; posiciona quando ela aparecer ou mudar de tamanho.
+  let larg = faixa.clientWidth;
+  new ResizeObserver(() => { if (faixa.clientWidth && faixa.clientWidth !== larg) { const t = larg ? Math.round(faixa.scrollLeft / larg) : alvo; larg = faixa.clientWidth; ir(t, false); rotulo(); } }).observe(faixa);
+  const rotulo = () => {
+    if (!faixa.clientWidth) return;
+    const t = Math.round(faixa.scrollLeft / faixa.clientWidth); triVisto = t;
+    const b = faixa.querySelectorAll(".tri")[t]; const r = document.getElementById("tri-rotulo");
+    if (b && r) { const ms = [...b.querySelectorAll("[data-cal-mes]")].map(x => x.dataset.calMes.split("-").map(Number)); r.textContent = MESES[ms[0][1]].slice(0, 3) + " – " + MESES[ms[2][1]].slice(0, 3) + " " + ms[2][0]; }
+  };
+  rotulo();
+  faixa.addEventListener("scroll", () => { clearTimeout(faixa._t); faixa._t = setTimeout(rotulo, 80); }, { passive: true });
+  // Arrastar com o mouse também passa os trimestres.
+  let x0 = null, s0 = 0, moveu = false;
+  faixa.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse") return; x0 = e.clientX; s0 = faixa.scrollLeft; moveu = false; });
+  faixa.addEventListener("pointermove", e => { if (x0 === null) return; const dx = e.clientX - x0; if (Math.abs(dx) > 6) { moveu = true; faixa.style.scrollSnapType = "none"; faixa.scrollLeft = s0 - dx; } });
+  const soltar = () => { if (x0 === null) return; x0 = null; faixa.style.scrollSnapType = ""; if (moveu) ir(Math.round(faixa.scrollLeft / faixa.clientWidth), true); };
+  faixa.addEventListener("pointerup", soltar); faixa.addEventListener("pointerleave", soltar);
+  faixa.addEventListener("click", e => { if (moveu) { e.stopPropagation(); e.preventDefault(); moveu = false; } }, true);
 }
 document.addEventListener("click", e => {
   const m = e.target.closest("[data-cal-mes]");
   const n = e.target.closest("[data-cal]");
   if (!m && !n) return;
-  if (m) mesVisto = new Date(mesVisto.getFullYear(), Number(m.dataset.calMes), 1);
-  else if (n.dataset.cal === "ant") mesVisto = new Date(mesVisto.getFullYear(), mesVisto.getMonth() - 1, 1);
-  else if (n.dataset.cal === "prox") mesVisto = new Date(mesVisto.getFullYear(), mesVisto.getMonth() + 1, 1);
-  else { const d = new Date(); mesVisto = new Date(d.getFullYear(), d.getMonth(), 1); }
+  const faixa = document.getElementById("cal-ano");
+  if (!m && faixa && (n.dataset.cal === "ant" || n.dataset.cal === "prox")) {
+    // As setas só passam a faixa de 3 em 3 meses; o mês aberto muda quando você clica em um deles.
+    const t = Math.round(faixa.scrollLeft / faixa.clientWidth) + (n.dataset.cal === "prox" ? 1 : -1);
+    faixa.scrollTo({ left: Math.max(0, t) * faixa.clientWidth, behavior: "smooth" });
+    return;
+  }
+  if (m) { const [a, mm] = m.dataset.calMes.split("-").map(Number); mesVisto = new Date(a, mm, 1); }
+  else { const d = new Date(); mesVisto = new Date(d.getFullYear(), d.getMonth(), 1); triVisto = null; }
   renderCal();
 });
 function cardPost(p) {
