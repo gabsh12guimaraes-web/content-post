@@ -518,6 +518,9 @@ body.travado .wrap { visibility: hidden; }
   body { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
   .toast { bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
 }
+/* baixar artes */
+.baixar { display: grid; gap: 6px; margin-top: 8px; }
+.baixar .actions { gap: 6px; flex-wrap: wrap; } .baixar .btn { padding: 7px 10px; font-size: 12px; }
 /* banco de imagens */
 .bi-zona { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 22px 16px; border: 1.5px dashed var(--line-strong, rgba(255,255,255,.2)); border-radius: 10px; cursor: pointer; margin: 6px 0 14px; }
 .bi-zona:hover, .bi-zona.sobre { border-color: var(--red, #F8395A); background: rgba(248,57,90,.06); }
@@ -1254,7 +1257,8 @@ function linhaAgend(p) {
     <div><div class="at">${esc(p.titulo)}</div><div class="am"><b>${fmtData(p.data)}</b> · ${esc(p.redes.join(", "))} · ${esc(p.formato)}</div>
       ${M.modo === "web" && ["Agendado", "Erro"].includes(p.status) ? seletorRedes(p) : ""}
       <div class="meta" style="margin-top:6px">${p.status === "Publicando" ? `<span class="chip warn">Publicando…</span>` : chip(p.status)}${p.status === "Agendado" && !p.artesProntas ? `<span class="chip bad">Sem artes finais</span>` : ""}</div>
-      ${p.erro ? `<div class="small" style="margin-top:6px;color:#ffc2cd">${esc(p.erro)}</div>` : ""}</div>
+      ${p.erro ? `<div class="small" style="margin-top:6px;color:#ffc2cd">${esc(p.erro)}</div>` : ""}
+      ${M.modo === "web" ? blocoDownload(p) : ""}</div>
     <div class="actions">${botoes}</div></div>`;
 }
 function renderAgend() {
@@ -1820,6 +1824,58 @@ async function tocar(v, desenhar, maxMs) {
     requestAnimationFrame(passo);
   });
 }
+// Carrega um script uma vez só (o montador de MP4 e o zip são usados só quando precisa).
+const scriptsCarregados = {};
+function carregarScript(url) {
+  return scriptsCarregados[url] || (scriptsCarregados[url] = new Promise((ok, falha) => {
+    const el = document.createElement("script"); el.src = url; el.async = true;
+    el.onload = () => ok(); el.onerror = () => { delete scriptsCarregados[url]; falha(new Error("não consegui carregar uma parte do painel. Confira a internet e tente de novo")); };
+    document.head.appendChild(el);
+  }));
+}
+const URL_MP4MUXER = "https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js";
+const URL_JSZIP = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+// Baixa o clipe inteiro antes de gravar: assim nada trava esperando a internet no meio do vídeo.
+async function carregarVideoLocal(url) {
+  try { const r = await fetch(url, { cache: "force-cache" }); if (r.ok) return carregarVideo(URL.createObjectURL(await r.blob())); } catch (e) {}
+  return carregarVideo(url);
+}
+const irPara = (v, t) => new Promise(ok => {
+  const alvo = Math.max(0, Math.min(t, (v.duration || t) - 0.001));
+  if (Math.abs(v.currentTime - alvo) < 0.0005 && v.readyState >= 2) return ok();
+  const pronto = () => { v.removeEventListener("seeked", pronto); ok(); };
+  v.addEventListener("seeked", pronto); v.currentTime = alvo;
+  setTimeout(pronto, 3000); // se o navegador não avisar, segue mesmo assim
+});
+const CODECS_H264 = ["avc1.640028", "avc1.4d0028", "avc1.42e028", "avc1.42001f"];
+// Grava quadro a quadro com o codificador do navegador (WebCodecs) e monta um MP4 normal, com duração certa.
+// Não depende da aba estar visível nem do computador conseguir tocar em tempo real.
+async function renderizarMp4(cv, { fps = 30, duracao, bps, desenhar, aoAvancar }) {
+  await carregarScript(URL_MP4MUXER);
+  const W = cv.width, H = cv.height;
+  let codec = null;
+  for (const c of CODECS_H264) { try { const r = await VideoEncoder.isConfigSupported({ codec: c, width: W, height: H, bitrate: bps, framerate: fps }); if (r.supported) { codec = c; break; } } catch (e) {} }
+  if (!codec) throw new Error("este navegador não codifica vídeo H.264 nesse tamanho");
+  const muxer = new Mp4Muxer.Muxer({ target: new Mp4Muxer.ArrayBufferTarget(), video: { codec: "avc", width: W, height: H, frameRate: fps }, fastStart: "in-memory" });
+  let erro = null;
+  const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => { erro = e; } });
+  enc.configure({ codec, width: W, height: H, bitrate: bps, framerate: fps, latencyMode: "quality", avc: { format: "avc" } });
+  const total = Math.max(1, Math.round(duracao * fps));
+  for (let i = 0; i < total; i++) {
+    if (erro) throw erro;
+    await desenhar(i / fps);
+    const quadro = new VideoFrame(cv, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
+    enc.encode(quadro, { keyFrame: i % (fps * 2) === 0 });
+    quadro.close();
+    while (enc.encodeQueueSize > 8) await new Promise(r => setTimeout(r, 5));
+    if (aoAvancar && i % fps === 0) aoAvancar(i / total);
+  }
+  await enc.flush(); enc.close();
+  if (erro) throw erro;
+  muxer.finalize();
+  return new Blob([muxer.target.buffer], { type: "video/mp4" });
+}
+const podeRenderizar = () => typeof window.VideoEncoder === "function" && typeof window.VideoFrame === "function";
 async function gravarCanvas(cv, bps, tocarTudo) {
   if (!MIME_MP4) throw new Error("este navegador não grava vídeo MP4. Use o Chrome ou o Edge atualizados");
   const stream = cv.captureStream(30);
@@ -1863,15 +1919,32 @@ function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag) {
   ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.textAlign = "left";
 }
 async function gerarVideoFinal(p, logo, cores, nome) {
-  const W = 720, H = 1280;
   const clipes = clipesDoPost(p);
   const cenas = p.slides.filter(c => clipes[c.n]);
   if (!cenas.length) throw new Error("os clipes das cenas ainda não foram gerados");
   toast("Carregando os clipes…");
   const vids = [];
-  for (const c of cenas) vids.push(await carregarVideo(clipes[c.n]));
+  for (const c of cenas) vids.push(await carregarVideoLocal(clipes[c.n]));
+  if (podeRenderizar()) {
+    const W = 1080, H = 1920, durs = vids.map(v => Math.min(10, v.duration || 5)), total = durs.reduce((a, b) => a + b, 0);
+    const bps = Math.round(Math.max(2.5e6, Math.min(8e6, 22 * 1024 * 1024 * 8 / total)));
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const ctx = cv.getContext("2d");
+    const blob = await renderizarMp4(cv, { duracao: total, bps,
+      aoAvancar: f => toast(`Montando o vídeo final: ${Math.round(f * 100)}%`),
+      desenhar: async t => {
+        let k = 0, ini = 0;
+        while (k < durs.length - 1 && t >= ini + durs[k]) { ini += durs[k]; k++; }
+        const local = t - ini;
+        await irPara(vids[k], local);
+        desenharCena(ctx, W, H, vids[k], cenas[k].x || cenas[k].t, logo, cores, nome, local * 1000, p.diag);
+      } });
+    if (blob.size > 24 * 1024 * 1024) throw new Error("o vídeo passou de 24 MB. Peça um ajuste com cenas mais curtas");
+    return [{ tipo: "video/mp4", base64: await blobBase64(blob) }];
+  }
+  const W = 720, H = 1280;
   const total = vids.reduce((soma, v) => soma + (v.duration || 5), 0);
-  const bps = Math.max(700000, Math.min(2500000, Math.floor(4.2e6 * 8 / total)));
+  const bps = Math.max(1500000, Math.min(5000000, Math.floor(20e6 * 8 / total)));
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const ctx = cv.getContext("2d");
   desenharCena(ctx, W, H, vids[0], cenas[0].x || cenas[0].t, logo, cores, nome, 0, p.diag);
@@ -1882,17 +1955,60 @@ async function gerarVideoFinal(p, logo, cores, nome) {
     }
   });
   const b64 = await blobBase64(blob);
-  if (b64.length > 6900000) throw new Error("o vídeo passou de 5 MB. Peça um ajuste com cenas mais curtas");
+  if (blob.size > 24 * 1024 * 1024) throw new Error("o vídeo passou de 24 MB. Peça um ajuste com cenas mais curtas");
   return [{ tipo: "video/mp4", base64: b64 }];
 }
 async function gravarSlideVideo(sl, i, total, url, logo, cores, nome, diag) {
-  const v = await carregarVideo(url);
+  const v = await carregarVideoLocal(url);
   const cv = document.createElement("canvas"); cv.width = ARTE_L; cv.height = ARTE_A;
+  if (podeRenderizar()) {
+    // 4 Mbps: um carrossel com vários slides em vídeo continua cabendo no envio.
+    const blob = await renderizarMp4(cv, { duracao: Math.min(10, v.duration || 5), bps: 4e6, desenhar: async t => { await irPara(v, t); desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag); } });
+    if (blob.size > 20 * 1024 * 1024) throw new Error("um slide em vídeo passou de 20 MB");
+    return { tipo: "video/mp4", base64: await blobBase64(blob) };
+  }
   desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag);
   const blob = await gravarCanvas(cv, 2500000, () => tocar(v, () => desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag), Math.min(10, v.duration || 5) * 1000 + 150));
   const b64 = await blobBase64(blob);
-  if (b64.length > 6900000) throw new Error("um slide em vídeo passou de 5 MB");
+  if (blob.size > 20 * 1024 * 1024) throw new Error("um slide em vídeo passou de 20 MB");
   return { tipo: "video/mp4", base64: b64 };
+}
+// Baixar as artes finais: uma a uma ou todas num .zip (fotos e vídeos).
+function nomeArquivoArte(p, a, i) {
+  const base = String(p.titulo || "post").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "post";
+  const ext = ehArqVideo(a) ? "mp4" : /png/.test(a.type || "") ? "png" : "jpg";
+  return p.arquivos.length > 1 ? `${base}-${String(i + 1).padStart(2, "0")}.${ext}` : `${base}.${ext}`;
+}
+function salvarBlob(blob, nome) {
+  const u = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = u; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 30000);
+}
+async function baixarArte(p, i) {
+  const a = p.arquivos[i]; if (!a) return;
+  try { const r = await fetch(a.url); if (!r.ok) throw new Error(String(r.status)); salvarBlob(await r.blob(), nomeArquivoArte(p, a, i)); }
+  catch (e) { window.open(a.url, "_blank", "noopener"); }
+}
+let baixando = null;
+async function baixarTudo(p) {
+  if (baixando) return; baixando = p.id; render();
+  try {
+    await carregarScript(URL_JSZIP);
+    const zip = new JSZip();
+    for (let i = 0; i < p.arquivos.length; i++) {
+      toast(`Juntando ${i + 1} de ${p.arquivos.length}…`);
+      const r = await fetch(p.arquivos[i].url); if (!r.ok) throw new Error("não consegui baixar o arquivo " + (i + 1));
+      zip.file(nomeArquivoArte(p, p.arquivos[i], i), await r.blob());
+    }
+    salvarBlob(await zip.generateAsync({ type: "blob" }), nomeArquivoArte(p, { type: "" }, 0).replace(/-01\.jpg$|\.jpg$/, "") + ".zip");
+    toast("Pronto: o .zip foi baixado.");
+  } catch (e) { toast("Não deu para juntar os arquivos: " + textoErro(e)); }
+  baixando = null; render();
+}
+function blocoDownload(p) {
+  if (!p.artesProntas || !(p.arquivos || []).length) return "";
+  const itens = p.arquivos.map((a, i) => `<button type="button" class="btn quiet" data-act="baixar-arte" data-id="${p.id}" data-v="${i}">${ehArqVideo(a) ? "▶ Vídeo" : "Imagem"}${p.arquivos.length > 1 ? " " + (i + 1) : ""}</button>`).join("");
+  return `<div class="baixar"><span class="small">Baixar as artes finais</span><div class="actions">${itens}${p.arquivos.length > 1 ? `<button type="button" class="btn" data-act="baixar-tudo" data-id="${p.id}" ${baixando ? "disabled" : ""}>${baixando === p.id ? "Juntando…" : "Baixar tudo (.zip)"}</button>` : ""}</div></div>`;
 }
 let timerDiag = null;
 function mudarDiagramacao(p, k, v) {
@@ -2097,7 +2213,7 @@ function cardRev(p) {
   let artes = "";
   if (p.status !== "Ajustes" && (!ehVideo || temClipes || prontas)) {
     if (M.modo !== "web") artes = `<div class="msg">Para gerar as ${ehVideo ? "o vídeo final" : "artes finais"}, abra o painel pelo link do GitHub. No claude.ai as fotos e os vídeos ficam bloqueados.</div>`;
-    else if (gerandoArtes === p.id) artes = `<div class="working"><span class="dot"></span>${ehVideo || temClipes ? "Gravando… deixe esta aba aberta e visível." : "Gerando as artes finais…"}</div>`;
+    else if (gerandoArtes === p.id) artes = `<div class="working"><span class="dot"></span>${ehVideo || temClipes ? "Montando o vídeo… pode levar alguns minutos. Deixe esta aba aberta." : "Gerando as artes finais…"}</div>`;
     else if (ehVideo && !temClipes) artes = "";
     else artes = `<div class="actions"><button class="btn quiet" data-act="gerar-artes" data-id="${p.id}" ${gerandoArtes ? "disabled" : ""}>${prontas ? "Refazer " + nomeArte : "Só gerar " + nomeArte + ", sem aprovar"}</button></div>
       <p class="small" style="margin:0">${prontas ? (ehVideo ? "Vídeo final pronto: é ele que vai para a publicação." : "Artes finais prontas: são elas que vão para a publicação.")
@@ -2157,7 +2273,7 @@ function cardRev(p) {
   const abas = podeEditar ? `<div class="seg abas-rev" role="tablist" aria-label="Editar"><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="visual" aria-selected="${aba === "visual"}" aria-pressed="${aba === "visual"}">Visual</button><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="textos" aria-selected="${aba === "textos"}" aria-pressed="${aba === "textos"}">Textos</button></div>` : "";
   const acoes = p.status === "Ajustes"
     ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui em alguns minutos.</div>`
-    : `${abas}${aba === "textos" ? textos : diag}${seletorRedes(p)}${artes}<div class="barra-decisao">${decisao}</div>`;
+    : `${abas}${aba === "textos" ? textos : diag}${seletorRedes(p)}${artes}${blocoDownload(p)}<div class="barra-decisao">${decisao}</div>`;
   return `<article class="rcard glass" id="rev-${p.id}">
     <div class="ig ${ehVideo || p.formato === "Stories" ? "vertical" : ""}" data-al="${esc(p.diag.alinhar)}" data-pos="${esc(p.diag.posicao)}" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
       <div class="ig-top"><span class="ig-avatar">${simboloMarca(cores.bg) ? `<img src="${esc(simboloMarca(cores.bg))}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
@@ -2286,6 +2402,8 @@ document.addEventListener("click", e => {
   if (act === "gerar-artes" && post) return gerarArtes(post);
   if (act === "diag" && post) return mudarDiagramacao(post, b.dataset.k, b.dataset.v);
   if (act === "rede" && post) return mudarRede(post, b.dataset.v);
+  if (act === "baixar-arte" && post) return baixarArte(post, Number(b.dataset.v));
+  if (act === "baixar-tudo" && post) return baixarTudo(post);
   if (act === "trocar-foto" && post) return abrirTrocaFoto(post, Number(b.dataset.v));
   if (act === "buscar-ideias") return buscarIdeias();
   if (act === "criar-post" && post) return abrirBriefing(post);
