@@ -394,6 +394,18 @@ body.travado .wrap { visibility: hidden; }
 .seg button[aria-pressed="true"] { border-color: transparent; background: var(--grad); color: #fff; }
 .seg svg { width: 14px; height: 14px; }
 
+/* agendados */
+.agrupo { display: grid; gap: 8px; margin-bottom: 22px; }
+.agrupo > .lbl { margin-bottom: 2px; }
+.arow { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 10px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 9px; }
+.arow .mini { width: 64px; aspect-ratio: 4 / 5; border-radius: 6px; background: var(--card-soft) center / cover no-repeat; border: 1px solid var(--line); display: grid; place-items: center; font-size: 10px; color: var(--ink-faint); overflow: hidden; }
+.arow .mini video { width: 100%; height: 100%; object-fit: cover; }
+.arow .at { font-weight: 700; font-size: 14px; }
+.arow .am { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.arow .am b { font-family: var(--mono); font-weight: 500; color: #fff; }
+.arow .actions { justify-content: flex-end; }
+@media (max-width: 640px) { .arow { grid-template-columns: 56px minmax(0, 1fr); } .arow .actions { grid-column: 1 / -1; justify-content: flex-start; } }
+
 /* ---------- celular e tablet ---------- */
 @media (max-width: 760px) {
   .wrap { padding-inline: 16px; padding-block: 16px 56px; }
@@ -474,7 +486,7 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .pg h1 { font-family: var(--font-body); font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
 .pg p { margin: 4px 0 0; font-size: 12.5px; color: var(--ink-soft); max-width: 72ch; }
 .pg p:empty { display: none; }
-.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
 .kpi { text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 14px; display: grid; gap: 6px; color: #fff; }
 .kpi:hover { border-color: var(--line-strong); }
 .kpi b { font-size: 22px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -650,6 +662,7 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
       <button role="tab" class="t-ideias" id="tab-ideias" data-tab="ideias"><span class="name">Ideias</span><span class="count" id="c-ideias">0</span></button>
       <button role="tab" class="t-cal" id="tab-cal" data-tab="cal"><span class="name">Calendário</span><span class="count" id="c-cal">0</span></button>
       <button role="tab" class="t-rev" id="tab-rev" data-tab="rev"><span class="name">Revisão</span><span class="count" id="c-rev">0</span></button>
+      <button role="tab" class="t-agend" id="tab-agend" data-tab="agend"><span class="name">Agendados</span><span class="count" id="c-agend">0</span></button>
     </nav>
     <div class="side-pe" id="usuario"></div>
   </aside>
@@ -667,11 +680,13 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
         <button class="kpi" data-tab="ideias"><span class="lbl">Ideias para decidir</span><b id="k-ideias">0</b><small>Etapa 0 · Ideação</small></button>
         <button class="kpi" data-tab="cal"><span class="lbl">Posts na pauta</span><b id="k-cal">0</b><small>Etapa 1 · Calendário</small></button>
         <button class="kpi" data-tab="rev"><span class="lbl">Esperando você</span><b id="k-rev">0</b><small>Etapa 4 · Revisão</small></button>
+        <button class="kpi" data-tab="agend"><span class="lbl">Agendados</span><b id="k-agend">0</b><small>Etapa 5 · Publicação</small></button>
       </div>
       <section class="panel" id="p-marca" role="tabpanel" aria-labelledby="tab-marca" hidden></section>
       <section class="panel" id="p-ideias" role="tabpanel" aria-labelledby="tab-ideias"></section>
       <section class="panel" id="p-cal" role="tabpanel" aria-labelledby="tab-cal" hidden></section>
       <section class="panel" id="p-rev" role="tabpanel" aria-labelledby="tab-rev" hidden></section>
+      <section class="panel" id="p-agend" role="tabpanel" aria-labelledby="tab-agend" hidden></section>
     </div>
   </div>
 </div>
@@ -793,9 +808,35 @@ async function disparar(corpo, aoComecar) {
     toast("Não deu para começar: " + textoErro(e));
   }
 }
-function buscarIdeias() {
+const PI = { tema: "", quantidade: "10", formatos: [] };
+function abrirPedidoIdeias() {
+  const FORM = [["Reels", "Reels"], ["Carrossel", "Carrossel"], ["Estatico", "Estático"], ["Stories", "Stories"]];
+  abrirDlg(`<h2>Buscar ideias novas</h2>
+    <p class="hint">A IA lê as fontes ativas e sugere ideias para a marca. Tudo aqui é opcional.</p>
+    <form onsubmit="return false" style="display:grid;gap:14px">
+      <label class="field"><span>Tema (opcional)</span><input id="pi-tema" maxlength="300" placeholder="Ex.: segurança nos pagamentos, festival de verão, dicas para produtoras" value="${esc(PI.tema)}"></label>
+      <div class="field"><span>Quantas ideias</span><div class="seg">${["5", "10", "15", "20"].map(q => `<button type="button" data-pi="qtd" data-v="${q}" aria-pressed="${PI.quantidade === q}">${q}</button>`).join("")}</div></div>
+      <div class="field"><span>Formatos</span><div class="seg">
+        <button type="button" data-pi="mix" aria-pressed="${!PI.formatos.length}">Misturado</button>
+        ${FORM.map(([v, t]) => `<button type="button" data-pi="fmt" data-v="${v}" aria-pressed="${PI.formatos.includes(v)}">Só ${t}</button>`).join("")}
+      </div><span class="hint" style="text-transform:none;letter-spacing:0;font-weight:400">Pode marcar mais de um formato. "Misturado" deixa a IA escolher.</span></div>
+      <div class="actions"><button class="btn quiet" type="button" data-pi="cancelar">Cancelar</button><button class="btn primary" type="button" data-pi="buscar">Buscar ideias</button></div>
+    </form>`);
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-pi]"); if (!b) return;
+  const tema = document.getElementById("pi-tema"); if (tema) PI.tema = tema.value;
+  const a = b.dataset.pi;
+  if (a === "qtd") { PI.quantidade = b.dataset.v; return abrirPedidoIdeias(); }
+  if (a === "mix") { PI.formatos = []; return abrirPedidoIdeias(); }
+  if (a === "fmt") { const v = b.dataset.v; PI.formatos = PI.formatos.includes(v) ? PI.formatos.filter(x => x !== v) : PI.formatos.concat(v); return abrirPedidoIdeias(); }
+  if (a === "cancelar") return fecharDlg();
+  if (a === "buscar") { fecharDlg(); return buscarIdeias({ tema: PI.tema.trim(), quantidade: Number(PI.quantidade), formatos: PI.formatos }); }
+});
+function buscarIdeias(pedido) {
   if (buscandoIdeias()) return;
-  disparar({ acao: "buscarIdeias" }, () => {
+  if (!pedido) return abrirPedidoIdeias();
+  disparar({ acao: "buscarIdeias", ...pedido }, () => {
     disparos.ideias = { em: Date.now(), antes: state.ideias.filter(i => i.status === "Sugerida").length };
     toast("Buscando ideias nas fontes. Leva alguns minutos; aviso aqui quando chegarem.");
   });
@@ -914,6 +955,91 @@ async function confirmarAgenda(id) {
     if (M.modo === "web") await carregarPauta(); else recarregar();
   } catch (e) { abrirAgenda(i, textoErro(e), { data, hora }); }
 }
+function abrirMudarData(p, erro, valores) {
+  const d = new Date(p.data);
+  const data = (valores && valores.data) || ymd(d), hora = (valores && valores.hora) || doisDig(d.getHours()) + ":" + doisDig(d.getMinutes());
+  abrirDlg(`<h2>Mudar data</h2>
+    <p class="hint">${esc(p.titulo)} · hoje marcado para ${fmtData(p.data)}</p>
+    <form onsubmit="return false">
+      <div class="fgrid">
+        <label class="field"><span>Data</span><input id="md-data" type="date" min="${ymd(new Date())}" value="${data}"></label>
+        <label class="field"><span>Horário</span><input id="md-hora" type="time" step="900" value="${hora}"></label>
+      </div>
+      ${erro ? `<div class="msg erro">${esc(erro)}</div>` : ""}
+      <div class="actions"><button class="btn quiet" type="button" data-md="cancelar">Cancelar</button><button class="btn primary" type="button" data-md="salvar" data-id="${p.id}">Salvar data</button></div>
+    </form>`);
+}
+async function salvarNovaData(id) {
+  const p = state.posts.find(x => x.id === id); if (!p) return fecharDlg();
+  const data = document.getElementById("md-data").value, hora = document.getElementById("md-hora").value;
+  const quando = new Date(data + "T" + hora + ":00");
+  if (!data || !hora || !(quando > new Date(Date.now() + 5 * 60000))) return abrirMudarData(p, "Escolha uma data e um horário no futuro.", { data, hora });
+  try {
+    if (M.modo === "web") await api({ acao: "reagendarPost", id, data: quando.toISOString() });
+    else await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.cal.table, records: [{ id, fields: { [AT.cal.f.DataPublicacao]: quando.toISOString() } }] });
+    p.data = quando.toISOString(); fecharDlg(); render();
+    toast("Nova data: " + fmtData(p.data) + ".");
+    if (M.modo === "web") carregarPauta(); else recarregar();
+  } catch (e) { abrirMudarData(p, textoErro(e), { data, hora }); }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-md]"); if (!b) return;
+  if (b.dataset.md === "cancelar") return fecharDlg();
+  if (b.dataset.md === "salvar") return salvarNovaData(b.dataset.id);
+  if (b.dataset.md === "publicar") return publicarAgora(b.dataset.id);
+});
+
+/* ---------- publicar agora ---------- */
+function pedirPublicacao(p) {
+  abrirDlg(`<h2>Publicar agora?</h2>
+    <p class="hint">"${esc(p.titulo)}" vai para o ${esc(p.rede)} neste momento, em vez de ${fmtData(p.data)}. Isso posta de verdade e não dá para desfazer pelo painel.</p>
+    <div class="actions"><button class="btn quiet" data-md="cancelar">Cancelar</button><button class="btn primary" data-md="publicar" data-id="${p.id}">Publicar agora</button></div>`);
+}
+let timersPublicar = [];
+async function publicarAgora(id) {
+  const p = state.posts.find(x => x.id === id); fecharDlg(); if (!p) return;
+  try {
+    await api({ acao: "publicarAgora", id });
+    p.status = "Publicando"; render();
+    toast("Publicando. Em até 1 minuto o link aparece aqui.");
+    timersPublicar.forEach(clearTimeout);
+    timersPublicar = [15, 45, 90, 180].map(seg => setTimeout(() => carregarPauta(), seg * 1000));
+  } catch (e) { toast("Não deu para publicar: " + textoErro(e)); }
+}
+function miniatura(p) {
+  const a = (p.arquivos || [])[0] || (p.fotos || [])[0];
+  if (!a) return `<div class="mini">sem arte</div>`;
+  if (ehArqVideo(a)) return `<div class="mini"><video src="${esc(a.url)}" muted playsinline preload="metadata"></video></div>`;
+  return `<div class="mini" style="background-image:${cssUrl(urlArq(a))}"></div>`;
+}
+function linhaAgend(p) {
+  let botoes = "";
+  if (M.modo === "web") {
+    if (p.status === "Agendado") botoes = `<button class="btn primary" data-act="publicar-agora" data-id="${p.id}" ${p.artesProntas ? "" : "disabled title=\"Faltam as artes finais\""}>Publicar agora</button><button class="btn" data-act="mudar-data" data-id="${p.id}">Mudar data</button>`;
+    else if (p.status === "Erro") botoes = `<button class="btn" data-act="mudar-data" data-id="${p.id}">Mudar data</button>`;
+  }
+  if (p.link) botoes += `<a class="btn" href="${esc(p.link)}" target="_blank" rel="noopener">Ver publicado</a>`;
+  return `<div class="arow">${miniatura(p)}
+    <div><div class="at">${esc(p.titulo)}</div><div class="am"><b>${fmtData(p.data)}</b> · ${esc(p.rede)} · ${esc(p.formato)}</div>
+      <div class="meta" style="margin-top:6px">${p.status === "Publicando" ? `<span class="chip warn">Publicando…</span>` : chip(p.status)}${p.status === "Agendado" && !p.artesProntas ? `<span class="chip bad">Sem artes finais</span>` : ""}</div>
+      ${p.erro ? `<div class="small" style="margin-top:6px;color:#ffc2cd">${esc(p.erro)}</div>` : ""}</div>
+    <div class="actions">${botoes}</div></div>`;
+}
+function renderAgend() {
+  const el = document.getElementById("p-agend"); if (!el) return;
+  const head = `<div class="panel-head"><p>Posts aprovados entram aqui. Na hora marcada eles vão para a rede pelo Ayrshare, ou você publica na hora com "Publicar agora".</p></div>`;
+  if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
+  const porData = (a, b) => new Date(a.data) - new Date(b.data);
+  const fila = state.posts.filter(p => ["Agendado", "Publicando"].includes(p.status)).sort(porData);
+  const feitos = state.posts.filter(p => p.status === "Publicado").sort((a, b) => porData(b, a));
+  const falhas = state.posts.filter(p => p.status === "Erro" && p.artesProntas).sort(porData);
+  const grupo = (titulo, lista, vazio) => `<div class="agrupo"><span class="lbl">${titulo} · ${lista.length}</span>${lista.length ? lista.map(linhaAgend).join("") : `<div class="empty glass" style="padding:16px">${vazio}</div>`}</div>`;
+  el.innerHTML = head + (M.modo !== "web" ? `<div class="msg" style="margin-bottom:14px">Para publicar na hora ou mudar a data, abra o painel pelo link do GitHub.</div>` : "")
+    + grupo("Na fila de publicação", fila, "Nenhum post agendado. Aprove posts na Revisão.")
+    + (falhas.length ? grupo("Falhou ao publicar", falhas, "") : "")
+    + grupo("Publicados", feitos, "Nada publicado ainda.");
+}
+
 function pedirRemocao(p) {
   abrirDlg(`<h2>Remover do calendário?</h2>
     <p class="hint">"${esc(p.titulo)}" sai do calendário${p.legenda ? " junto com o texto e as artes já criados" : ""}. A ideia volta para <b>Guardadas</b>, e você pode agendar de novo depois.</p>
@@ -1053,6 +1179,7 @@ function detalhePost() {
       : `<div class="msg">Para mandar a IA criar este post, abra o painel pelo link do GitHub.</div>`;
   } else if (["EmRevisao", "Ajustes"].includes(p.status)) acao = `<div class="actions"><button class="btn primary" data-act="ver-revisao" data-id="${p.id}">Ver na Revisão</button></div>`;
   else if (p.link) acao = `<div class="actions"><a class="btn" href="${esc(p.link)}" target="_blank" rel="noopener">Ver post publicado</a></div>`;
+  if (!["Publicado", "Publicando"].includes(p.status) && !criando(p.id)) acao += `<div class="actions" style="justify-content:flex-start"><button class="btn" data-act="mudar-data" data-id="${p.id}">Mudar data</button></div>`;
   if (p.status !== "Publicado" && !criando(p.id)) acao += `<div class="actions" style="justify-content:flex-start"><button class="btn quiet" data-act="remover-post" data-id="${p.id}">Remover do calendário</button></div>`;
   return `<section class="pdet glass" id="det-${p.id}">
     <div class="top"><h3>${esc(p.titulo)}</h3><button class="btn quiet" data-act="fechar-det" aria-label="Fechar">✕</button></div>
@@ -1525,12 +1652,13 @@ document.addEventListener("scroll", e => {
 /* ---------- geral ---------- */
 function render() {
   document.querySelectorAll(".track button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
-  ["marca", "ideias", "cal", "rev"].forEach(t => (document.getElementById("p-" + t).hidden = t !== tab));
+  ["marca", "ideias", "cal", "rev", "agend"].forEach(t => (document.getElementById("p-" + t).hidden = t !== tab));
   const n = x => pauta.carregada ? String(x).padStart(2, "0") : "–";
   document.getElementById("c-ideias").textContent = n(state.ideias.filter(i => i.status === "Sugerida").length);
   document.getElementById("c-cal").textContent = n(state.posts.filter(p => p.status !== "Publicado").length);
   document.getElementById("c-rev").textContent = n(state.posts.filter(p => p.status === "EmRevisao").length);
-  renderIdeias(); renderCal(); renderRev();
+  document.getElementById("c-agend").textContent = n(state.posts.filter(p => ["Agendado", "Publicando"].includes(p.status)).length);
+  renderIdeias(); renderCal(); renderRev(); renderAgend();
   flashId = null;
   sincronizarCasca();
 }
@@ -1540,13 +1668,14 @@ const PAGINAS = {
   ideias: ["Ideias", "Sugestões da IA a partir das fontes. Escolha o que vai para o calendário."],
   cal: ["Calendário", "Posts agendados, mês a mês."],
   rev: ["Revisão", "Posts prontos esperando seu olhar."],
+  agend: ["Agendados", "Posts aprovados na fila de publicação e os já publicados."],
 };
 function sincronizarCasca() {
   const [t, sub] = PAGINAS[tab] || PAGINAS.ideias;
   const h = document.getElementById("pg-titulo"); if (h) h.textContent = t;
   const c = document.getElementById("pg-crumb"); if (c) c.textContent = t;
   const p = document.getElementById("pg-sub"); if (p) p.textContent = sub;
-  for (const k of ["marca", "ideias", "cal", "rev"]) {
+  for (const k of ["marca", "ideias", "cal", "rev", "agend"]) {
     const de = document.getElementById("c-" + k), para = document.getElementById("k-" + k);
     if (de && para) para.textContent = de.textContent;
   }
@@ -1587,6 +1716,8 @@ document.addEventListener("click", e => {
   if (act === "criar-post" && post) return abrirBriefing(post);
   if (act === "fechar-det") { calAberto = null; return render(); }
   if (act === "remover-post" && post) return pedirRemocao(post);
+  if (act === "mudar-data" && post) return abrirMudarData(post);
+  if (act === "publicar-agora" && post) return pedirPublicacao(post);
   if (act === "ver-revisao" && post) { revAberto = post.id; ir("rev"); document.getElementById("rev-" + post.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "rev-abrir") { revAberto = revAberto === id ? null : id; ajusteAberto = null; render(); if (revAberto) document.getElementById("rev-" + id)?.scrollIntoView({ behavior: "smooth", block: "nearest" }); return; }
   if (act === "post-aprovar" && post) return revisarPost(post, "aprovar");
