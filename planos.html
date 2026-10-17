@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content Post · Planos</title>
+<meta name="description" content="Posts prontos para o Instagram com IA: ideias, textos, fotos e vídeos com a cara da sua marca, agendados e publicados para você.">
+<link rel="icon" type="image/svg+xml" href="marca/content-post-simbolo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #0A0C15; --card: #121522; --line: rgba(255,255,255,.09); --ink: #fff; --soft: rgba(255,255,255,.72); --faint: rgba(255,255,255,.5); --red: #F8395A; }
+* { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: Poppins, system-ui, sans-serif; line-height: 1.5; }
+a { color: inherit; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+.logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 18px; letter-spacing: -.03em; }
+.logo img { width: 30px; height: 30px; } .logo b { color: var(--red); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; padding: 12px 18px; font: 600 14px Poppins, sans-serif; text-decoration: none; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.btn.primary { background: linear-gradient(135deg, #FF5F7A, #F8395A 55%, #C8102E); border-color: transparent; }
+.hero { text-align: center; padding: 56px 0 28px; }
+.hero h1 { font-size: clamp(32px, 6vw, 56px); line-height: 1.05; letter-spacing: -.03em; font-weight: 800; max-width: 820px; margin: 0 auto; text-wrap: balance; }
+.hero h1 em { font-style: normal; color: var(--red); }
+.hero p { color: var(--soft); max-width: 620px; margin: 18px auto 0; font-size: 17px; }
+.passos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 36px 0 8px; }
+.passo { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+.passo b { display: block; margin-bottom: 4px; } .passo span { color: var(--soft); font-size: 14px; }
+.passo i { font-style: normal; color: var(--red); font-weight: 800; font-size: 13px; }
+h2 { font-size: clamp(24px, 4vw, 34px); letter-spacing: -.02em; text-align: center; margin: 56px 0 8px; }
+.sub { text-align: center; color: var(--soft); }
+.ciclos { display: flex; justify-content: center; gap: 6px; margin: 22px auto; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 5px; width: fit-content; max-width: 100%; flex-wrap: wrap; }
+.ciclos button { border: 0; background: transparent; color: var(--soft); font: 600 14px Poppins, sans-serif; padding: 9px 14px; border-radius: 8px; cursor: pointer; }
+.ciclos button[aria-pressed="true"] { background: var(--red); color: #fff; }
+.ciclos small { font-size: 11px; opacity: .85; }
+.grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.plano { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; display: grid; gap: 14px; align-content: start; position: relative; }
+.plano.dest { border-color: var(--red); box-shadow: 0 0 0 1px var(--red), 0 20px 60px -30px var(--red); }
+.plano .selo { position: absolute; top: -12px; left: 24px; background: var(--red); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+.plano h3 { font-size: 20px; }
+.preco { font-size: 40px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+.preco small { font-size: 15px; font-weight: 500; color: var(--faint); letter-spacing: 0; }
+.cobranca { font-size: 13px; color: var(--faint); min-height: 20px; }
+.plano ul { list-style: none; padding: 0; display: grid; gap: 8px; font-size: 14px; color: var(--soft); }
+.plano li::before { content: "✓"; color: var(--red); font-weight: 800; margin-right: 8px; }
+.teste { text-align: center; color: var(--soft); margin-top: 18px; font-size: 14px; }
+.afiliado { margin: 56px 0 0; background: linear-gradient(135deg, rgba(248,57,90,.16), rgba(248,57,90,.02)); border: 1px solid rgba(248,57,90,.35); border-radius: 18px; padding: 28px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+.afiliado h2 { text-align: left; margin: 0 0 6px; font-size: 26px; } .afiliado p { color: var(--soft); }
+details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-top: 10px; }
+summary { cursor: pointer; font-weight: 600; } details p { color: var(--soft); margin-top: 8px; font-size: 14px; }
+footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px 0 32px; }
+@media (max-width: 640px) { .afiliado { grid-template-columns: 1fr; } .hero { padding-top: 32px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="./"><img src="marca/content-post-simbolo.svg" alt="">content<b>post</b></a>
+    <a class="btn" href="./">Entrar</a>
+  </header>
+
+  <section class="hero">
+    <h1>Seu Instagram no ar, <em>todo dia</em>, sem passar a noite criando post</h1>
+    <p>A Content Post busca ideias, escreve os textos e cria as fotos e vídeos com a cara da sua marca. Você revisa em um clique e a gente publica na hora marcada.</p>
+    <div class="passos">
+      <div class="passo"><i>1</i><b>Ideias que fazem sentido</b><span>A IA lê seus concorrentes, hashtags e temas e sugere pautas para a sua marca.</span></div>
+      <div class="passo"><i>2</i><b>Post pronto</b><span>Carrossel, Reels ou estático com texto, fotos e vídeos gerados por IA, nas cores e no logo da marca.</span></div>
+      <div class="passo"><i>3</i><b>Você aprova</b><span>Troque o modelo, o logo ou peça um ajuste. Tudo pelo painel, no computador ou no celular.</span></div>
+      <div class="passo"><i>4</i><b>Publicado sozinho</b><span>O calendário publica na data e hora certas. Ou aperte "Publicar agora".</span></div>
+    </div>
+  </section>
+
+  <h2 id="planos">Escolha seu plano</h2>
+  <p class="sub">A IA já está incluída. Sem chave de API, sem conta extra.</p>
+  <div class="ciclos" role="group" aria-label="Ciclo de cobrança">
+    <button data-ciclo="mensal">Mensal</button>
+    <button data-ciclo="semestral">Semestral <small>-8%</small></button>
+    <button data-ciclo="anual">Anual <small>-17%</small></button>
+  </div>
+  <div class="grade" id="grade"></div>
+  <p class="teste">Quer testar antes? Crie sua conta e ganhe <b>7 dias com 3 posts grátis</b>. <a href="./">Começar agora</a></p>
+
+  <section class="afiliado" id="afiliados">
+    <div><h2>Seja afiliado</h2><p>Indique a Content Post e ganhe comissão em cada assinatura que vier do seu link, enquanto o cliente continuar pagando. O cadastro e os pagamentos são feitos pela Kiwify.</p></div>
+    <a class="btn primary" id="link-afiliado" href="#" target="_blank" rel="noopener">Quero ser afiliado</a>
+  </section>
+
+  <h2>Perguntas frequentes</h2>
+  <details><summary>Preciso ter conta no Claude, no Magnific ou em outra ferramenta?</summary><p>Não. A IA está incluída no plano. Se você já tem suas próprias chaves, pode cadastrar em Integrações e usar as suas.</p></details>
+  <details><summary>O que conta como um post?</summary><p>Cada post criado pela IA: um carrossel, um Reels ou um estático. Ajustes no mesmo post não contam. Se a criação falhar, o post não conta.</p></details>
+  <details><summary>Posso colocar minha equipe?</summary><p>Sim. Convide quantas pessoas quiser para a sua organização, como dono, admin ou editor.</p></details>
+  <details><summary>Como pago?</summary><p>Pela Kiwify, com cartão, Pix ou boleto. O plano é liberado assim que o pagamento é aprovado.</p></details>
+  <details><summary>Posso cancelar?</summary><p>Sim, quando quiser. Você continua usando até o fim do período que já pagou.</p></details>
+
+  <footer>Content Post · posts com IA para o Instagram</footer>
+</div>
+<script>
+// Links de checkout da Kiwify (plano:ciclo) e do programa de afiliados. Preencha depois de criar os produtos.
+const CHECKOUT = {
+  "essencial:mensal": "", "essencial:semestral": "", "essencial:anual": "",
+  "profissional:mensal": "", "profissional:semestral": "", "profissional:anual": "",
+  "agencia:mensal": "", "agencia:semestral": "", "agencia:anual": "",
+};
+const AFILIADOS = "";
+const PLANOS = [
+  { id: "essencial", nome: "Essencial", posts: 12, ideias: 8, precos: { mensal: 369, semestral: 339, anual: 307 }, extra: ["Para quem posta 3 vezes por semana"] },
+  { id: "profissional", nome: "Profissional", posts: 30, ideias: 20, precos: { mensal: 877, semestral: 807, anual: 729 }, extra: ["Um post por dia"], destaque: true },
+  { id: "agencia", nome: "Agência", posts: 80, ideias: 50, precos: { mensal: 2307, semestral: 2117, anual: 1919 }, extra: ["Para agências e várias marcas"] },
+];
+const MESES = { mensal: 1, semestral: 6, anual: 12 };
+const reais = v => "R$ " + v.toLocaleString("pt-BR");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Repassa a origem da campanha (utm_*, src, sck) para o checkout, para a Kiwify mostrar de onde veio a venda.
+const daUrl = new URLSearchParams(location.search);
+function comOrigem(link) {
+  if (!link) return "";
+  try {
+    const u = new URL(link);
+    for (const [k, v] of daUrl) if (/^(utm_[a-z]+|src|sck)$/.test(k)) u.searchParams.set(k, v);
+    return u.toString();
+  } catch (e) { return ""; }
+}
+let ciclo = "anual";
+try { if (MESES[daUrl.get("ciclo")]) ciclo = daUrl.get("ciclo"); } catch (e) {}
+function desenhar() {
+  document.querySelectorAll("[data-ciclo]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ciclo === ciclo)));
+  document.getElementById("grade").innerHTML = PLANOS.map(p => {
+    const porMes = p.precos[ciclo], m = MESES[ciclo], link = comOrigem(CHECKOUT[p.id + ":" + ciclo]);
+    return `<div class="plano ${p.destaque ? "dest" : ""}">${p.destaque ? `<span class="selo">Mais escolhido</span>` : ""}
+      <h3>${esc(p.nome)}</h3>
+      <div class="preco">${reais(porMes)}<small>/mês</small></div>
+      <div class="cobranca">${m > 1 ? `${reais(porMes * m)} a cada ${m} meses` : "cobrado todo mês"}</div>
+      <ul><li>${p.posts} posts por mês criados pela IA</li><li>${p.ideias} buscas de ideias por mês</li><li>Fotos e vídeos com IA (Magnific)</li><li>Calendário e publicação automática</li><li>Equipe sem limite de pessoas</li>${p.extra.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+      ${link ? `<a class="btn ${p.destaque ? "primary" : ""}" href="${esc(link)}">Assinar ${esc(p.nome)}</a>` : `<a class="btn" href="./">Começar o teste grátis</a>`}
+    </div>`;
+  }).join("");
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-ciclo]"); if (b) { ciclo = b.dataset.ciclo; desenhar(); } });
+const af = document.getElementById("link-afiliado");
+if (AFILIADOS) af.href = AFILIADOS; else document.getElementById("afiliados").hidden = true;
+desenhar();
+</script>
+</body>
+</html>
