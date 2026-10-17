@@ -1,6 +1,7 @@
 // Gera index.html completo (com <html>, <head> e <body>) a partir de painel/index.html,
 // para publicar fora do claude.ai (ex.: GitHub Pages).
-// Uso: node painel/montar-site.js <pasta-de-saida>
+// Uso: node painel/montar-site.js <pasta-de-saida> [fonte.html] [saida.html]
+// Ex.: node painel/montar-site.js repo index-api.html app.html (versão com a API do Railway)
 
 const fs = require("fs");
 const path = require("path");
@@ -8,7 +9,8 @@ const path = require("path");
 const saida = process.argv[2];
 if (!saida) { console.error("Informe a pasta de saída."); process.exit(1); }
 
-const fonte = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+const nomeFonte = process.argv[3] || "index.html", nomeSaida = process.argv[4] || "index.html";
+const fonte = fs.readFileSync(path.join(__dirname, nomeFonte), "utf8");
 const corte = fonte.indexOf('<div class="wrap">');
 if (corte < 0) throw new Error("Não encontrei o início do conteúdo.");
 
@@ -30,5 +32,5 @@ ${corpo}
 `;
 
 fs.mkdirSync(saida, { recursive: true });
-fs.writeFileSync(path.join(saida, "index.html"), html);
-console.log("index.html gerado em", saida, "(" + html.length + " caracteres)");
+fs.writeFileSync(path.join(saida, nomeSaida), html);
+console.log(nomeSaida + " gerado em", saida, "(" + html.length + " caracteres)");

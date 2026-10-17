@@ -2409,7 +2409,7 @@ async function recarregar() {
 }
 
 /* Fora do claude.ai: o painel fala com a API da plataforma (content-post-api, no Railway). */
-const API_PADRAO = "";
+const API_PADRAO = "https://api-production-70f3.up.railway.app";
 const API = (() => {
   try {
     const q = new URLSearchParams(location.search).get("api");
