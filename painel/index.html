@@ -800,9 +800,64 @@ function buscarIdeias() {
     toast("Buscando ideias nas fontes. Leva alguns minutos; aviso aqui quando chegarem.");
   });
 }
-function criarPost(p) {
+/* ---------- perguntas antes de criar o post ---------- */
+const BR = { post: null, r: {} };
+const PERGUNTAS = {
+  capa: { titulo: "Capa (primeiro slide)", op: [["foto", "Foto"], ["video", "Vídeo"], ["texto", "Só texto"]] },
+  fundo: { titulo: "Fundo dos outros slides", op: [["fotos", "Fotos"], ["videos", "Vídeos"], ["misto", "Misto"], ["texto", "Só texto"]] },
+  fundoEst: { campo: "fundo", titulo: "Fundo do post", op: [["fotos", "Foto"], ["texto", "Só texto"]] },
+  slides: { titulo: "Quantidade de slides", op: [["auto", "A IA decide"], ["5", "5"], ["7", "7"], ["10", "10"]] },
+  duracao: { titulo: "Duração", op: [["15", "15 s"], ["30", "30 s"], ["45", "45 s"]] },
+  cenas: { titulo: "Cenas", op: [["auto", "A IA decide"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"]] },
+  textoNaTela: { titulo: "Texto na tela", op: [["sim", "Sim"], ["nao", "Não"]] },
+  objetivo: { titulo: "Objetivo do post", op: [["", "A IA decide"], ["engajar", "Engajar"], ["educar", "Educar"], ["vender", "Vender"], ["institucional", "Marca"]] },
+};
+function perguntasDo(formato) {
+  if (["Reels", "Stories"].includes(formato)) return ["duracao", "cenas", "textoNaTela", "objetivo"];
+  if (formato === "Estatico") return ["fundoEst", "objetivo"];
+  return ["capa", "fundo", "slides", "objetivo"];
+}
+function abrirBriefing(p) {
+  const video = ["Reels", "Stories"].includes(p.formato);
+  BR.post = p.id;
+  BR.r = video ? { duracao: "30", cenas: "auto", textoNaTela: "sim", objetivo: "" } : { capa: "foto", fundo: "fotos", slides: "auto", objetivo: "" };
+  desenharBriefing();
+}
+function desenharBriefing() {
+  const p = state.posts.find(x => x.id === BR.post); if (!p) return fecharDlg();
+  const blocos = perguntasDo(p.formato).map(k => {
+    const q = PERGUNTAS[k], campo = q.campo || k;
+    return `<div class="field"><span>${esc(q.titulo)}</span><div class="seg" role="group" aria-label="${esc(q.titulo)}">${q.op.map(([v, t]) =>
+      `<button type="button" data-b="op" data-k="${campo}" data-v="${v}" aria-pressed="${String(BR.r[campo] ?? "") === v}">${esc(t)}</button>`).join("")}</div></div>`;
+  }).join("");
+  const r = BR.r;
+  const videos = ["Reels", "Stories"].includes(p.formato) ? Number(r.cenas) || 4 : (r.capa === "video" ? 1 : 0) + (r.fundo === "videos" ? (Number(r.slides) || 7) - 2 : r.fundo === "misto" ? 2 : 0);
+  abrirDlg(`<h2>Como vai ser este post?</h2>
+    <p class="hint">${esc(p.titulo)} · ${esc(p.formato)} · ${esc(p.rede)}</p>
+    <form onsubmit="return false" style="display:grid;gap:14px">
+      ${blocos}
+      <label class="field"><span>Observações (opcional)</span><textarea id="br-obs" rows="3" maxlength="1000" placeholder="Ex.: mostrar a pulseira em uso no bar, citar a promoção de sexta, evitar fundo branco">${esc(r.observacoes || "")}</textarea></label>
+      ${videos ? `<p class="small" style="margin:0">Vai gerar cerca de ${videos} clipe${videos > 1 ? "s" : ""} de vídeo no Magnific, que gastam mais créditos que fotos e levam alguns minutos a mais.</p>` : ""}
+      <div class="actions"><button class="btn quiet" type="button" data-b="cancelar">Cancelar</button><button class="btn primary" type="button" data-b="criar">Criar post</button></div>
+    </form>`);
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-b]"); if (!b) return;
+  const obs = document.getElementById("br-obs");
+  if (obs) BR.r.observacoes = obs.value;
+  if (b.dataset.b === "op") { BR.r[b.dataset.k] = b.dataset.v; return desenharBriefing(); }
+  if (b.dataset.b === "cancelar") return fecharDlg();
+  if (b.dataset.b === "criar") {
+    const p = state.posts.find(x => x.id === BR.post); fecharDlg();
+    const br = { ...BR.r };
+    for (const k of Object.keys(br)) if (br[k] === "" || br[k] === undefined) delete br[k];
+    if (br.observacoes) br.observacoes = br.observacoes.trim();
+    if (p) criarPost(p, br);
+  }
+});
+function criarPost(p, briefing) {
   if (criando(p.id)) return;
-  disparar({ acao: "criarPost", id: p.id }, () => {
+  disparar({ acao: "criarPost", id: p.id, briefing: briefing || null }, () => {
     disparos.posts[p.id] = { em: Date.now() };
     toast('Criando "' + p.titulo + '". Em 2 a 4 minutos ele aparece na Revisão.');
   });
@@ -994,7 +1049,7 @@ function detalhePost() {
   else if (["Planejado", "Erro"].includes(p.status)) {
     acao = M.modo === "web"
       ? `<div class="actions"><button class="btn primary" data-act="criar-post" data-id="${p.id}">${p.status === "Erro" ? "Tentar criar de novo" : "Criar este post"}</button></div>
-         <p class="small" style="margin:0">${video ? "A IA escreve a legenda e as cenas, e o Magnific gera os clipes. Depois o post vai para a Revisão." : "A IA escreve a legenda e os slides e gera as imagens. Depois o post vai para a Revisão."}</p>`
+         <p class="small" style="margin:0">Antes de começar, você escolhe capa, fundos e quantidade de ${video ? "cenas" : "slides"}. ${video ? "A IA escreve a legenda e as cenas, e o Magnific gera os clipes." : "A IA escreve a legenda e os slides e o Magnific gera as imagens."} Depois o post vai para a Revisão.</p>`
       : `<div class="msg">Para mandar a IA criar este post, abra o painel pelo link do GitHub.</div>`;
   } else if (["EmRevisao", "Ajustes"].includes(p.status)) acao = `<div class="actions"><button class="btn primary" data-act="ver-revisao" data-id="${p.id}">Ver na Revisão</button></div>`;
   else if (p.link) acao = `<div class="actions"><a class="btn" href="${esc(p.link)}" target="_blank" rel="noopener">Ver post publicado</a></div>`;
@@ -1529,7 +1584,7 @@ document.addEventListener("click", e => {
   if (act === "gerar-artes" && post) return gerarArtes(post);
   if (act === "diag" && post) return mudarDiagramacao(post, b.dataset.k, b.dataset.v);
   if (act === "buscar-ideias") return buscarIdeias();
-  if (act === "criar-post" && post) return criarPost(post);
+  if (act === "criar-post" && post) return abrirBriefing(post);
   if (act === "fechar-det") { calAberto = null; return render(); }
   if (act === "remover-post" && post) return pedirRemocao(post);
   if (act === "ver-revisao" && post) { revAberto = post.id; ir("rev"); document.getElementById("rev-" + post.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
