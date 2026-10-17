@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Content Post · Planos</title>
 <meta name="description" content="Posts prontos para o Instagram com IA: ideias, textos, fotos e vídeos com a cara da sua marca, agendados e publicados para você.">
-<link rel="icon" type="image/svg+xml" href="marca/content-post-simbolo.svg">
+<link rel="icon" type="image/png" href="marca/content-post-icone.png">
+<meta property="og:image" content="marca/content-post-capa.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -17,7 +18,7 @@ a { color: inherit; }
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
 header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
 .logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 18px; letter-spacing: -.03em; }
-.logo img { width: 30px; height: 30px; } .logo b { color: var(--red); }
+.logo img.logo-img { height: 26px; width: auto; display: block; } .logo b { color: var(--red); }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; padding: 12px 18px; font: 600 14px Poppins, sans-serif; text-decoration: none; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
 .btn.primary { background: linear-gradient(135deg, #FF5F7A, #F8395A 55%, #C8102E); border-color: transparent; }
 .hero { text-align: center; padding: 56px 0 28px; }
@@ -56,7 +57,7 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px
 <body>
 <div class="wrap">
   <header>
-    <a class="logo" href="./"><img src="marca/content-post-simbolo.svg" alt="">content<b>post</b></a>
+    <a class="logo" href="./"><img class="logo-img" src="marca/content-post-logo-branco.png" alt="Content Post"></a>
     <a class="btn" href="./">Entrar</a>
   </header>
 
@@ -82,8 +83,8 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px
   <p class="teste">Quer testar antes? Crie sua conta e ganhe <b>7 dias com 3 posts grátis</b>. <a href="./">Começar agora</a></p>
 
   <section class="afiliado" id="afiliados">
-    <div><h2>Seja afiliado</h2><p>Indique a Content Post e ganhe comissão em cada assinatura que vier do seu link, enquanto o cliente continuar pagando. O cadastro e os pagamentos são feitos pela Kiwify.</p></div>
-    <a class="btn primary" id="link-afiliado" href="#" target="_blank" rel="noopener">Quero ser afiliado</a>
+    <div><h2>Seja afiliado</h2><p>Indique a Content Post e ganhe <strong>50% de comissão</strong> em cada venda que vier do seu link. O cadastro e os pagamentos são feitos pela Kiwify.</p></div>
+    <a class="btn primary" id="link-afiliado" href="afiliados.html">Quero ser afiliado</a>
   </section>
 
   <h2>Perguntas frequentes</h2>
@@ -98,11 +99,11 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px
 <script>
 // Links de checkout da Kiwify (plano:ciclo) e do programa de afiliados. Preencha depois de criar os produtos.
 const CHECKOUT = {
-  "essencial:mensal": "", "essencial:semestral": "", "essencial:anual": "",
-  "profissional:mensal": "", "profissional:semestral": "", "profissional:anual": "",
-  "agencia:mensal": "", "agencia:semestral": "", "agencia:anual": "",
+  "essencial:mensal": "https://pay.kiwify.com.br/xqTdun0", "essencial:semestral": "https://pay.kiwify.com.br/AzjShuU", "essencial:anual": "https://pay.kiwify.com.br/CeMO1Jy",
+  "profissional:mensal": "https://pay.kiwify.com.br/UcKEj8c", "profissional:semestral": "https://pay.kiwify.com.br/Al5OS48", "profissional:anual": "https://pay.kiwify.com.br/dJQ5mGY",
+  "agencia:mensal": "https://pay.kiwify.com.br/m0o5fO1", "agencia:semestral": "https://pay.kiwify.com.br/AOdsIi5", "agencia:anual": "https://pay.kiwify.com.br/bRdatlT",
 };
-const AFILIADOS = "";
+const AFILIADOS = "afiliados.html";
 const PLANOS = [
   { id: "essencial", nome: "Essencial", posts: 12, ideias: 8, precos: { mensal: 369, semestral: 339, anual: 307 }, extra: ["Para quem posta 3 vezes por semana"] },
   { id: "profissional", nome: "Profissional", posts: 30, ideias: 20, precos: { mensal: 877, semestral: 807, anual: 729 }, extra: ["Um post por dia"], destaque: true },

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content Post · Afiliados</title>
+<meta name="description" content="Indique a Content Post e ganhe 50% de comissão em cada venda. Uma plataforma que cria e publica posts de Instagram com IA.">
+<link rel="icon" type="image/png" href="marca/content-post-icone.png">
+<meta property="og:image" content="marca/content-post-capa.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #0A0C15; --card: #121522; --card2: #171a29; --line: rgba(255,255,255,.09); --ink: #fff; --soft: rgba(255,255,255,.74); --faint: rgba(255,255,255,.5); --red: #F8395A; --ok: #3ddc97; }
+* { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: Poppins, system-ui, sans-serif; line-height: 1.55; }
+a { color: inherit; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+header.topo { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; gap: 12px; }
+.logo img { height: 28px; display: block; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; padding: 12px 18px; font: 600 14px Poppins, sans-serif; text-decoration: none; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; text-align: center; }
+.btn.primary { background: linear-gradient(135deg, #FF5F7A, #F8395A 55%, #C8102E); border-color: transparent; }
+.btn.grande { padding: 15px 24px; font-size: 15px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: center; padding: 48px 0 24px; }
+.selo { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--red); background: rgba(248,57,90,.12); border: 1px solid rgba(248,57,90,.35); border-radius: 99px; padding: 4px 12px; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(32px, 5.4vw, 54px); line-height: 1.04; letter-spacing: -.03em; font-weight: 800; text-wrap: balance; }
+.hero h1 em { font-style: normal; color: var(--red); }
+.hero p { color: var(--soft); font-size: 17px; margin: 16px 0 24px; max-width: 54ch; }
+.hero .acoes { display: flex; gap: 10px; flex-wrap: wrap; }
+.cartao-comissao { background: radial-gradient(120% 120% at 100% 0%, rgba(248,57,90,.28), transparent 60%), var(--card); border: 1px solid rgba(248,57,90,.35); border-radius: 20px; padding: 26px; }
+.cartao-comissao .grande { font-size: 76px; font-weight: 800; letter-spacing: -.05em; line-height: 1; }
+.cartao-comissao .grande small { font-size: 22px; letter-spacing: 0; font-weight: 600; color: var(--soft); }
+.cartao-comissao ul { list-style: none; padding: 0; margin-top: 18px; display: grid; gap: 10px; }
+.cartao-comissao li { color: var(--soft); font-size: 14px; display: flex; gap: 10px; }
+.cartao-comissao li::before { content: "✓"; color: var(--red); font-weight: 800; }
+h2 { font-size: clamp(24px, 3.6vw, 34px); letter-spacing: -.02em; margin: 64px 0 8px; text-wrap: balance; }
+.sub { color: var(--soft); max-width: 62ch; }
+.grade3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 22px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 8px; align-content: start; }
+.card .ic { width: 38px; height: 38px; border-radius: 10px; background: rgba(248,57,90,.14); display: grid; place-items: center; color: var(--red); }
+.card .ic svg { width: 20px; height: 20px; }
+.card b { font-size: 16px; } .card p { color: var(--soft); font-size: 14px; }
+.passos { counter-reset: p; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 22px; }
+.passo { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+.passo::before { counter-increment: p; content: counter(p); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--red); font-weight: 800; font-size: 14px; margin-bottom: 10px; }
+.passo b { display: block; margin-bottom: 4px; } .passo p { color: var(--soft); font-size: 14px; }
+.simulador { margin-top: 22px; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: center; }
+.campo { display: grid; gap: 8px; margin-bottom: 16px; }
+.campo > span { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { border: 1px solid var(--line); background: var(--card2); color: var(--soft); font: 600 13px Poppins, sans-serif; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; }
+input[type="range"] { width: 100%; accent-color: var(--red); }
+.resultado { text-align: center; background: var(--card2); border-radius: 16px; padding: 22px; }
+.resultado .valor { font-size: clamp(34px, 6vw, 52px); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; color: #fff; }
+.resultado small { display: block; color: var(--faint); font-size: 13px; margin-top: 6px; }
+.resultado .por-venda { color: var(--soft); font-size: 14px; margin-top: 12px; }
+.produtos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 22px; }
+.produto { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: grid; gap: 12px; align-content: start; }
+.produto.dest { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
+.produto h3 { font-size: 19px; }
+.produto .ganho { font-size: 14px; color: var(--soft); }
+.produto .ganho b { color: #fff; font-size: 22px; display: block; }
+.produto ul { list-style: none; padding: 0; display: grid; gap: 6px; font-size: 14px; color: var(--soft); }
+.produto li::before { content: "•"; color: var(--red); margin-right: 8px; }
+details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-top: 10px; }
+summary { cursor: pointer; font-weight: 600; } details p { color: var(--soft); margin-top: 8px; font-size: 14px; }
+.final { margin: 64px 0 0; text-align: center; background: radial-gradient(80% 140% at 50% 0%, rgba(248,57,90,.25), transparent 70%), var(--card); border: 1px solid rgba(248,57,90,.35); border-radius: 22px; padding: 40px 20px; }
+.final h2 { margin: 0 0 10px; } .final p { color: var(--soft); margin-bottom: 20px; }
+footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px 0 32px; }
+footer a { color: var(--soft); }
+@media (max-width: 760px) {
+  .hero, .simulador { grid-template-columns: 1fr; }
+  .hero { padding-top: 24px; }
+  .cartao-comissao .grande { font-size: 60px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topo">
+    <a class="logo" href="./"><img src="marca/content-post-logo-branco.png" alt="Content Post"></a>
+    <a class="btn" href="#produtos">Quero me afiliar</a>
+  </header>
+
+  <section class="hero">
+    <div>
+      <span class="selo">Programa de afiliados</span>
+      <h1>Indique a Content Post e ganhe <em>50% de comissão</em></h1>
+      <p>A Content Post é uma plataforma que cria e publica os posts do Instagram com IA: ideias, textos, fotos e vídeos com a cara da marca. Toda empresa precisa postar, e quase ninguém tem tempo. Você indica, o cliente assina, e metade da venda é sua.</p>
+      <div class="acoes"><a class="btn primary grande" href="#produtos">Quero ser afiliado</a><a class="btn grande" href="#simulador">Quanto posso ganhar?</a></div>
+    </div>
+    <div class="cartao-comissao">
+      <div class="grande">50%<small> por venda</small></div>
+      <ul>
+        <li>Planos de R$ 307 a R$ 2.307 por mês</li>
+        <li>Assinatura mensal, semestral ou anual</li>
+        <li>Pagamento e cadastro pela Kiwify</li>
+        <li>Teste grátis ajuda o cliente a decidir</li>
+      </ul>
+    </div>
+  </section>
+
+  <h2>O que você vai indicar</h2>
+  <p class="sub">Um produto que resolve uma dor real: manter o Instagram ativo, bonito e no tom da marca, sem contratar uma equipe.</p>
+  <div class="grade3">
+    <div class="card"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/></svg></span><b>Ideias que fazem sentido</b><p>A IA observa concorrentes, hashtags e temas e sugere pautas para a marca.</p></div>
+    <div class="card"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5"/></svg></span><b>Post pronto com IA</b><p>Carrossel, Reels, estático e Stories, com texto, fotos e vídeos gerados por IA, nas cores e no logo da marca.</p></div>
+    <div class="card"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"/></svg></span><b>Publica sozinho</b><p>O cliente revisa em um clique e o calendário publica na hora marcada.</p></div>
+  </div>
+
+  <h2>Por que vale a pena</h2>
+  <div class="grade3">
+    <div class="card"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><b>Comissão alta</b><p>50% de cada venda. Em um único plano anual, a comissão passa de mil reais.</p></div>
+    <div class="card"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5"/></svg></span><b>Produto de assinatura</b><p>O cliente usa todo mês. Quem gosta, renova, e isso deixa sua indicação mais forte.</p></div>
+    <div class="card"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span><b>Público enorme</b><p>Donos de negócio, social medias, agências, criadores e qualquer marca que precisa postar com frequência.</p></div>
+    <div class="card"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></span><b>Fácil de mostrar</b><p>O resultado é visual: um antes e depois do feed vende sozinho em Reels e Stories.</p></div>
+    <div class="card"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><b>Pagamento seguro</b><p>Toda a venda, o checkout e o repasse da sua comissão passam pela Kiwify.</p></div>
+    <div class="card"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><b>Teste grátis</b><p>O cliente pode testar com 3 posts antes de assinar, e isso derruba a principal objeção.</p></div>
+  </div>
+
+  <h2 id="simulador">Quanto você pode ganhar</h2>
+  <p class="sub">Escolha o plano, o ciclo e quantas vendas por mês você imagina fazer.</p>
+  <div class="simulador">
+    <div>
+      <div class="campo"><span>Plano</span><div class="seg" id="s-plano"></div></div>
+      <div class="campo"><span>Ciclo</span><div class="seg" id="s-ciclo"></div></div>
+      <div class="campo"><span>Vendas por mês: <b id="s-qtd-txt" style="color:#fff">5</b></span><input id="s-qtd" type="range" min="1" max="50" value="5" aria-label="Vendas por mês"></div>
+    </div>
+    <div class="resultado">
+      <div class="valor" id="s-total">R$ 0</div>
+      <small>em comissões no mês</small>
+      <div class="por-venda" id="s-venda"></div>
+    </div>
+  </div>
+  <p class="sub" style="font-size:13px;margin-top:10px">Valores aproximados, considerando 50% do preço de cada venda. O valor exato de cada comissão é calculado e pago pela Kiwify.</p>
+
+  <h2>Como funciona</h2>
+  <div class="passos">
+    <div class="passo"><b>Peça a afiliação</b><p>Escolha um ou mais produtos abaixo e solicite a afiliação na Kiwify.</p></div>
+    <div class="passo"><b>Pegue seu link</b><p>Na Kiwify você recebe um link de divulgação só seu. As vendas que vierem dele são suas.</p></div>
+    <div class="passo"><b>Divulgue</b><p>Mostre a plataforma criando posts, compartilhe resultados e indique para quem precisa postar.</p></div>
+    <div class="passo"><b>Receba</b><p>A cada venda aprovada, a Kiwify registra sua comissão de 50% e faz o repasse.</p></div>
+  </div>
+
+  <h2 id="produtos">Escolha o que vai divulgar</h2>
+  <p class="sub">Pode se afiliar aos três. Cada produto tem planos mensal, semestral e anual.</p>
+  <div class="produtos" id="lista-produtos"></div>
+
+  <h2>Perguntas frequentes</h2>
+  <details><summary>Preciso ser cliente da Content Post para ser afiliado?</summary><p>Não. Mas usar o teste grátis ajuda muito a mostrar a plataforma com propriedade.</p></details>
+  <details><summary>Como recebo minhas comissões?</summary><p>Pela Kiwify. Ela registra cada venda que veio do seu link e repassa a sua comissão para a conta cadastrada lá, nos prazos dela.</p></details>
+  <details><summary>Qual plano rende mais?</summary><p>Os ciclos semestral e anual pagam a comissão sobre um valor maior de uma vez. O plano Agência tem o maior ticket, ideal se você fala com agências e social medias.</p></details>
+  <details><summary>Para quem devo indicar?</summary><p>Para quem precisa postar com frequência e não tem tempo ou equipe: donos de bares, restaurantes, lojas, clínicas, prestadores de serviço, social medias, agências e criadores.</p></details>
+  <details><summary>Tenho alguma dúvida que não está aqui</summary><p>Fale com a gente pelo produto na Kiwify, depois de solicitar a afiliação.</p></details>
+
+  <section class="final">
+    <h2>Comece a indicar hoje</h2>
+    <p>50% de comissão em um produto que toda marca precisa.</p>
+    <a class="btn primary grande" href="#produtos">Quero ser afiliado</a>
+  </section>
+
+  <footer>Content Post · <a href="planos.html">Planos</a> · <a href="ajuda.html">Como usar</a></footer>
+</div>
+<script>
+// Links de afiliação da Kiwify, um por produto.
+const PRODUTOS = [
+  { id: "essencial", nome: "Essencial", posts: 12, precos: { mensal: 369, semestral: 339, anual: 307 }, link: "https://dashboard.kiwify.com/join/affiliate/CcX4J5cG", para: "Pequenos negócios que postam 3 vezes por semana" },
+  { id: "profissional", nome: "Profissional", posts: 30, precos: { mensal: 877, semestral: 807, anual: 729 }, link: "https://dashboard.kiwify.com/join/affiliate/bziCsPWv", para: "Marcas que querem um post por dia", destaque: true },
+  { id: "agencia", nome: "Agência", posts: 80, precos: { mensal: 2307, semestral: 2117, anual: 1919 }, link: "https://dashboard.kiwify.com/join/affiliate/e27oQGy2", para: "Agências e social medias com várias marcas" },
+];
+const MESES = { mensal: 1, semestral: 6, anual: 12 };
+const NOMES_CICLO = { mensal: "Mensal", semestral: "Semestral", anual: "Anual" };
+const COMISSAO = 0.5;
+const reais = v => "R$ " + Math.round(v).toLocaleString("pt-BR");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const venda = (p, ciclo) => p.precos[ciclo] * MESES[ciclo];
+
+document.getElementById("lista-produtos").innerHTML = PRODUTOS.map(p => `<div class="produto ${p.destaque ? "dest" : ""}">
+  <h3>Content Post ${esc(p.nome)}</h3>
+  <p class="ganho">Comissão por venda<b>${reais(venda(p, "mensal") * COMISSAO)} a ${reais(venda(p, "anual") * COMISSAO)}</b></p>
+  <ul><li>${p.posts} posts por mês com IA</li><li>${esc(p.para)}</li><li>Mensal ${reais(p.precos.mensal)} · Anual ${reais(venda(p, "anual"))}</li></ul>
+  <a class="btn ${p.destaque ? "primary" : ""}" href="${esc(p.link)}" target="_blank" rel="noopener">Afiliar-se ao ${esc(p.nome)}</a>
+</div>`).join("");
+
+const sim = { plano: "profissional", ciclo: "anual" };
+function desenharSim() {
+  document.getElementById("s-plano").innerHTML = PRODUTOS.map(p => `<button type="button" data-s="plano" data-v="${p.id}" aria-pressed="${sim.plano === p.id}">${esc(p.nome)}</button>`).join("");
+  document.getElementById("s-ciclo").innerHTML = Object.keys(MESES).map(c => `<button type="button" data-s="ciclo" data-v="${c}" aria-pressed="${sim.ciclo === c}">${NOMES_CICLO[c]}</button>`).join("");
+  const p = PRODUTOS.find(x => x.id === sim.plano), q = Number(document.getElementById("s-qtd").value);
+  const porVenda = venda(p, sim.ciclo) * COMISSAO;
+  document.getElementById("s-qtd-txt").textContent = q;
+  document.getElementById("s-total").textContent = reais(porVenda * q);
+  document.getElementById("s-venda").textContent = `${reais(porVenda)} por venda do ${p.nome} ${NOMES_CICLO[sim.ciclo].toLowerCase()} (venda de ${reais(venda(p, sim.ciclo))})`;
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-s]"); if (b) { sim[b.dataset.s] = b.dataset.v; desenharSim(); } });
+document.getElementById("s-qtd").addEventListener("input", desenharSim);
+desenharSim();
+</script>
+</body>
+</html>
