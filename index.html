@@ -54,8 +54,9 @@ header.topo { display: flex; justify-content: space-between; align-items: center
 .cena.criando { place-content: center; justify-items: center; gap: 6%; background: #10131f; color: var(--soft); font-size: max(10px, 1.7cqw); }
 .anel { width: 9cqw; height: 9cqw; border-radius: 50%; border: .9cqw solid rgba(248,57,90,.25); border-top-color: var(--red); animation: gira 1s linear infinite; }
 @keyframes gira { to { transform: rotate(360deg); } }
-.cena.post { background: linear-gradient(160deg, #6a8 0%, #234 70%); align-content: end; text-align: left; }
-.cena.post::before { content: ""; position: absolute; width: 38%; aspect-ratio: 1; border-radius: 50%; background: #f3c76a; top: 18%; left: 31%; opacity: .9; }
+.cena.post { padding: 0; background: #000; }
+.cena.post img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
 .cena.post b { position: relative; font-size: max(13px, 3cqw); line-height: 1.05; letter-spacing: -.02em; }
 .cena.post span { position: relative; font-size: max(9px, 1.5cqw); color: rgba(255,255,255,.8); margin-top: 3%; }
 .cena.publicado { place-content: center; justify-items: center; gap: 5%; background: #10131f; font-size: max(11px, 2cqw); font-weight: 700; }
@@ -85,6 +86,16 @@ h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.025em; line-height: 1.
 .formato .arte b { position: relative; font-size: clamp(13px, 1.7vw, 17px); line-height: 1.1; }
 .formato .arte small { position: relative; font-size: 11px; opacity: .8; }
 .formato .arte::after { content: attr(data-tag); position: absolute; top: 8%; right: 8%; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; background: rgba(0,0,0,.45); padding: 3px 8px; border-radius: 99px; }
+.formato .arte.foto { padding: 0; }
+.formato .arte.foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.formato .arte .play { position: absolute; left: 10px; bottom: 10px; font-size: 12px; font-weight: 700; background: rgba(0,0,0,.55); padding: 4px 9px; border-radius: 99px; }
+.formato .arte::after { z-index: 1; }
+.formato .arte.foto::after { display: none; }
+.vitrine-carrossel { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; margin-top: 24px; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
+.vitrine-carrossel img { flex: none; width: min(300px, 74vw); height: auto; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 14px; scroll-snap-align: start; border: 1px solid var(--line); max-width: 100%; }
+.galeria { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.galeria img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 12px; display: block; }
+@media (max-width: 760px) { .galeria { grid-template-columns: repeat(3, minmax(0, 1fr)); } .galeria img:nth-child(n+10) { display: none; } }
 .formato p { padding: 12px 14px 14px; color: var(--soft); font-size: 13px; }
 .formato p b { color: #fff; display: block; font-size: 15px; }
 @media (max-width: 760px) { .formatos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -167,10 +178,33 @@ footer a { color: var(--soft); }
 
   <h2>Todos os formatos que o Instagram pede</h2>
   <div class="formatos">
-    <div class="formato"><div class="arte" data-tag="Carrossel" style="background:linear-gradient(160deg,#c86,#422)"><b>5 erros que travam o seu caixa</b><small>Arraste para o lado →</small></div><p><b>Carrossel</b>Slides com fotos, vídeos ou só texto.</p></div>
-    <div class="formato"><div class="arte" data-tag="Reels" style="background:linear-gradient(160deg,#68a,#123)"><b>Bastidores de uma sexta lotada</b><small>▶ 0:30</small></div><p><b>Reels</b>Cenas em vídeo com texto na tela.</p></div>
-    <div class="formato"><div class="arte" data-tag="Estático" style="background:#F4F4F6;color:#111"><b>Pix na mesa em 3 passos</b><small>Salve o post</small></div><p><b>Estático</b>Uma arte só, com foto ou só texto.</p></div>
-    <div class="formato"><div class="arte" data-tag="Stories" style="background:linear-gradient(160deg,#a6c,#214)"><b>Vem aí: novidade na sexta</b><small>Toque para ver</small></div><p><b>Stories</b>Imagem, vídeo contínuo ou vários vídeos.</p></div>
+    <div class="formato"><div class="arte foto" data-tag="Carrossel"><img src="marca/exemplos/carrossel-1.webp" alt="Capa de carrossel criada pela Content Post: Coisas que você não faz mais no bar" loading="lazy"></div><p><b>Carrossel</b>Slides com fotos, vídeos ou só texto.</p></div>
+    <div class="formato"><div class="arte foto" data-tag="Reels"><img src="marca/exemplos/foto-show.webp" alt="Cena de show gerada por IA para um Reels" loading="lazy"><span class="play">▶ 0:30</span></div><p><b>Reels</b>Cenas em vídeo com texto na tela.</p></div>
+    <div class="formato"><div class="arte foto" data-tag="Estático"><img src="marca/exemplos/estatico.webp" alt="Post estático criado pela Content Post: Encosta a pulseira. Pronto, segue o rolê." loading="lazy"></div><p><b>Estático</b>Uma arte só, com foto ou só texto.</p></div>
+    <div class="formato"><div class="arte foto" data-tag="Stories"><img src="marca/exemplos/foto-danca.webp" alt="Imagem gerada por IA para Stories" loading="lazy"></div><p><b>Stories</b>Imagem, vídeo contínuo ou vários vídeos.</p></div>
+  </div>
+
+  <h2>Feito com a Content Post</h2>
+  <p class="lead">Um carrossel de verdade, criado pela plataforma: texto, foto e diagramação. Arraste para ver os slides.</p>
+  <div class="vitrine-carrossel" tabindex="0" aria-label="Slides de um carrossel criado pela Content Post">
+    <img src="marca/exemplos/carrossel-1.webp" alt="Slide 1 de um carrossel criado pela Content Post" loading="lazy">
+    <img src="marca/exemplos/carrossel-2.webp" alt="Slide 2 de um carrossel criado pela Content Post" loading="lazy">
+    <img src="marca/exemplos/carrossel-3.webp" alt="Slide 3 de um carrossel criado pela Content Post" loading="lazy">
+    <img src="marca/exemplos/carrossel-4.webp" alt="Slide 4 de um carrossel criado pela Content Post" loading="lazy">
+    <img src="marca/exemplos/estatico.webp" alt="Último slide do carrossel, com a chamada final" loading="lazy">
+  </div>
+  <p class="lead" style="margin-top:34px">E algumas das imagens que a IA gerou para posts reais, com a identidade da marca:</p>
+  <div class="galeria">
+    <img src="marca/exemplos/foto-pulseira.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/exemplos/foto-brinde.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/exemplos/foto-drink.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/exemplos/foto-maquininha.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/exemplos/foto-palco.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/exemplos/foto-celular.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/exemplos/foto-pista.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/exemplos/foto-mesa.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/exemplos/foto-maos.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/exemplos/foto-bar.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
   </div>
 
   <h2>Feita para quem vive de Instagram</h2>
@@ -278,7 +312,7 @@ if (videoHtml) {
     <div class="tela-demo">
       <div class="cena ideias"><div><em>8.5</em> · Carrossel<b>5 erros ao dividir a conta</b></div><div><em>7.9</em> · Reels<b>Bastidores de uma sexta lotada</b></div><div><em>7.2</em> · Stories<b>Novidade chegando</b></div></div>
       <div class="cena criando"><div class="anel"></div>Criando o post com IA…</div>
-      <div class="cena post"><b>Coisas que você não precisa mais fazer no bar</b><span>Pagamento por QR na mesa · 1/5</span></div>
+      <div class="cena post"><img src="marca/exemplos/carrossel-1.webp" alt=""></div>
       <div class="cena publicado"><div class="check">✓</div>Publicado no Instagram</div>
     </div>
   </div><span class="selo-demo">Demonstração</span>`;
