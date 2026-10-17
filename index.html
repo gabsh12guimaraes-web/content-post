@@ -333,6 +333,45 @@ button { cursor: pointer; }
 .ig[data-pos="base"] .ig-slide .conteudo { top: auto; bottom: 10cqw; }
 .ig[data-pos="topo"] .ig-slide .veu { background: linear-gradient(0deg, rgba(10,12,21,.10) 0%, rgba(10,12,21,.25) 40%, rgba(10,12,21,.94) 100%); }
 .ig[data-pos="meio"] .ig-slide .veu { background: rgba(10,12,21,.55); }
+/* logo: versão e posição no modelo foto de fundo */
+.ig-slide.lp-tc .marca-agua { left: 50%; transform: translateX(-50%); }
+.ig-slide.lp-td .marca-agua { left: auto; right: 6cqw; }
+.ig-slide.lp-td .contador { right: auto; left: 6cqw; }
+.ig-slide.lp-be .marca-agua, .ig-slide.lp-bc .marca-agua, .ig-slide.lp-bd .marca-agua { top: auto; bottom: 5cqw; }
+.ig-slide.lp-bc .marca-agua { left: 50%; transform: translateX(-50%); }
+.ig-slide.lp-bd .marca-agua { left: auto; right: 6cqw; }
+.ig-slide.lp-be .seta, .ig-slide.lp-bc .seta, .ig-slide.lp-bd .seta { display: none; }
+.ig[data-pos="base"] .ig-slide.lp-be .conteudo, .ig[data-pos="base"] .ig-slide.lp-bc .conteudo, .ig[data-pos="base"] .ig-slide.lp-bd .conteudo,
+.ig[data-pos="auto"] .ig-slide.lp-be:not(.sem-foto) .conteudo, .ig[data-pos="auto"] .ig-slide.lp-bc:not(.sem-foto) .conteudo, .ig[data-pos="auto"] .ig-slide.lp-bd:not(.sem-foto) .conteudo { bottom: 16cqw; }
+/* modelos editoriais */
+.ig-slide.ed { background: #F4F4F6; color: #111; }
+.ig-slide.ed.escuro { background: var(--b-bg); color: #fff; }
+.ed .ed-img { position: absolute; left: 6cqw; top: 13cqw; width: 88cqw; height: 47cqw; border-radius: 3cqw; background: #d9d9de center / cover no-repeat; object-fit: cover; }
+.ed.escuro .ed-img { left: 0; top: 0; width: 100cqw; height: 58cqw; border-radius: 0; }
+.ed.escuro.com-img::before { content: ""; position: absolute; left: 0; right: 0; top: 30cqw; height: 28.5cqw; background: linear-gradient(transparent, var(--b-bg)); z-index: 1; }
+.ed.lateral .ed-img { left: 52cqw; top: 13cqw; width: 42cqw; height: 96cqw; }
+.ed .ed-topo { position: absolute; top: 4.5cqw; left: 6cqw; right: 6cqw; height: 4.5cqw; display: flex; justify-content: center; align-items: center; z-index: 2; }
+.ed .ed-topo.lp-te { justify-content: flex-start; } .ed .ed-topo.lp-td { justify-content: flex-end; }
+.ed .ed-topo img { height: 100%; width: auto; } .ed .ed-topo b { font-size: 3.4cqw; letter-spacing: .08em; }
+.ed .ed-cont { position: absolute; top: 3.8cqw; right: 6cqw; z-index: 2; font-size: 3cqw; font-weight: 600; padding: 1cqw 2.6cqw; border-radius: 99px; background: rgba(0,0,0,.08); }
+.ed.escuro .ed-cont { background: rgba(255,255,255,.14); } .ed .ed-cont.esq { right: auto; left: 6cqw; }
+.ed .ed-corpo { position: absolute; left: 6cqw; right: 6cqw; top: 26cqw; display: grid; gap: 3cqw; z-index: 2; justify-items: start; }
+.ed.com-img .ed-corpo { top: 66cqw; } .ed.escuro.com-img .ed-corpo { top: 60cqw; } .ed.lateral.com-img .ed-corpo { top: 18cqw; right: 53cqw; }
+.ed .titulo { font-weight: 800; font-size: 8.4cqw; line-height: 1.04; letter-spacing: -.02em; text-wrap: balance; }
+.ed:not(.com-img) .titulo { font-size: 10.5cqw; } .ed.lateral.com-img .titulo { font-size: 7cqw; }
+.ed .texto { font-size: 4cqw; line-height: 1.35; color: #55565E; background: #E7E7EC; border-radius: 2.4cqw; padding: 3.4cqw; max-width: none; justify-self: stretch; }
+.ed.escuro .texto { color: rgba(255,255,255,.72); background: rgba(255,255,255,.08); }
+.ed.ed-cta .ed-corpo { top: 50%; transform: translateY(-60%); justify-items: center; text-align: center; }
+.ed .ed-siga { font-size: 4.2cqw; font-weight: 600; background: #E7E7EC; border-radius: 2.4cqw; padding: 2.4cqw 5cqw; }
+.ed.escuro .ed-siga { background: rgba(255,255,255,.1); }
+.ed .ed-rodape { position: absolute; left: 6cqw; right: 6cqw; bottom: 4cqw; display: flex; align-items: center; gap: 2.4cqw; font-size: 3.2cqw; z-index: 2; }
+.ed .ed-rodape small { display: block; font-size: 2.6cqw; opacity: .6; font-weight: 500; }
+.ed .ed-rodape em { margin-left: auto; font-style: normal; font-weight: 700; font-size: 2.6cqw; opacity: .5; letter-spacing: .02em; }
+.ed .ed-av { width: 6.4cqw; height: 6.4cqw; border-radius: 50%; background: var(--b-acc); color: #fff; display: grid; place-items: center; overflow: hidden; font-weight: 800; flex: none; }
+.ed .ed-av img { width: 72%; height: 72%; object-fit: contain; }
+.ig[data-al="centro"] .ed:not(.ed-cta) .ed-corpo { text-align: center; justify-items: center; }
+.ig[data-al="direita"] .ed:not(.ed-cta) .ed-corpo { text-align: right; justify-items: end; }
+.diag .seg.pos-logo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ig-aviso { font-size: 11px; color: var(--ink-faint); padding: 0 14px 12px; background: #0b0b0d; }
 
 /* login */
@@ -761,7 +800,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, link: r.LinkPublicado || "",
-    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { try { return Object.assign({ alinhar: "esquerda", posicao: "auto" }, JSON.parse(r.Diagramacao || "{}")); } catch (e) { return { alinhar: "esquerda", posicao: "auto" }; } })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", logo: "auto", logoPos: "te" }; try { return Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { return pad; } })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -1321,8 +1360,112 @@ function capa(ctx, im, W = ARTE_L, H = ARTE_A) {
   const w = w0 * r, h = h0 * r;
   ctx.drawImage(im, (W - w) / 2, (H - h) / 2, w, h);
 }
+// Desenha o logo na versão e posição escolhidas (ou a versão que contrasta com o fundo, no automático).
+function desenharLogo(ctx, W, H, U, logos, nome, diag, lh, margem, corNome) {
+  const pos = (diag && diag.logoPos) || "te", escolha = (diag && diag.logo) || "auto";
+  if (escolha === "nenhum") return;
+  const larguraMax = W * 0.45;
+  const y = pos[0] === "b" ? H - margem - lh : margem;
+  const xDe = w => pos[1] === "c" ? (W - w) / 2 : pos[1] === "d" ? W - 6 * U - w : 6 * U;
+  let logo = null;
+  if (logos && logos.width) logo = logos;
+  else if (logos) {
+    if (escolha !== "auto" && logos[escolha]) logo = logos[escolha];
+    else logo = escolherLogo(logos, fundoClaroEm(ctx, xDe(larguraMax * 0.6), y, larguraMax * 0.6, lh), false);
+  }
+  if (logo) { const w = Math.min(logo.width * (lh / logo.height), larguraMax); ctx.drawImage(logo, xDe(w), y, w, lh); return; }
+  ctx.fillStyle = corNome || "#fff"; ctx.font = `700 ${lh * 0.52}px Poppins, sans-serif`; ctx.textBaseline = "middle"; ctx.textAlign = "left";
+  ctx.fillText(nome, xDe(ctx.measureText(nome).width), y + lh / 2); ctx.textBaseline = "alphabetic";
+}
+function retArred(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function capaEm(ctx, im, x, y, w, h, r) {
+  const w0 = im.videoWidth || im.naturalWidth || im.width, h0 = im.videoHeight || im.naturalHeight || im.height;
+  if (!w0 || !h0) return;
+  ctx.save(); retArred(ctx, x, y, w, h, r || 0); ctx.clip();
+  const k = Math.max(w / w0, h / h0), dw = w0 * k, dh = h0 * k;
+  ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  ctx.restore();
+}
+// Modelos editoriais (claro, escuro, imagem lateral), no estilo dos carrosséis com cabeçalho, card de imagem e rodapé.
+function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
+  const W = ARTE_L, H = ARTE_A, U = CQ;
+  const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = W; cv.height = H; }
+  const ctx = cv.getContext("2d");
+  const escuro = diag.modelo === "escuro", lateral = diag.modelo === "lateral";
+  const ultimo = i === total - 1 && total > 1, cta = ultimo && !foto;
+  const fundo = escuro ? cores.bg : "#F4F4F6", tinta = escuro ? "#FFFFFF" : "#111111", suave = escuro ? "rgba(255,255,255,.72)" : "#55565E", caixa = escuro ? "rgba(255,255,255,.08)" : "#E7E7EC";
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = fundo; ctx.fillRect(0, 0, W, H);
+  let topoTexto = 26 * U, largTexto = 88 * U;
+  const xTexto = 6 * U;
+  if (foto && !cta) {
+    if (escuro) {
+      capaEm(ctx, foto, 0, 0, W, 58 * U, 0);
+      const g = ctx.createLinearGradient(0, 30 * U, 0, 58.5 * U); g.addColorStop(0, hexRgba(cores.bg, 0)); g.addColorStop(1, hexRgba(cores.bg, 1));
+      ctx.fillStyle = g; ctx.fillRect(0, 30 * U, W, 28.6 * U); topoTexto = 60 * U;
+    } else if (lateral) { capaEm(ctx, foto, 52 * U, 13 * U, 42 * U, 96 * U, 3 * U); topoTexto = 18 * U; largTexto = 41 * U; }
+    else { capaEm(ctx, foto, 6 * U, 13 * U, 88 * U, 47 * U, 3 * U); topoTexto = 66 * U; }
+  }
+  const posLogo = String(diag.logoPos || "tc")[0] === "b" ? "tc" : (diag.logoPos || "tc");
+  desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: posLogo }, 4.5 * U, 4.5 * U, tinta);
+  if (total > 1) {
+    const txt = `${i + 1}/${total}`;
+    ctx.font = `600 ${3 * U}px Poppins, sans-serif`;
+    const w = ctx.measureText(txt).width + 5.2 * U, h = 5.6 * U, x = posLogo === "td" ? 6 * U : W - 6 * U - w, y = 3.8 * U;
+    ctx.fillStyle = escuro ? "rgba(255,255,255,.14)" : "rgba(0,0,0,.08)"; retArred(ctx, x, y, w, h, h / 2); ctx.fill();
+    ctx.fillStyle = tinta; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * U, y + h / 2); ctx.textBaseline = "alphabetic";
+  }
+  const al = cta ? "centro" : (diag.alinhar || "esquerda");
+  const xAl = al === "centro" ? xTexto + largTexto / 2 : al === "direita" ? xTexto + largTexto : xTexto;
+  const limite = 110 * U;
+  let tT = (foto && !cta ? (lateral ? 7 : 8.4) : 10.5) * U, tX = (lateral ? 3.6 : 4) * U, linT = [], linX = [], alt = 0;
+  for (let k = 0; k < 8; k++) {
+    ctx.font = `800 ${tT}px Poppins, sans-serif`; linT = quebrar(ctx, sl.t, largTexto);
+    ctx.font = `400 ${tX}px Poppins, sans-serif`; linX = quebrar(ctx, sl.x, largTexto - 6.8 * U);
+    alt = linT.length * tT * 1.05 + (linX.length ? 3 * U + linX.length * tX * 1.35 + 6.8 * U : 0) + (cta ? 15 * U : 0);
+    if ((cta ? 30 * U : topoTexto) + alt <= limite) break;
+    tT *= 0.9; tX *= 0.93;
+  }
+  let y = cta ? Math.max(28 * U, (H - alt) / 2 - 6 * U) : topoTexto;
+  ctx.textAlign = al === "centro" ? "center" : al === "direita" ? "right" : "left";
+  ctx.fillStyle = tinta; ctx.font = `800 ${tT}px Poppins, sans-serif`;
+  for (const l of linT) { y += tT * 1.05; ctx.fillText(l, xAl, y - tT * 0.2); }
+  if (linX.length) {
+    y += 3 * U;
+    const hCaixa = linX.length * tX * 1.35 + 6.8 * U;
+    ctx.fillStyle = caixa; retArred(ctx, xTexto, y, largTexto, hCaixa, 2.4 * U); ctx.fill();
+    ctx.fillStyle = suave; ctx.font = `400 ${tX}px Poppins, sans-serif`;
+    const xc = al === "centro" ? xTexto + largTexto / 2 : al === "direita" ? xTexto + largTexto - 3.4 * U : xTexto + 3.4 * U;
+    let yc = y + 3.4 * U;
+    for (const l of linX) { yc += tX * 1.35; ctx.fillText(l, xc, yc - tX * 0.3); }
+    y += hCaixa;
+  }
+  if (cta) {
+    const perfil = perfilMarca();
+    const txt = perfil ? "Siga " + perfil : "Siga o perfil";
+    ctx.font = `600 ${4.2 * U}px Poppins, sans-serif`;
+    const w = ctx.measureText(txt).width + 10 * U, h = 9 * U, x = (W - w) / 2;
+    y += 6 * U;
+    ctx.fillStyle = caixa; retArred(ctx, x, y, w, h, 2.4 * U); ctx.fill();
+    ctx.fillStyle = tinta; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, W / 2, y + h / 2); ctx.textBaseline = "alphabetic";
+  }
+  // rodapé: símbolo, nome, @ e "arraste"
+  ctx.textAlign = "left";
+  const yr = H - 10 * U, r = 3.2 * U;
+  ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.arc(6 * U + r, yr + r, r, 0, Math.PI * 2); ctx.fill();
+  const sim = logos && !logos.width ? (escuro ? (logos.simLight || logos.light) : (logos.simDark || logos.dark)) : null;
+  if (sim) { const k = Math.min((r * 1.4) / sim.width, (r * 1.4) / sim.height); ctx.drawImage(sim, 6 * U + r - sim.width * k / 2, yr + r - sim.height * k / 2, sim.width * k, sim.height * k); }
+  else { ctx.fillStyle = "#fff"; ctx.font = `800 ${3 * U}px Poppins, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(nome.slice(0, 1).toUpperCase(), 6 * U + r, yr + r); ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; }
+  const perfil = perfilMarca();
+  ctx.fillStyle = tinta; ctx.font = `700 ${3.2 * U}px Poppins, sans-serif`; ctx.fillText(nome, 15 * U, yr + (perfil ? 2.9 : 4.4) * U);
+  if (perfil) { ctx.fillStyle = suave; ctx.font = `500 ${2.6 * U}px Poppins, sans-serif`; ctx.fillText(perfil, 15 * U, yr + 6 * U); }
+  ctx.fillStyle = escuro ? "rgba(255,255,255,.5)" : "rgba(17,17,17,.45)"; ctx.font = `700 ${2.6 * U}px Poppins, sans-serif`; ctx.textAlign = "right";
+  ctx.fillText(ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →", W - 6 * U, yr + 4.2 * U); ctx.textAlign = "left";
+  return cv;
+}
 function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
+  if (MODELOS_ED.includes(diag.modelo)) return desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag);
   const cv = alvo || document.createElement("canvas");
   if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
   const ctx = cv.getContext("2d");
@@ -1347,20 +1490,12 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
     }
   }
   // logo (versão clara ou escura conforme o fundo) ou nome da marca
-  const lx = 6 * CQ, ly = 5 * CQ, lh = 6.5 * CQ;
-  const logo = logos && (logos.width ? logos : escolherLogo(logos, fundoClaroEm(ctx, lx, ly, ARTE_L * 0.4, lh), false));
-  if (logo) {
-    const lw = logo.width * (lh / logo.height);
-    ctx.drawImage(logo, lx, ly, Math.min(lw, ARTE_L * 0.5), lh);
-  } else {
-    ctx.fillStyle = "#fff"; ctx.font = `700 ${3.4 * CQ}px Poppins, sans-serif`; ctx.textBaseline = "middle";
-    ctx.fillText(nome, lx, ly + lh / 2);
-  }
+  desenharLogo(ctx, ARTE_L, ARTE_A, CQ, logos, nome, diag, 6.5 * CQ, 5 * CQ, "#fff");
   // contador
   if (total > 1) {
     const txt = `${i + 1}/${total}`;
     ctx.font = `600 ${3 * CQ}px Poppins, sans-serif`;
-    const w = ctx.measureText(txt).width + 5.2 * CQ, h = 5.6 * CQ, x = ARTE_L - 6 * CQ - w, y = 5 * CQ;
+    const w = ctx.measureText(txt).width + 5.2 * CQ, h = 5.6 * CQ, x = diag.logoPos === "td" ? 6 * CQ : ARTE_L - 6 * CQ - w, y = 5 * CQ;
     ctx.fillStyle = "rgba(0,0,0,.45)";
     ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
     ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * CQ, y + h / 2);
@@ -1375,7 +1510,8 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const linhasTxt = quebrar(ctx, sl.x, largTit * 0.92);
   const altBarra = 1.4 * CQ, gap = 3 * CQ, lhTit = tamTit * 1.05, lhTxt = tamTxt * 1.35;
   const altura = altBarra + gap + linhasTit.length * lhTit + (linhasTxt.length ? gap + linhasTxt.length * lhTxt : 0);
-  let y = pos === "base" ? ARTE_A - 10 * CQ - altura : pos === "meio" ? (ARTE_A - altura) / 2 : (foto ? 16 : 22) * CQ;
+  const logoEmBaixo = String(diag.logoPos || "")[0] === "b" && diag.logo !== "nenhum";
+  let y = pos === "base" ? ARTE_A - 10 * CQ - altura - (logoEmBaixo ? 8 * CQ : 0) : pos === "meio" ? (ARTE_A - altura) / 2 : (foto ? 16 : 22) * CQ;
   const al = diag.alinhar, xTxt = al === "centro" ? ARTE_L / 2 : al === "direita" ? ARTE_L - 6 * CQ : esq;
   const xBarra = al === "centro" ? ARTE_L / 2 - 6 * CQ : al === "direita" ? ARTE_L - 18 * CQ : esq;
   ctx.fillStyle = cta ? "#fff" : cores.acc;
@@ -1390,7 +1526,7 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
     for (const l of linhasTxt) { y += lhTxt; ctx.fillText(l, xTxt, y - lhTxt * 0.22); }
   }
   ctx.textAlign = "left";
-  if (total > 1 && !ultimo) {
+  if (total > 1 && !ultimo && !logoEmBaixo) {
     ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.font = `600 ${3.2 * CQ}px Poppins, sans-serif`; ctx.textAlign = "right";
     ctx.fillText("arraste →", ARTE_L - 6 * CQ, ARTE_A - 6 * CQ); ctx.textAlign = "left";
   }
@@ -1446,10 +1582,7 @@ function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag) {
     g.addColorStop(0, hexRgba(cores.bg, 0)); g.addColorStop(1, hexRgba(cores.bg, 0.9));
     ctx.fillStyle = g; pos === "topo" ? ctx.fillRect(0, 0, W, H * 0.55) : ctx.fillRect(0, H * 0.45, W, H * 0.55);
   }
-  const lx = 6 * U, ly = 6 * U, lh = 7 * U;
-  const logo = logos && (logos.width ? logos : escolherLogo(logos, fundoClaroEm(ctx, lx, ly, W * 0.4, lh), false));
-  if (logo) ctx.drawImage(logo, lx, ly, Math.min(logo.width * (lh / logo.height), W * 0.45), lh);
-  else { ctx.fillStyle = "#fff"; ctx.font = `700 ${4.2 * U}px Poppins, sans-serif`; ctx.textBaseline = "middle"; ctx.fillText(nome, lx, ly + lh / 2); }
+  desenharLogo(ctx, W, H, U, logos, nome, diag, 7 * U, 6 * U, "#fff");
   if (!texto) return;
   const a = Math.min(1, (t || 0) / 350); // o texto entra suave no começo da cena
   ctx.globalAlpha = a;
@@ -1574,17 +1707,44 @@ async function gerarArtes(p) {
   }
 }
 const cssUrl = u => "url('" + String(u).replace(/['\\()]/g, encodeURIComponent) + "')";
-function slidePost(sl, i, total, img, prontas, logo, nome, video) {
+const perfilMarca = () => { const v = String((M.marca && M.marca.Perfil) || "").trim().replace(/^@+/, ""); return v ? "@" + v : ""; };
+const MODELOS_ED = ["claro", "escuro", "lateral"];
+function logoEscolhido(diag, fundoClaro) {
+  const d = diag || {}, op = urlsLogos(false);
+  if (d.logo === "nenhum") return "";
+  if (d.logo && d.logo !== "auto" && op[d.logo]) return op[d.logo];
+  return escolherLogo(op, fundoClaro, false) || "";
+}
+function slideEditorial(sl, i, total, img, video, nome, diag) {
+  const escuro = diag.modelo === "escuro";
+  const ultimo = i === total - 1 && total > 1, temFundo = !!(img || video), cta = ultimo && !temFundo;
+  const logo = logoEscolhido(diag, !escuro), sim = escolherLogo(urlsLogos(false), !escuro, true);
+  const pos = String(diag.logoPos || "tc")[0] === "b" ? "tc" : (diag.logoPos || "tc");
+  const perfil = perfilMarca();
+  return `<div class="ig-slide ed ${esc(diag.modelo)} ${cta ? "ed-cta" : ""} ${temFundo && !cta ? "com-img" : ""}">
+    ${temFundo && !cta ? (video ? `<video class="ed-img" src="${esc(video)}" muted loop autoplay playsinline></video>` : `<div class="ed-img" style="background-image:${cssUrl(img)}"></div>`) : ""}
+    <div class="ed-topo lp-${pos}">${logo ? `<img src="${esc(logo)}" alt="">` : diag.logo === "nenhum" ? "" : `<b>${esc(nome.toUpperCase())}</b>`}</div>
+    ${total > 1 ? `<span class="ed-cont ${pos === "td" ? "esq" : ""}">${i + 1}/${total}</span>` : ""}
+    <div class="ed-corpo"><div class="titulo">${esc(sl.t)}</div>${sl.x ? `<div class="texto">${esc(sl.x)}</div>` : ""}${cta ? `<div class="ed-siga">Siga ${esc(perfil || "o perfil")}</div>` : ""}</div>
+    <div class="ed-rodape"><span class="ed-av">${sim ? `<img src="${esc(sim)}" alt="">` : esc(nome.slice(0, 1))}</span><span><b>${esc(nome)}</b>${perfil ? `<small>${esc(perfil)}</small>` : ""}</span><em>${ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →"}</em></div>
+  </div>`;
+}
+function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo) {
+  const d = diag || { modelo: "foto", logo: "auto", logoPos: "te" };
+  if (!prontas && !semModelo && MODELOS_ED.includes(d.modelo)) return slideEditorial(sl, i, total, img, video, nome, d);
   const ultimo = i === total - 1 && total > 1;
   const temFundo = !!(img || video);
-  if (!temFundo) { const c = coresMarca(); logo = escolherLogo(urlsLogos(false), luminanciaHex(ultimo ? c.acc : c.bg) > 0.45, false) || logo; }
-  const classes = ["ig-slide", temFundo ? "" : "sem-foto", prontas && temFundo ? "arte" : "", ultimo && !temFundo ? "cta" : ""].join(" ");
+  const c = coresMarca();
+  if (d.logo === "nenhum") logo = "";
+  else if (d.logo && d.logo !== "auto" && urlsLogos(false)[d.logo]) logo = urlsLogos(false)[d.logo];
+  else if (!temFundo) logo = escolherLogo(urlsLogos(false), luminanciaHex(ultimo ? c.acc : c.bg) > 0.45, false) || logo;
+  const classes = ["ig-slide", temFundo ? "" : "sem-foto", prontas && temFundo ? "arte" : "", ultimo && !temFundo ? "cta" : "", "lp-" + (d.logoPos || "te")].join(" ");
   return `<div class="${classes}">
     ${video ? `<video class="foto" src="${esc(video)}" ${img ? `poster="${esc(img)}"` : ""} muted loop autoplay playsinline ${prontas ? "controls" : ""}></video>`
       : img ? `<div class="foto" style="background-image:${cssUrl(img)}"></div>` : ""}
     ${video && !prontas ? `<span class="tag-video">clipe do Magnific</span>` : ""}
     <div class="veu"></div>
-    <div class="marca-agua">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.replaceWith(document.createTextNode('${esc(nome).replace(/'/g, "")}'))">` : esc(nome)}</div>
+    ${d.logo === "nenhum" ? "" : `<div class="marca-agua">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.replaceWith(document.createTextNode('${esc(nome).replace(/'/g, "")}'))">` : esc(nome)}</div>`}
     ${total > 1 ? `<span class="contador">${i + 1}/${total}</span>` : ""}
     <div class="conteudo"><span class="barra"></span><div class="titulo">${esc(sl.t)}</div>${sl.x ? `<div class="texto">${esc(sl.x)}</div>` : ""}</div>
     ${total > 1 && !ultimo ? `<span class="seta">arraste →</span>` : ""}
@@ -1602,13 +1762,13 @@ function cardRev(p) {
     const final = p.artesProntas ? p.arquivos.find(ehArqVideo) : null;
     prontas = !!final;
     html = final
-      ? slidePost({ n: 1, t: "", x: "" }, 0, 1, final.thumbnails && final.thumbnails.large ? final.thumbnails.large.url : "", true, logo, nome, final.url)
-      : slides.map((sl, i) => slidePost({ n: sl.n, t: sl.x || sl.t, x: "" }, i, slides.length, "", false, logo, nome, clipes[sl.n])).join("");
+      ? slidePost({ n: 1, t: "", x: "" }, 0, 1, final.thumbnails && final.thumbnails.large ? final.thumbnails.large.url : "", true, logo, nome, final.url, p.diag, true)
+      : slides.map((sl, i) => slidePost({ n: sl.n, t: sl.x || sl.t, x: "" }, i, slides.length, "", false, logo, nome, clipes[sl.n], p.diag, true)).join("");
     if (final) slides = [slides[0] || { n: 1 }];
   } else {
     const videosProntos = {};
     if (prontas) slides.forEach((sl, i) => { const a = p.arquivos[i]; if (ehArqVideo(a)) videosProntos[sl.n] = a.url; });
-    html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome, prontas ? videosProntos[sl.n] : clipes[sl.n])).join("");
+    html = slides.map((sl, i) => slidePost(sl, i, slides.length, mapa[sl.n], prontas, logo, nome, prontas ? videosProntos[sl.n] : clipes[sl.n], p.diag, false)).join("");
   }
   const pontos = slides.length > 1 ? `<div class="ig-pontos" aria-hidden="true">${slides.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
   const nomeArte = ehVideo ? "vídeo final" : "artes finais";
@@ -1636,9 +1796,17 @@ function cardRev(p) {
   const ic = { esquerda: "M4 6h16M4 10h10M4 14h16M4 18h10", centro: "M4 6h16M7 10h10M4 14h16M7 18h10", direita: "M4 6h16M10 10h10M4 14h16M10 18h10" };
   const segA = ["esquerda", "centro", "direita"].map(a => `<button data-act="diag" data-id="${p.id}" data-k="alinhar" data-v="${a}" aria-pressed="${p.diag.alinhar === a}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="${ic[a]}"/></svg>${a === "centro" ? "Centro" : a[0].toUpperCase() + a.slice(1)}</button>`).join("");
   const segP = [["auto", "Automática"], ["topo", "Topo"], ["meio", "Meio"], ["base", "Base"]].map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="posicao" data-v="${v}" aria-pressed="${p.diag.posicao === v}">${t}</button>`).join("");
-  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação do texto</span>
+  const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
+  const versoes = urlsLogos(false);
+  const segM = ehVideo ? "" : `<span class="small">Modelo</span>${seg("modelo", [["foto", "Foto de fundo"], ["claro", "Editorial claro"], ["escuro", "Editorial escuro"], ["lateral", "Imagem lateral"]])}`;
+  const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
+  const editorial = !ehVideo && MODELOS_ED.includes(p.diag.modelo);
+  const posicoes = editorial ? [["te", "Topo esquerda"], ["tc", "Topo centro"], ["td", "Topo direita"]] : [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
+  const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}`;
+  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação</span>${segM}<span class="small">Texto</span>
       <div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
-      <div class="seg" role="group" aria-label="Posição do texto">${segP}</div>
+      ${editorial ? "" : `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>`}
+      ${segL}${segLP}
       <p class="small" style="margin:0">A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.</p></div>`;
   const acoes = p.status === "Ajustes"
     ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui e no Telegram em 1 ou 2 minutos.</div>`
@@ -1768,7 +1936,7 @@ document.addEventListener("click", e => {
 const AT = {
   server: "Airtable",
   base: "app0V0dEQB4ksFTUV",
-  marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", LogoDark: "fldyR5igpxNIOGKc0", SimboloLight: "fldWdkZXOjQgWGN7y", SimboloDark: "fld5Om4WDErIKRmuW", MoodBoard: "fldWw8Y4MDFLk1jwY", Idioma: "fldfVHS529DWsxlKE" } },
+  marca: { table: "tbludygt2Q4NNGbCp", f: { Nome: "fld4t9hNODmFKMU24", Posicionamento: "fldueQORHSBOAwKHw", Publico: "fldcIW0UMcgyGiY9u", TomDeVoz: "fldLCwe4LcNb6YxpG", Pilares: "fldsBpVljAAJKdrs1", Evitar: "fldS7kQzypxRiMVSu", Redes: "fldzpaW8C7Z6vme35", FrequenciaSemanal: "fldOdISZMZzay8HTx", ExemplosBons: "fldvzZM9Vgt9BHHxX", Cores: "fldgePCuSbAGR3x3Y", Logo: "fldNRyk4ORsNwvP7u", LogoDark: "fldyR5igpxNIOGKc0", SimboloLight: "fldWdkZXOjQgWGN7y", SimboloDark: "fld5Om4WDErIKRmuW", MoodBoard: "fldWw8Y4MDFLk1jwY", Idioma: "fldfVHS529DWsxlKE", Perfil: "fldPvsmXa5gfDnBO2" } },
   ideias: { table: "tblkX69MsS5z1MT1v", f: { Titulo: "fldIaygmjuLsE1WFq", Resumo: "fld5lBu8N6tApcJVb", Formato: "fldR8DJtJIF19rmw0", Rede: "fldhnBFmYjiaKU2bw", Pilar: "fldyZHHZuM1mMLby5", Score: "fldN5rkaOAcnBJLsr", PorQueFunciona: "flddAuWW90gQPrvYZ", Status: "fldk2hxweVnMId1U1", MotivoDescarte: "fldM7FdKuv09zIrsE", Referencias: "fldQESoyFaJNIancX", Calendario: "fldPMgJAavbChgFoH" } },
   cal: { table: "tblyeHWA0VNcOU1Lz", f: { Titulo: "fldLm4XiVGNnKdfBN", DataPublicacao: "fldUM8bIAGWLqb7Ol", Rede: "fldOqaKHwYVRvyBEp", Formato: "fldwOVhyNkSu0RBzd", Pilar: "fldsrg09hxax3jUsH", Status: "fldPukScambyFBt99", Versao: "fldbQWPXMP634qijl", Legenda: "fldy1kASapkGvmjRM", Hashtags: "fldRRGkP4RR6GpUC5", Slides: "fld6eNTCop53uY2hz", LinkPublicado: "fldfC2ZxF0fxrV6gT", Arquivos: "fld0XuKmLrlR77Kl1", ImagensSlides: "fldinvYLBv5a7Lv35", Fotos: "fldyADExC0MK0ZS1S", ArtesProntas: "fldBEUCyMlEcAcljW", Ideia: "fldhYQFuaqkueq9yk", Clipes: "fldOIRvNezYeao3Pd", ClipesSlides: "fldJ2R6RO0mYS5d7u", Diagramacao: "fldnB7tLHQFNm89vK" } },
   fontes: { table: "tbl8L7CHTLKOfsuj3", f: { Nome: "fldEtApljYo1QPZ1Y", Tipo: "fldX64mLZhKNzixzA", Categoria: "fld1ee1spLYITJKQA", Rede: "fldQeCH8AftrYahdd", URL: "fldaJvN3bK4W64tZT", Peso: "fld2Mrr5M6bBJgdhb", Ativa: "fldtvwIISCKUv2wVC" } },
@@ -2155,7 +2323,7 @@ async function executar(op, dados, ok) {
 
 const v = id => (document.getElementById(id)?.value ?? "").trim();
 async function salvarMarca() {
-  const f = { Nome: "Nome", Posicionamento: "Posicionamento", Publico: "Publico", TomDeVoz: "TomDeVoz", Evitar: "Evitar", ExemplosBons: "ExemplosBons", Pilares: "Pilares", Redes: "Redes", FrequenciaSemanal: "FrequenciaSemanal", Idioma: "Idioma", Cores: "Cores", Logo: "Logo" };
+  const f = { Perfil: "Perfil", Nome: "Nome", Posicionamento: "Posicionamento", Publico: "Publico", TomDeVoz: "TomDeVoz", Evitar: "Evitar", ExemplosBons: "ExemplosBons", Pilares: "Pilares", Redes: "Redes", FrequenciaSemanal: "FrequenciaSemanal", Idioma: "Idioma", Cores: "Cores", Logo: "Logo" };
   const pilares = [...document.querySelectorAll('#m-pilares [aria-pressed="true"]')].map(b => b.dataset.valor);
   const redes = [...document.querySelectorAll('#m-redes [aria-pressed="true"]')].map(b => b.dataset.valor);
   if (!v("m-nome")) { M.aviso = { tipo: "erro", texto: "Preencha pelo menos o nome da marca." }; return renderStatus(); }
@@ -2165,6 +2333,7 @@ async function salvarMarca() {
     [f.Evitar]: v("m-evitar"), [f.ExemplosBons]: v("m-exemplos"), [f.Pilares]: pilares, [f.Redes]: redes,
     [f.FrequenciaSemanal]: Number.isFinite(freq) ? freq : null,
     [f.Idioma]: v("m-idioma") || null,
+    [f.Perfil]: v("m-perfil").replace(/^@+/, "") || null,
     [f.Cores]: [...document.querySelectorAll("#m-cores .cor")].map(r => {
       const hex = r.querySelector(".hex").value.trim().toUpperCase();
       return /^#[0-9A-F]{6}$/.test(hex) ? (hex + " " + r.querySelector(".nome").value.trim()).trim() : null;
@@ -2276,6 +2445,7 @@ function renderMarca() {
         <div class="field full"><span>Pilares de conteúdo</span>${toggles("m-pilares", todosPilares, pil)}
           <span class="actions"><input id="m-novo-pilar" placeholder="Novo pilar" style="max-width:220px"><button type="button" class="btn quiet" data-m="add-pilar">+ Adicionar</button></span></div>
         <div class="field full"><span>Redes onde publica</span>${toggles("m-redes", OPC.Redes, red)}</div>
+        <label class="field"><span>Perfil nas redes (@)</span><input id="m-perfil" placeholder="@suamarca" value="${esc(m.Perfil ? "@" + String(m.Perfil).replace(/^@+/, "") : "")}"></label>
         <label class="field"><span>Idioma das postagens</span><select id="m-idioma">${opcoes(OPC.Idioma, selNome(m.Idioma) || "Português (Brasil)")}</select></label>
         <div class="field full"><span>Cores da marca</span>
           <div class="paleta" id="m-paleta" aria-hidden="true">${lerCores(m.Cores).map(c => `<i style="background:${c.hex}"></i>`).join("")}</div>
