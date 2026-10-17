@@ -58,7 +58,7 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px
 <div class="wrap">
   <header>
     <a class="logo" href="./"><img class="logo-img" src="marca/content-post-logo-branco.png" alt="Content Post"></a>
-    <a class="btn" href="./">Entrar</a>
+    <a class="btn" href="app.html">Entrar</a>
   </header>
 
   <section class="hero">
@@ -80,7 +80,7 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px
     <button data-ciclo="anual">Anual <small>-17%</small></button>
   </div>
   <div class="grade" id="grade"></div>
-  <p class="teste">Quer testar antes? Crie sua conta e ganhe <b>7 dias com 3 posts grátis</b>. <a href="./">Começar agora</a></p>
+  <p class="teste">Quer testar antes? Crie sua conta e ganhe <b>7 dias com 3 posts grátis</b>. <a href="app.html">Começar agora</a></p>
 
   <section class="afiliado" id="afiliados">
     <div><h2>Seja afiliado</h2><p>Indique a Content Post e ganhe <strong>50% de comissão</strong> em cada venda que vier do seu link. O cadastro e os pagamentos são feitos pela Kiwify.</p></div>
@@ -133,7 +133,7 @@ function desenhar() {
       <div class="preco">${reais(porMes)}<small>/mês</small></div>
       <div class="cobranca">${m > 1 ? `${reais(porMes * m)} a cada ${m} meses` : "cobrado todo mês"}</div>
       <ul><li>${p.posts} posts por mês criados pela IA</li><li>${p.ideias} buscas de ideias por mês</li><li>Fotos e vídeos com IA (Magnific)</li><li>Calendário e publicação automática</li><li>Equipe sem limite de pessoas</li>${p.extra.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
-      ${link ? `<a class="btn ${p.destaque ? "primary" : ""}" href="${esc(link)}">Assinar ${esc(p.nome)}</a>` : `<a class="btn" href="./">Começar o teste grátis</a>`}
+      ${link ? `<a class="btn ${p.destaque ? "primary" : ""}" href="${esc(link)}">Assinar ${esc(p.nome)}</a>` : `<a class="btn" href="app.html">Começar o teste grátis</a>`}
     </div>`;
   }).join("");
 }
