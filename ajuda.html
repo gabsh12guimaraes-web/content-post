@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Content Post · Como usar</title>
+<meta name="description" content="Guia da Content Post: marca, ideias, calendário, revisão, publicação e integrações.">
+<link rel="icon" type="image/svg+xml" href="marca/content-post-simbolo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #0A0C15; --card: #121522; --card2: #171a29; --line: rgba(255,255,255,.09); --ink: #fff; --soft: rgba(255,255,255,.74); --faint: rgba(255,255,255,.5); --red: #F8395A; --ok: #3ddc97; --warn: #ffb547; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.65 Poppins, system-ui, sans-serif; }
+a { color: var(--red); text-underline-offset: 3px; }
+[hidden] { display: none !important; }
+.topo { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 14px; padding: 12px 20px; background: rgba(10,12,21,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.logo { display: inline-flex; align-items: center; gap: 9px; color: #fff; text-decoration: none; font-weight: 800; letter-spacing: -.03em; font-size: 17px; white-space: nowrap; }
+.logo img { width: 28px; height: 28px; } .logo b { color: var(--red); } .logo small { font-weight: 500; color: var(--faint); letter-spacing: 0; font-size: 13px; margin-left: 4px; }
+.busca { margin-left: auto; flex: 0 1 320px; }
+.busca input { width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 8px; color: #fff; padding: 9px 12px; font: inherit; font-size: 14px; outline: none; }
+.busca input:focus { border-color: var(--red); }
+.voltar { color: var(--soft); text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap; }
+.grade { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; }
+nav.indice { position: sticky; top: 62px; align-self: start; max-height: calc(100vh - 62px); overflow: auto; padding: 24px 16px 40px 20px; border-right: 1px solid var(--line); }
+nav.indice b { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin: 18px 0 6px; }
+nav.indice a { display: block; color: var(--soft); text-decoration: none; padding: 5px 10px; border-radius: 6px; font-size: 14px; }
+nav.indice a:hover, nav.indice a.ativo { background: var(--card); color: #fff; }
+nav.indice a.ativo { box-shadow: inset 2px 0 0 var(--red); }
+main { padding: 28px 32px 80px; min-width: 0; }
+main > header h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -.03em; margin: 0 0 10px; }
+main > header p { color: var(--soft); max-width: 68ch; margin: 0; }
+.fluxo { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 8px; }
+.fluxo a { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #fff; background: var(--card); border: 1px solid var(--line); border-radius: 99px; padding: 6px 14px 6px 6px; font-size: 13px; font-weight: 600; }
+.fluxo a i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; background: var(--red); display: grid; place-items: center; font-size: 12px; }
+section.artigo { padding-top: 34px; border-top: 1px solid var(--line); margin-top: 34px; }
+h2 { font-size: 24px; letter-spacing: -.02em; margin: 0 0 8px; }
+h3 { font-size: 17px; margin: 26px 0 6px; }
+p, li { color: var(--soft); } p { margin: 8px 0; max-width: 74ch; }
+ol, ul { padding-left: 22px; max-width: 74ch; } li { margin: 4px 0; }
+strong { color: #fff; font-weight: 600; }
+code { background: var(--card2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font-size: 13px; color: #fff; }
+.dica, .alerta { border: 1px solid var(--line); border-left: 3px solid var(--ok); background: var(--card); border-radius: 8px; padding: 10px 14px; margin: 14px 0; max-width: 74ch; }
+.alerta { border-left-color: var(--warn); }
+.dica p, .alerta p { margin: 4px 0; }
+table { border-collapse: collapse; width: 100%; max-width: 760px; margin: 12px 0; font-size: 14px; display: block; overflow-x: auto; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: #fff; font-weight: 600; background: var(--card); } td { color: var(--soft); }
+.status { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: #fff; white-space: nowrap; }
+.sem-resultado { color: var(--faint); padding: 20px 0; }
+mark { background: rgba(248,57,90,.35); color: #fff; border-radius: 3px; }
+@media (max-width: 860px) {
+  .grade { grid-template-columns: 1fr; }
+  nav.indice { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 6px; overflow-x: auto; }
+  nav.indice b { display: none; } nav.indice a { white-space: nowrap; background: var(--card); }
+  main { padding: 22px 16px 60px; }
+  .topo { flex-wrap: wrap; padding: 10px 16px; } .busca { flex: 1 1 100%; order: 3; }
+}
+</style>
+</head>
+<body>
+<div class="topo">
+  <a class="logo" href="./"><img src="marca/content-post-simbolo.svg" alt="">content<b>post</b><small>Como usar</small></a>
+  <label class="busca"><input id="busca" type="search" placeholder="Buscar na documentação…" aria-label="Buscar na documentação"></label>
+  <a class="voltar" href="./">Voltar para a plataforma →</a>
+</div>
+<div class="grade">
+  <nav class="indice" id="indice" aria-label="Índice">
+    <b>Começo</b>
+    <a href="#comecar">Primeiros passos</a>
+    <a href="#equipe">Equipe e organizações</a>
+    <b>Pauta</b>
+    <a href="#marca">Marca</a>
+    <a href="#logos">Logos</a>
+    <a href="#mood-board">Mood board</a>
+    <a href="#fontes">Fontes</a>
+    <a href="#ideias">Ideias</a>
+    <a href="#calendario">Calendário</a>
+    <a href="#criar-post">Criar um post</a>
+    <a href="#stories">Stories</a>
+    <a href="#revisao">Revisão</a>
+    <a href="#diagramacao">Diagramação</a>
+    <a href="#textos">Editar textos</a>
+    <a href="#ajustes">Pedir ajuste</a>
+    <a href="#agendados">Agendados e publicação</a>
+    <b>Configuração</b>
+    <a href="#integracoes">Integrações</a>
+    <a href="#claude">Claude (Anthropic)</a>
+    <a href="#magnific">Magnific (Freepik)</a>
+    <a href="#apify">Apify</a>
+    <a href="#zernio">Zernio</a>
+    <a href="#airtable">Importar do Airtable</a>
+    <a href="#planos">Planos</a>
+    <b>Ajuda</b>
+    <a href="#problemas">Problemas comuns</a>
+  </nav>
+  <main id="conteudo">
+    <header>
+      <h1>Como usar a Content Post</h1>
+      <p>A plataforma cuida do Instagram da sua marca do começo ao fim: a IA sugere ideias, você escolhe o que vai para o calendário, ela cria os posts com textos, fotos e vídeos, você revisa e aprova, e a publicação acontece sozinha na hora marcada.</p>
+      <div class="fluxo" aria-label="O fluxo da plataforma">
+        <a href="#marca"><i>1</i>Marca e fontes</a><a href="#ideias"><i>2</i>Ideias</a><a href="#calendario"><i>3</i>Calendário</a><a href="#revisao"><i>4</i>Revisão</a><a href="#agendados"><i>5</i>Publicação</a>
+      </div>
+    </header>
+
+    <section class="artigo" id="comecar">
+      <h2>Primeiros passos</h2>
+      <ol>
+        <li><strong>Crie sua conta</strong> na tela de entrada, em "Criar nova conta". Isso já cria a sua organização, e você vira o dono dela.</li>
+        <li><strong>Cadastre as chaves</strong> em <a href="#integracoes">Integrações</a>. Sem a chave do Claude e a do Magnific, a IA não consegue criar posts.</li>
+        <li><strong>Preencha a marca</strong>: nome, posicionamento, público, tom de voz, cores e logos. Veja <a href="#marca">Marca</a>.</li>
+        <li><strong>Cadastre fontes</strong>: perfis e hashtags que a IA vai observar para sugerir ideias. Veja <a href="#fontes">Fontes</a>.</li>
+        <li><strong>Busque ideias</strong>, leve as melhores para o calendário e peça para a IA criar o post.</li>
+      </ol>
+      <div class="dica"><p>O quadro <strong>Próximo passo</strong>, no topo da plataforma, sempre mostra o que está esperando você (um post para revisar, ideias para decidir, um erro).</p></div>
+    </section>
+
+    <section class="artigo" id="equipe">
+      <h2>Equipe e organizações</h2>
+      <p>Cada <strong>organização</strong> tem sua própria marca, calendário, equipe e chaves. Uma pessoa pode participar de várias e trocar entre elas no menu.</p>
+      <table>
+        <tr><th>Papel</th><th>O que pode fazer</th></tr>
+        <tr><td><strong>Dono</strong></td><td>Tudo, inclusive mudar papéis de outros donos. Toda organização precisa ter pelo menos um.</td></tr>
+        <tr><td><strong>Admin</strong></td><td>Convida e remove pessoas, cadastra as chaves das integrações e cuida do plano.</td></tr>
+        <tr><td><strong>Editor</strong></td><td>Cuida da pauta: marca, fontes, ideias, calendário, revisão e publicação.</td></tr>
+      </table>
+      <h3>Convidar alguém</h3>
+      <ol>
+        <li>Abra <strong>Equipe</strong> no menu e informe o e-mail e o papel.</li>
+        <li>Copie o link do convite e mande para a pessoa. Ela cria a conta (ou entra) com o mesmo e-mail e já cai na sua organização.</li>
+      </ol>
+      <p>O convite vale por 7 dias. Para outra marca, use <strong>Nova organização</strong>.</p>
+    </section>
+
+    <section class="artigo" id="marca">
+      <h2>Marca</h2>
+      <p>É o que a IA lê antes de escrever qualquer coisa. Quanto mais concreto, mais o post parece da sua marca.</p>
+      <ul>
+        <li><strong>Posicionamento:</strong> o que a marca é e por que existe, em 2 ou 3 frases.</li>
+        <li><strong>Público:</strong> quem você quer alcançar, com dores e desejos.</li>
+        <li><strong>Tom de voz:</strong> como a marca fala. Ex.: "próxima, direta, bem-humorada sem forçar".</li>
+        <li><strong>Pilares:</strong> os assuntos que a marca trata. Cada ideia é ligada a um pilar.</li>
+        <li><strong>Evitar:</strong> palavras, temas ou promessas proibidos. A IA respeita mesmo quando você pede um ajuste.</li>
+        <li><strong>Exemplos bons:</strong> legendas ou posts que deram certo, para a IA pegar o estilo.</li>
+        <li><strong>Cores:</strong> a primeira é o fundo e a segunda é o destaque das artes.</li>
+        <li><strong>Perfil (@):</strong> aparece no "Siga @perfil" do último slide dos modelos editoriais.</li>
+      </ul>
+      <p>Clique em <strong>Salvar marca</strong>. Vale para toda a equipe.</p>
+    </section>
+
+    <section class="artigo" id="logos">
+      <h2>Logos</h2>
+      <p>São quatro versões, e cada arte escolhe a que contrasta com o fundo:</p>
+      <table>
+        <tr><th>Versão</th><th>Quando aparece</th></tr>
+        <tr><td>Logo light</td><td>Fundos escuros e fotos escuras</td></tr>
+        <tr><td>Logo dark</td><td>Fundos claros e fotos claras</td></tr>
+        <tr><td>Símbolo light / dark</td><td>Lugares pequenos, como o rodapé dos modelos editoriais</td></tr>
+      </table>
+      <p>Com <strong>Tratar ao enviar</strong> marcado, a plataforma tira o fundo liso, recorta as sobras, padroniza a margem e cria a versão light ou dark que faltar. Se o logo tiver letras claras dentro de um selo colorido, desmarque para enviar o arquivo como está.</p>
+      <div class="dica"><p>Prefira PNG com fundo transparente ou SVG. O tamanho máximo é 5 MB.</p></div>
+    </section>
+
+    <section class="artigo" id="mood-board">
+      <h2>Mood board (opcional)</h2>
+      <p>Imagens de referência do estilo visual da marca: luz, cores, enquadramento, clima. A IA olha essas imagens ao escrever os pedidos de foto e vídeo. Use até 6 imagens, em JPG, PNG ou WEBP.</p>
+    </section>
+
+    <section class="artigo" id="fontes">
+      <h2>Fontes</h2>
+      <p>De onde a IA tira inspiração para as ideias. Cada fonte tem um <strong>tipo</strong>, uma <strong>rede</strong> e um <strong>peso</strong> (de 1 a 5: quanto maior, mais ela influencia).</p>
+      <table>
+        <tr><th>Tipo</th><th>Como é usada</th></tr>
+        <tr><td>Perfil (Instagram ou TikTok)</td><td>A Apify coleta os posts recentes do perfil (concorrentes, referências).</td></tr>
+        <tr><td>Hashtag (Instagram ou TikTok)</td><td>A Apify coleta os posts recentes da hashtag.</td></tr>
+        <tr><td>Tema, palavra-chave, site, subreddit, canal do YouTube</td><td>Entram como assuntos de interesse para a IA, sem coleta.</td></tr>
+      </table>
+      <p>Desative uma fonte, em vez de apagar, para pausar sem perder o cadastro.</p>
+    </section>
+
+    <section class="artigo" id="ideias">
+      <h2>Ideias</h2>
+      <p>Clique em <strong>Buscar ideias novas</strong>. A IA lê as fontes ativas e a marca e devolve sugestões com formato, rede, pilar e uma nota de <strong>aderência</strong> (de 0 a 10) que diz o quanto a ideia combina com a marca.</p>
+      <ul>
+        <li><strong>Tema (opcional):</strong> direcione a busca. Ex.: "pré-lançamento do app".</li>
+        <li><strong>Quantas ideias:</strong> 5, 10, 15 ou 20.</li>
+        <li><strong>Formatos:</strong> marque um ou mais (Reels, Carrossel, Estático, Stories) ou deixe "Misturado".</li>
+      </ul>
+      <p>Para cada ideia: <strong>Levar para o calendário</strong> (você escolhe data e horário), <strong>Guardar</strong> (para depois) ou <strong>Descartar</strong> (o motivo ajuda a IA a errar menos).</p>
+      <p>A busca leva de 1 a 3 minutos. Pode fechar a aba: as ideias ficam salvas.</p>
+    </section>
+
+    <section class="artigo" id="calendario">
+      <h2>Calendário</h2>
+      <p>Mostra 3 meses por vez. Use as setas ou arraste a faixa dos meses. Cada post tem um status:</p>
+      <table>
+        <tr><th>Status</th><th>O que significa</th></tr>
+        <tr><td><span class="status">Planejado</span></td><td>Tem data, mas a IA ainda não criou o conteúdo.</td></tr>
+        <tr><td><span class="status">Em criação</span></td><td>A IA está escrevendo e gerando as fotos e os vídeos.</td></tr>
+        <tr><td><span class="status">Em revisão</span></td><td>Pronto, esperando você em <a href="#revisao">Revisão</a>.</td></tr>
+        <tr><td><span class="status">Agendado</span></td><td>Aprovado. Vai para a rede na hora marcada.</td></tr>
+        <tr><td><span class="status">Publicado</span></td><td>Já está no ar.</td></tr>
+        <tr><td><span class="status">Erro</span></td><td>Algo falhou. Abra o post para ver o motivo e tentar de novo.</td></tr>
+      </table>
+      <p>Clique em um post para <strong>Criar este post</strong>, <strong>Mudar data</strong> ou <strong>Remover</strong>. Ao remover, a ideia volta para Guardadas.</p>
+    </section>
+
+    <section class="artigo" id="criar-post">
+      <h2>Criar um post</h2>
+      <p>No calendário, abra um post planejado e clique em <strong>Criar este post</strong>. Antes de começar, a plataforma pergunta como você quer o post:</p>
+      <ul>
+        <li><strong>Carrossel:</strong> capa (foto, vídeo ou só texto), fundo dos outros slides (fotos, vídeos, misto ou só texto) e quantidade de slides.</li>
+        <li><strong>Estático:</strong> com foto ou só texto.</li>
+        <li><strong>Reels:</strong> duração, número de cenas e se leva texto na tela.</li>
+        <li><strong>Stories:</strong> veja <a href="#stories">Stories</a>.</li>
+        <li><strong>Objetivo e observações</strong> em todos os formatos. Ex.: "mostrar a pulseira em uso no bar".</li>
+      </ul>
+      <p>O Claude escreve legenda, hashtags e o texto de cada slide ou cena. O Magnific gera as fotos e os clipes. Leva de 2 a 5 minutos, e vídeos levam mais.</p>
+      <div class="alerta"><p>Clipes de vídeo gastam bem mais créditos do Magnific que fotos. A plataforma avisa quantos clipes o post vai gerar antes de você confirmar.</p></div>
+    </section>
+
+    <section class="artigo" id="stories">
+      <h2>Stories</h2>
+      <table>
+        <tr><th>Tipo</th><th>O que é gerado</th></tr>
+        <tr><td><strong>Imagem estática</strong></td><td>1 foto vertical com texto curto e logo. É publicada como imagem e é a opção mais barata.</td></tr>
+        <tr><td><strong>Vídeo contínuo</strong></td><td>1 clipe de 8 a 10 segundos, sem cortes.</td></tr>
+        <tr><td><strong>Vários vídeos curtos</strong></td><td>De 3 a 6 cenas em sequência, com a duração que você escolher.</td></tr>
+      </table>
+      <p>Stories não levam legenda: o texto vai na própria arte.</p>
+    </section>
+
+    <section class="artigo" id="revisao">
+      <h2>Revisão</h2>
+      <p>Quando a IA termina, o post aparece em <strong>Revisão</strong> com uma prévia como no Instagram. Você tem duas abas:</p>
+      <ul>
+        <li><strong>Visual:</strong> modelo, fundo, alinhamento, posição do texto e logo. Veja <a href="#diagramacao">Diagramação</a>.</li>
+        <li><strong>Textos:</strong> título e texto de cada slide, legenda e hashtags. Veja <a href="#textos">Editar textos</a>.</li>
+      </ul>
+      <p>Depois, escolha:</p>
+      <ul>
+        <li><strong>Gerar artes e aprovar:</strong> monta as artes finais (imagens JPG ou vídeo MP4) com a diagramação escolhida e manda o post para a fila de publicação. Deixe a aba aberta enquanto grava vídeos.</li>
+        <li><strong>Pedir ajuste:</strong> a IA refaz o que você pedir. Veja <a href="#ajustes">Pedir ajuste</a>.</li>
+      </ul>
+      <div class="dica"><p>O que vai para a rede são as <strong>artes finais</strong>. Se mudar a diagramação ou os textos depois de gerar, gere de novo.</p></div>
+    </section>
+
+    <section class="artigo" id="diagramacao">
+      <h2>Diagramação</h2>
+      <table>
+        <tr><th>Opção</th><th>Para que serve</th></tr>
+        <tr><td><strong>Modelo</strong></td><td><em>Foto de fundo</em>: a foto ocupa tudo e o texto vai por cima. <em>Editorial</em>: logo no topo, imagem em um cartão, título grande e caixa de texto. <em>Imagem lateral</em>: texto à esquerda e imagem alta à direita.</td></tr>
+        <tr><td><strong>Fundo</strong></td><td>Claro ou escuro, nos modelos Editorial e Imagem lateral.</td></tr>
+        <tr><td><strong>Texto</strong></td><td>Alinhamento (esquerda, centro, direita) e posição (automática, topo, meio, base).</td></tr>
+        <tr><td><strong>Logo</strong></td><td>Automático (escolhe pela cor do fundo), uma versão fixa ou sem logo, e a posição.</td></tr>
+      </table>
+      <p>A prévia muda na hora e a escolha fica salva no post.</p>
+    </section>
+
+    <section class="artigo" id="textos">
+      <h2>Editar textos</h2>
+      <p>Na aba <strong>Textos</strong> da revisão, mude o título e o texto de cada slide, a legenda e as hashtags, e clique em <strong>Salvar textos</strong>. É o jeito mais rápido de corrigir uma palavra sem esperar a IA. Vale para Carrossel, Estático e Stories em imagem.</p>
+    </section>
+
+    <section class="artigo" id="ajustes">
+      <h2>Pedir ajuste</h2>
+      <ol>
+        <li>Clique em <strong>Pedir ajuste</strong>.</li>
+        <li>Em <strong>Onde ajustar</strong>, escolha o post inteiro ou um slide só. Com um slide só, o resto não muda.</li>
+        <li>Marque <strong>Gerar uma imagem nova</strong> se quiser outra foto. Pode deixar o texto vazio para só trocar a imagem.</li>
+        <li>Escreva o que mudar, de forma concreta. Ex.: "deixe o título do slide 2 mais curto".</li>
+      </ol>
+      <p>A nova versão aparece em 1 ou 2 minutos. Cada post aceita até 3 ajustes; depois disso, remova do calendário e agende a ideia de novo.</p>
+    </section>
+
+    <section class="artigo" id="agendados">
+      <h2>Agendados e publicação</h2>
+      <p>Posts aprovados ficam em <strong>Agendados</strong>. A plataforma confere a fila a cada minuto e publica pelo <a href="#zernio">Zernio</a> na data e hora marcadas.</p>
+      <ul>
+        <li><strong>Publicar agora:</strong> publica na hora, sem esperar o horário.</li>
+        <li><strong>Mudar data:</strong> troca a data e o horário.</li>
+      </ul>
+      <p>Se a publicação falhar, o post vai para <span class="status">Erro</span> com o motivo. Corrija (por exemplo, reconectando o Instagram no Zernio) e escolha uma nova data.</p>
+    </section>
+
+    <section class="artigo" id="integracoes">
+      <h2>Integrações</h2>
+      <p>A plataforma usa quatro serviços. Cada organização cadastra as próprias chaves em <strong>Integrações</strong> (só donos e admins). As chaves ficam cifradas e nunca voltam para a tela; aparecem só os 4 últimos caracteres para você saber qual está salva.</p>
+      <table>
+        <tr><th>Serviço</th><th>Para que serve</th><th>Obrigatório?</th></tr>
+        <tr><td><a href="#claude">Claude (Anthropic)</a></td><td>Escreve ideias, posts e ajustes</td><td>Sim</td></tr>
+        <tr><td><a href="#magnific">Magnific (Freepik)</a></td><td>Gera as fotos e os clipes de vídeo</td><td>Sim, para posts com imagem</td></tr>
+        <tr><td><a href="#apify">Apify</a></td><td>Coleta posts das fontes do Instagram e TikTok</td><td>Não. Sem ela, as ideias saem só dos temas.</td></tr>
+        <tr><td><a href="#zernio">Zernio</a></td><td>Publica no Instagram e nas outras redes</td><td>Sim, para publicar</td></tr>
+      </table>
+      <h3>Como cadastrar uma chave</h3>
+      <ol>
+        <li>Abra <strong>Integrações</strong> no menu.</li>
+        <li>Cole a chave no campo do serviço e clique em <strong>Salvar</strong>.</li>
+        <li>Clique em <strong>Testar</strong>. "Chave funcionando" quer dizer que está tudo certo. Se der erro, a mensagem diz o motivo; veja também <a href="#problemas">Problemas comuns</a>.</li>
+      </ol>
+      <div class="alerta"><p>Nunca mande chaves por e-mail ou mensagem. Cole direto na plataforma. Para trocar, cole a nova por cima; para desligar, use <strong>Remover</strong>.</p></div>
+    </section>
+
+    <section class="artigo" id="claude">
+      <h2>Claude (Anthropic)</h2>
+      <ol>
+        <li>Acesse <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> e entre (ou crie a conta).</li>
+        <li>Em <strong>Settings › Billing</strong>, adicione créditos. A conta precisa ter saldo.</li>
+        <li>Em <strong>Settings › Workspaces</strong>, entre em um workspace (pode ser o <em>Default</em>).</li>
+        <li>Dentro do workspace, abra <strong>API keys › Create key</strong>, dê um nome (ex.: "Content Post") e copie a chave. Ela começa com <code>sk-ant-</code> e só aparece uma vez.</li>
+        <li>Cole em Integrações › Claude, salve e teste.</li>
+      </ol>
+      <div class="alerta"><p>A chave precisa ser criada <strong>dentro de um workspace</strong>. Uma chave fora de workspace dá o erro "API key is not scoped to a workspace".</p></div>
+      <p>Custo aproximado: alguns centavos de dólar por post, cobrados pela Anthropic na sua conta.</p>
+    </section>
+
+    <section class="artigo" id="magnific">
+      <h2>Magnific (Freepik)</h2>
+      <ol>
+        <li>Acesse <a href="https://www.magnific.com/developers/dashboard/api-key" target="_blank" rel="noopener">magnific.com › Developers › API key</a> e entre com a sua conta.</li>
+        <li>Gere uma chave de API e copie.</li>
+        <li>Cole em Integrações › Magnific, salve e teste.</li>
+      </ol>
+      <p>As fotos usam o Mystic e os vídeos usam o Kling. Cada foto e cada segundo de vídeo consome créditos da sua conta no Magnific.</p>
+    </section>
+
+    <section class="artigo" id="apify">
+      <h2>Apify</h2>
+      <ol>
+        <li>Acesse <a href="https://console.apify.com/settings/integrations" target="_blank" rel="noopener">console.apify.com › Settings › API &amp; Integrations</a>.</li>
+        <li>Copie o <strong>Personal API token</strong> (começa com <code>apify_api_</code>).</li>
+        <li>Cole em Integrações › Apify, salve e teste.</li>
+      </ol>
+      <p>O plano grátis da Apify costuma bastar para algumas buscas de ideias por semana.</p>
+    </section>
+
+    <section class="artigo" id="zernio">
+      <h2>Zernio</h2>
+      <ol>
+        <li>Crie a conta em <a href="https://zernio.com" target="_blank" rel="noopener">zernio.com</a>.</li>
+        <li>Conecte o Instagram da marca (e as outras redes que quiser) no painel do Zernio. O Instagram precisa ser conta profissional (comercial ou criador).</li>
+        <li>Gere uma chave de API no painel do Zernio e copie.</li>
+        <li>Cole em Integrações › Zernio, salve e teste.</li>
+      </ol>
+      <p>A plataforma publica na primeira conta conectada de cada rede. O plano grátis do Zernio permite cerca de 20 posts por mês.</p>
+    </section>
+
+    <section class="artigo" id="airtable">
+      <h2>Importar do Airtable</h2>
+      <p>Para quem usava a versão antiga com Airtable. Traz marca, logos, mood board, fontes, ideias e calendário de uma vez.</p>
+      <ol>
+        <li>Em <a href="https://airtable.com/create/tokens" target="_blank" rel="noopener">airtable.com/create/tokens</a>, crie um token com os escopos <code>data.records:read</code> e <code>schema.bases:read</code> e dê acesso à base da pauta.</li>
+        <li>Pegue o <strong>ID da base</strong>: é o trecho que começa com <code>app</code> no endereço da base.</li>
+        <li>Em Integrações › Trazer do Airtable, cole o token e o ID e clique em <strong>Importar</strong>.</li>
+      </ol>
+      <div class="alerta"><p>Importe uma vez só: a importação não confere duplicados. O token é usado só nessa hora e não fica guardado; depois você pode apagá-lo no Airtable.</p></div>
+    </section>
+
+    <section class="artigo" id="planos">
+      <h2>Planos</h2>
+      <p>Em <strong>Plano</strong> você vê o plano da organização, quantos posts e buscas de ideias já usou no mês, e assina ou troca de plano. O pagamento é pela Kiwify (cartão, Pix ou boleto) e o plano é liberado assim que a compra é aprovada.</p>
+      <ul>
+        <li>Só contam posts criados pela IA. Ajustes não contam, e post que falhou também não.</li>
+        <li>O teste grátis dura 7 dias, com 3 posts.</li>
+        <li>Ao cancelar, você continua usando até o fim do período pago.</li>
+      </ul>
+      <p>Veja os preços em <a href="planos.html">Planos</a>.</p>
+    </section>
+
+    <section class="artigo" id="problemas">
+      <h2>Problemas comuns</h2>
+      <h3>"A chave foi recusada"</h3>
+      <p>A chave está errada, incompleta ou foi apagada no serviço. Copie de novo, sem espaços, e salve por cima.</p>
+      <h3>"API key is not scoped to a workspace" (Claude)</h3>
+      <p>Crie a chave dentro de um workspace do console da Anthropic. Veja <a href="#claude">Claude</a>.</p>
+      <h3>"Sem créditos" (Claude ou Magnific)</h3>
+      <p>Adicione saldo no serviço. Na Anthropic: Settings › Billing. No Magnific: o plano ou os créditos da sua conta.</p>
+      <h3>O post ficou em "Erro"</h3>
+      <p>Abra o post no calendário para ver o motivo. Na maioria das vezes é uma chave faltando ou sem crédito. Corrija e clique em <strong>Criar este post</strong> de novo.</p>
+      <h3>Algumas fotos ou clipes não vieram</h3>
+      <p>O Magnific às vezes falha em uma imagem. Peça um ajuste no slide (marque "Gerar uma imagem nova").</p>
+      <h3>O vídeo final não grava</h3>
+      <p>A gravação acontece no navegador: deixe a aba aberta e visível até terminar. No celular, prefira o computador para vídeos.</p>
+      <h3>O post não foi publicado</h3>
+      <p>Confira em Integrações se o Zernio está funcionando e, no painel do Zernio, se o Instagram continua conectado. Depois, use <strong>Publicar agora</strong> ou mude a data.</p>
+    </section>
+    <p class="sem-resultado" id="sem-resultado" hidden>Nada encontrado. Tente outra palavra.</p>
+  </main>
+</div>
+<script>
+// Índice acompanha a seção visível.
+const links = [...document.querySelectorAll("nav.indice a")];
+const secoes = [...document.querySelectorAll("section.artigo")];
+const obs = new IntersectionObserver(es => {
+  for (const e of es) if (e.isIntersecting) links.forEach(a => a.classList.toggle("ativo", a.getAttribute("href") === "#" + e.target.id));
+}, { rootMargin: "-80px 0px -70% 0px" });
+secoes.forEach(s => obs.observe(s));
+// Busca: mostra só as seções com a palavra.
+const busca = document.getElementById("busca");
+const normal = t => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+busca.addEventListener("input", () => {
+  const q = normal(busca.value.trim());
+  let algum = false;
+  for (const s of secoes) {
+    const ok = !q || normal(s.textContent).includes(q);
+    s.hidden = !ok; algum = algum || ok;
+    const a = links.find(l => l.getAttribute("href") === "#" + s.id); if (a) a.hidden = !ok;
+  }
+  document.getElementById("sem-resultado").hidden = algum;
+});
+// Abre já na seção do link (vindo do "?" da plataforma) e destaca o título por um instante.
+function destacar() {
+  const s = location.hash && document.querySelector(location.hash);
+  if (!s) return;
+  const h = s.querySelector("h2"); if (!h) return;
+  h.animate([{ color: "#F8395A" }, { color: "#fff" }], { duration: 1600, easing: "ease-out" });
+}
+addEventListener("hashchange", destacar); destacar();
+</script>
+</body>
+</html>

@@ -518,6 +518,18 @@ body.travado .wrap { visibility: hidden; }
   body { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
   .toast { bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
 }
+/* ajuda contextual */
+.ajuda-btn { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-left: 6px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.28); background: transparent; color: var(--ink-soft); font: 700 11px/1 Poppins, sans-serif; cursor: pointer; vertical-align: middle; flex: none; text-transform: none; letter-spacing: 0; }
+.ajuda-btn:hover, .ajuda-btn[aria-expanded="true"] { border-color: var(--red, #F8395A); color: #fff; background: rgba(248,57,90,.18); }
+.ajuda-btn:focus-visible { outline: 2px solid var(--red, #F8395A); outline-offset: 2px; }
+.ajuda-pop { position: fixed; z-index: 1000; background: #171a29; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 12px 14px; box-shadow: 0 18px 40px -12px rgba(0,0,0,.7); color: #fff; font-size: 13px; line-height: 1.5; text-align: left; text-transform: none; letter-spacing: 0; font-weight: 400; animation: ajuda-entra .14s ease-out; }
+.ajuda-pop b { display: block; font-size: 13.5px; margin-bottom: 4px; }
+.ajuda-pop p { margin: 0 0 8px; color: rgba(255,255,255,.76); }
+.ajuda-pop a { color: var(--red, #F8395A); font-weight: 600; text-decoration: none; }
+.ajuda-pop a:hover { text-decoration: underline; }
+@keyframes ajuda-entra { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .ajuda-pop { animation: none; } }
+.pg h1 { display: inline-flex; align-items: center; }
 /* logo da Content Post */
 .cp-logo { display: inline-flex; align-items: center; gap: 10px; }
 .cp-simbolo { width: 30px; height: 30px; flex: none; display: block; }
@@ -802,7 +814,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 <body>
 <div class="wrap">
       <header class="pg">
-        <div><div class="crumb"><span>Pauta</span> / <b id="pg-crumb">Ideias</b></div><h1 id="pg-titulo">Ideias</h1><p id="pg-sub"></p></div>
+        <div><div class="crumb"><span>Pauta</span> / <b id="pg-crumb">Ideias</b></div><h1><span id="pg-titulo">Ideias</span><span id="pg-ajuda"></span></h1><p id="pg-sub"></p></div>
       </header>
       <div class="proximo" id="proximo" hidden></div>
       <div class="kpis" hidden>
@@ -943,7 +955,7 @@ async function disparar(corpo, aoComecar) {
 const PI = { tema: "", quantidade: "10", formatos: [] };
 function abrirPedidoIdeias() {
   const FORM = [["Reels", "Reels"], ["Carrossel", "Carrossel"], ["Estatico", "Estático"], ["Stories", "Stories"]];
-  abrirDlg(`<h2>Buscar ideias novas</h2>
+  abrirDlg(`<h2>Buscar ideias novas${ajuda("buscarIdeias")}</h2>
     <p class="hint">A IA lê as fontes ativas e sugere ideias para a marca. Tudo aqui é opcional.</p>
     <form onsubmit="return false" style="display:grid;gap:14px">
       <label class="field"><span>Tema (opcional)</span><input id="pi-tema" maxlength="300" placeholder="Ex.: segurança nos pagamentos, festival de verão, dicas para produtoras" value="${esc(PI.tema)}"></label>
@@ -1014,7 +1026,7 @@ function desenharBriefing() {
   }).join("");
   const r = BR.r;
   const videos = p.formato === "Stories" && r.story === "imagem" ? 0 : p.formato === "Stories" && r.story === "continuo" ? 1 : ["Reels", "Stories"].includes(p.formato) ? Number(r.cenas) || 4 : (r.capa === "video" ? 1 : 0) + (r.fundo === "videos" ? (Number(r.slides) || 7) - 2 : r.fundo === "misto" ? 2 : 0);
-  abrirDlg(`<h2>Como vai ser este post?</h2>
+  abrirDlg(`<h2>Como vai ser este post?${ajuda(p.formato === "Stories" ? "stories" : "briefing")}</h2>
     <p class="hint">${esc(p.titulo)} · ${esc(p.formato)} · ${esc(p.rede)}</p>
     <form onsubmit="return false" style="display:grid;gap:14px">
       ${blocos}
@@ -1449,6 +1461,56 @@ function fotosCheias(p) {
 
 // Story em imagem estática não é vídeo: vira uma arte vertical.
 const ehStoryImagem = p => p.formato === "Stories" && p.briefing && p.briefing.story === "imagem";
+// Ajuda contextual: resumo curto + link para a seção da documentação.
+const AJUDA = {
+  marcaPagina: ["Marca e fontes", "Tudo o que a IA lê antes de escrever: quem é a marca, como ela fala, as cores, os logos e de onde tirar ideias. Vale para toda a equipe.", "marca"],
+  marca: ["Marca", "Posicionamento, público, tom de voz e pilares guiam cada texto. Em \"Evitar\", liste o que a IA nunca deve dizer. Quanto mais concreto, mais o post parece seu.", "marca"],
+  cores: ["Cores da marca", "A primeira cor é o fundo das artes e a segunda é o destaque (barras, botões, avatar).", "marca"],
+  logos: ["Logos", "Envie as quatro versões: cada arte usa a que contrasta com o fundo. Com \"Tratar ao enviar\", o fundo liso sai e a versão que faltar é criada.", "logos"],
+  mood: ["Mood board", "Até 6 imagens de referência de estilo. A IA olha essas imagens ao pedir as fotos e os vídeos.", "mood-board"],
+  fontes: ["Fontes", "Perfis e hashtags do Instagram e do TikTok são coletados pela Apify. Temas e palavras-chave entram como assunto. O peso (1 a 5) diz quanto cada fonte influencia.", "fontes"],
+  ideias: ["Ideias", "A IA lê as fontes e a marca e sugere ideias com nota de aderência. Leve as boas para o calendário, guarde ou descarte (o motivo ensina a IA).", "ideias"],
+  buscarIdeias: ["Buscar ideias", "Tudo é opcional: um tema direciona a busca, e você escolhe quantas ideias e quais formatos. Leva de 1 a 3 minutos.", "ideias"],
+  calendario: ["Calendário", "Cada post passa por Planejado → Em criação → Em revisão → Agendado → Publicado. Abra um post para criar, mudar a data ou remover.", "calendario"],
+  briefing: ["Como vai ser este post", "Suas respostas viram instruções para a IA: capa, fundos, número de slides ou cenas e objetivo. Vídeos gastam mais créditos que fotos.", "criar-post"],
+  stories: ["Stories", "Imagem estática: 1 foto vertical (mais barato). Vídeo contínuo: 1 clipe sem cortes. Vários vídeos curtos: de 3 a 6 cenas.", "stories"],
+  revisao: ["Revisão", "Confira a prévia, ajuste o visual e os textos, e clique em \"Gerar artes e aprovar\": as artes finais são montadas e o post vai para a fila.", "revisao"],
+  diagramacao: ["Diagramação", "Escolha o modelo (foto de fundo, editorial ou imagem lateral), o fundo claro ou escuro, o texto e o logo. A prévia muda na hora.", "diagramacao"],
+  textos: ["Editar textos", "Mude título e texto de cada slide, a legenda e as hashtags sem esperar a IA. Depois, gere as artes de novo.", "textos"],
+  ajustes: ["Pedir ajuste", "Escolha o post inteiro ou um slide só, marque se quer imagem nova e diga o que mudar. A nova versão chega em 1 ou 2 minutos. Até 3 ajustes por post.", "ajustes"],
+  agendados: ["Agendados", "Posts aprovados entram na fila e são publicados pelo Zernio na hora marcada. \"Publicar agora\" não espera o horário.", "agendados"],
+  integracoes: ["Integrações", "Cada organização usa as próprias chaves: Claude escreve, Magnific gera imagens e vídeos, Apify coleta as fontes e Zernio publica. Cole, salve e clique em Testar.", "integracoes"],
+  anthropic: ["Chave do Claude", "No console.anthropic.com, entre em um workspace e crie a chave em API keys (começa com sk-ant-). A conta precisa ter créditos.", "claude"],
+  magnific: ["Chave do Magnific", "Em magnific.com › Developers › API key, gere a chave. Fotos e vídeos consomem créditos da sua conta.", "magnific"],
+  apify: ["Chave da Apify", "Em console.apify.com › Settings › API & Integrations, copie o Personal API token. Opcional: sem ela, as ideias saem só dos temas.", "apify"],
+  zernio: ["Chave do Zernio", "Crie a conta no zernio.com, conecte o Instagram (conta profissional) e gere a chave de API. É ela que publica os posts.", "zernio"],
+  airtable: ["Importar do Airtable", "Crie um token em airtable.com/create/tokens (leitura de registros e do esquema), dê acesso à base e cole com o ID da base (começa com app). Importe uma vez só.", "airtable"],
+  equipe: ["Equipe", "Dono e admin convidam pessoas e cuidam das chaves; editor cuida da pauta. O convite vale 7 dias e precisa do mesmo e-mail.", "equipe"],
+  plano: ["Plano", "Mostra o uso do mês e permite assinar ou trocar de plano pela Kiwify. Só contam posts criados pela IA.", "planos"],
+};
+const ajuda = k => AJUDA[k] ? `<button type="button" class="ajuda-btn" data-ajuda="${k}" aria-label="Como funciona: ${esc(AJUDA[k][0])}" aria-expanded="false">?</button>` : "";
+function fecharAjuda() { document.querySelectorAll(".ajuda-pop").forEach(x => x.remove()); document.querySelectorAll('.ajuda-btn[aria-expanded="true"]').forEach(b => b.setAttribute("aria-expanded", "false")); }
+document.addEventListener("click", e => {
+  const b = e.target.closest(".ajuda-btn");
+  if (!b) { if (!e.target.closest(".ajuda-pop")) fecharAjuda(); return; }
+  e.preventDefault(); e.stopPropagation();
+  const aberto = b.getAttribute("aria-expanded") === "true";
+  fecharAjuda(); if (aberto) return;
+  const [t, txt, ancora] = AJUDA[b.dataset.ajuda];
+  const pop = document.createElement("div");
+  pop.className = "ajuda-pop"; pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", t);
+  pop.innerHTML = `<b>${esc(t)}</b><p>${esc(txt)}</p><a href="ajuda.html#${ancora}" target="_blank" rel="noopener">Ver documentação →</a>`;
+  (b.closest("dialog") || document.body).appendChild(pop);
+  b.setAttribute("aria-expanded", "true");
+  const r = b.getBoundingClientRect(), w = Math.min(300, innerWidth - 24);
+  pop.style.width = w + "px";
+  pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + "px";
+  const h = pop.offsetHeight, embaixo = r.bottom + 8 + h < innerHeight;
+  pop.style.top = (embaixo ? r.bottom + 8 : Math.max(12, r.top - h - 8)) + "px";
+  pop.querySelector("a").focus({ preventScroll: true });
+}, true);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && document.querySelector(".ajuda-pop")) { e.stopPropagation(); fecharAjuda(); } }, true);
+document.addEventListener("scroll", e => { if (!(e.target.closest && e.target.closest(".ajuda-pop"))) fecharAjuda(); }, { capture: true, passive: true }); addEventListener("resize", fecharAjuda);
 const ehVideoFmt = p => ["Reels", "Stories"].includes(p.formato) && !ehStoryImagem(p);
 const ehArqVideo = a => !!a && (String(a.type || "").startsWith("video/") || /\.mp4(\?|$)/i.test(String(a.filename || a.url || "")));
 // Liga cada cena (Reels) ou slide (carrossel) ao seu clipe: a ordem das chaves de ClipesSlides bate com a ordem de Clipes.
@@ -1973,7 +2035,7 @@ function cardRev(p) {
       ${slides.length > 1 ? `<label class="field"><span>Onde ajustar</span>
       <select id="ajuste-alvo-${p.id}"><option value="0">O post inteiro</option>${slides.map((sl, i) => `<option value="${sl.n}">${ehVideo ? "Só a cena" : "Só o slide"} ${i + 1}${sl.t || sl.x ? ": " + esc(String(sl.t || sl.x).slice(0, 40)) : ""}</option>`).join("")}</select></label>` : ""}
       ${ehVideo ? "" : `<label class="check-tratar"><input id="ajuste-img-${p.id}" type="checkbox"> Gerar uma imagem nova ${slides.length > 1 ? "(só do slide escolhido, ou de todos se for o post inteiro)" : ""}</label>`}
-      <label class="small" for="ajuste-${p.id}">O que você quer mudar?</label>
+      <label class="small" for="ajuste-${p.id}">O que você quer mudar?${ajuda("ajustes")}</label>
       <textarea id="ajuste-${p.id}" rows="4" maxlength="2000" placeholder="Ex.: deixe o título do slide 2 mais curto e troque a foto da capa por algo mais claro"></textarea>
       <div class="actions"><button class="btn primary" data-act="ajuste-enviar" data-id="${p.id}">Enviar ajuste</button><button class="btn quiet" data-act="ajuste-cancelar">Cancelar</button></div></div>`;
   else {
@@ -1996,7 +2058,7 @@ function cardRev(p) {
   const editorial = !ehVideo && MODELOS_ED.includes(p.diag.modelo);
   const posicoes = editorial ? [["te", "Topo esquerda"], ["tc", "Topo centro"], ["td", "Topo direita"]] : [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
   const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}`;
-  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação</span>${segM}<span class="small">Texto</span>
+  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação${ajuda("diagramacao")}</span>${segM}<span class="small">Texto</span>
       <div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
       ${editorial ? "" : `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>`}
       ${segL}${segLP}
@@ -2004,7 +2066,7 @@ function cardRev(p) {
   const podeEditar = !ehVideo && p.status !== "Ajustes";
   let textos = "";
   if (podeEditar && salvandoTexto === p.id) textos = `<div class="working"><span class="dot"></span>Salvando os textos…</div>`;
-  else if (podeEditar) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post</span>
+  else if (podeEditar) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post${ajuda("textos")}</span>
       ${slides.map((sl, i) => `<fieldset><legend>${slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
         <label class="field"><span>Título</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
         <label class="field"><span>Texto</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label></fieldset>`).join("")}
@@ -2069,6 +2131,8 @@ function sincronizarCasca() {
   const h = document.getElementById("pg-titulo"); if (h) h.textContent = t;
   const c = document.getElementById("pg-crumb"); if (c) c.textContent = t;
   const p = document.getElementById("pg-sub"); if (p) p.textContent = sub;
+  const pa = document.getElementById("pg-ajuda"), chaveAjuda = { marca: "marcaPagina", ideias: "ideias", cal: "calendario", rev: "revisao", agend: "agendados" }[tab];
+  if (pa && pa.dataset.k !== chaveAjuda) { pa.dataset.k = chaveAjuda; pa.innerHTML = ajuda(chaveAjuda); }
   for (const k of ["marca", "ideias", "cal", "rev", "agend"]) {
     const de = document.getElementById("c-" + k), para = document.getElementById("k-" + k);
     if (de && para) para.textContent = de.textContent;
@@ -2567,7 +2631,7 @@ function renderAuth() {
       <button class="btn" data-u="nova-org">+ Nova organização</button>
       <div class="quem"><span class="av" aria-hidden="true">${esc(iniciais(U.usuario.nome))}</span><span>${esc(U.usuario.nome || U.usuario.email)}<small>${esc(PAPEIS[U.organizacao && U.organizacao.papel] || "")}</small></span></div>
       <button class="btn" data-u="equipe">Equipe</button><button class="btn" data-u="integracoes">Integrações</button><button class="btn" data-u="plano">Plano</button>
-      <button class="btn quiet" data-u="minha-senha">Minha senha</button><button class="btn quiet" data-u="sair">Sair</button>`
+      <a class="btn quiet" href="ajuda.html" target="_blank" rel="noopener">Como usar</a><button class="btn quiet" data-u="minha-senha">Minha senha</button><button class="btn quiet" data-u="sair">Sair</button>`
     : (web ? "" : `<span class="notice">Aprove ou peça ajustes na aba Revisão.</span>`);
   const aberto = web && U.tela !== "ok";
   el.hidden = !aberto; document.body.classList.toggle("travado", aberto);
@@ -2646,7 +2710,7 @@ function desenharEquipe() {
     </div>`).join("");
   const convites = d.convites.map(c => `<div class="urow off"><div><div class="un">${esc(c.email)}</div><div class="ue">Convite pendente · ${esc(PAPEIS[c.papel])} · vale até ${fmtData(c.expira_em)}</div></div>
       <div class="actions"><button class="btn quiet" data-u="eq-cancelar-convite" data-id="${c.id}">Cancelar</button></div></div>`).join("");
-  abrirDlg(`<h2>Equipe · ${esc(U.organizacao.nome)}</h2>
+  abrirDlg(`<h2>Equipe · ${esc(U.organizacao.nome)}${ajuda("equipe")}</h2>
     <p class="hint">Quem participa desta organização. Editores cuidam da pauta; administradores também convidam pessoas e cadastram as chaves.</p>
     ${EQ.erro ? `<div class="msg erro">${esc(EQ.erro)}</div>` : ""}
     <div class="users">${linhas}${convites}</div>
@@ -2687,7 +2751,7 @@ function desenharPlano() {
       ${meu ? `<span class="chip ok">Seu plano</span>` : c.checkout ? `<a class="btn ${p.id === "profissional" ? "primary" : ""}" href="${esc(c.checkout)}" target="_blank" rel="noopener">Assinar</a>` : `<span class="small">Checkout ainda não configurado</span>`}
     </div>`;
   }).join("");
-  abrirDlg(`<h2>Plano · ${esc(U.organizacao.nome)}</h2>
+  abrirDlg(`<h2>Plano · ${esc(U.organizacao.nome)}${ajuda("plano")}</h2>
     ${PL.aviso ? `<div class="msg erro">${esc(PL.aviso)}</div>` : ""}
     <div class="urow"><div><div class="un">${atual}</div>
       <div class="ue">Posts ${s.periodo === "teste" ? "no teste" : "neste mês"}: ${s.posts.usados} de ${s.isenta ? "∞" : s.posts.limite} · Buscas de ideias: ${s.ideias.usadas} de ${s.isenta ? "∞" : s.ideias.limite}</div>
@@ -2711,11 +2775,11 @@ function desenharIntegracoes() {
     ? `<div class="msg ok">Importação concluída: ${["marca", "fontes", "ideias", "posts"].map(k => `${(imp.payload && imp.payload.resultado && imp.payload.resultado[k]) || 0} ${k}`).join(", ")}.</div>`
     : imp.status === "erro" ? `<div class="msg erro">A importação falhou: ${esc(imp.erro || "")}</div>`
     : `<div class="working"><span class="dot"></span>Importando do Airtable…</div>`;
-  abrirDlg(`<h2>Integrações · ${esc(U.organizacao.nome)}</h2>
+  abrirDlg(`<h2>Integrações · ${esc(U.organizacao.nome)}${ajuda("integracoes")}</h2>
     <p class="hint">Cada organização usa as próprias chaves. Elas ficam cifradas na plataforma e nunca voltam para a tela${d.podeGerir ? "" : ". Só donos e administradores podem cadastrar"}.</p>
     ${INT.erro ? `<div class="msg erro">${esc(INT.erro)}</div>` : ""}
     <div class="users">${d.integracoes.map(i => `<div class="glass box" style="gap:10px">
-      <div class="actions" style="justify-content:space-between"><div><b>${esc(i.nome)}</b><div class="small">${esc(i.uso)}</div></div>
+      <div class="actions" style="justify-content:space-between"><div><b>${esc(i.nome)}</b>${ajuda(i.id)}<div class="small">${esc(i.uso)}</div></div>
         ${i.configurada ? `<span class="chip ok">Configurada ${esc(i.dica)}</span>` : `<span class="chip bad">Falta configurar</span>`}</div>
       ${d.podeGerir ? `<div class="actions"><input type="password" id="int-${i.id}" placeholder="${i.configurada ? "Cole uma chave nova para trocar" : "Cole a chave aqui"}" autocomplete="off" style="flex:1;min-width:180px">
         <button class="btn primary" data-u="int-salvar" data-id="${i.id}">Salvar</button>
@@ -2724,7 +2788,7 @@ function desenharIntegracoes() {
       ${INT.teste[i.id] ? `<div class="msg ${INT.teste[i.id].ok ? "ok" : "erro"}">${esc(INT.teste[i.id].mensagem)}</div>` : ""}
     </div>`).join("")}</div>
     ${d.podeGerir ? `<form class="glass box" style="margin-top:14px" onsubmit="return false">
-      <b>Trazer do Airtable (opcional)</b>
+      <b>Trazer do Airtable (opcional)${ajuda("airtable")}</b>
       <p class="hint" style="margin:0">Importa marca, logos, mood board, fontes, ideias e calendário de uma base do Airtable no formato antigo. O token é usado só nesta importação.</p>
       <div class="fgrid">
         <label class="field"><span>Token do Airtable</span><input id="imp-token" type="password" autocomplete="off" placeholder="pat…"></label>
@@ -2984,7 +3048,7 @@ function renderMarca() {
   const todosPilares = [...new Set([...OPC.Pilares, ...pil, ...M.pilaresExtra])];
   el.innerHTML = head + `<div class="mgrid">
     <form class="glass box" id="m-form" onsubmit="return false">
-      <h2>Marca</h2>
+      <h2>Marca${ajuda("marca")}</h2>
       <p class="hint">Quanto mais concreto, melhor a IA acerta o tom.</p>
       <div class="fgrid">
         <label class="field full"><span>Nome da marca</span><input id="m-nome" value="${esc(m.Nome || "")}"></label>
@@ -2996,15 +3060,15 @@ function renderMarca() {
         <div class="field full"><span>Redes onde publica</span>${toggles("m-redes", OPC.Redes, red)}</div>
         <label class="field"><span>Perfil nas redes (@)</span><input id="m-perfil" placeholder="@suamarca" value="${esc(m.Perfil ? "@" + String(m.Perfil).replace(/^@+/, "") : "")}"></label>
         <label class="field"><span>Idioma das postagens</span><select id="m-idioma">${opcoes(OPC.Idioma, selNome(m.Idioma) || "Português (Brasil)")}</select></label>
-        <div class="field full"><span>Cores da marca</span>
+        <div class="field full"><span>Cores da marca${ajuda("cores")}</span>
           <div class="paleta" id="m-paleta" aria-hidden="true">${lerCores(m.Cores).map(c => `<i style="background:${c.hex}"></i>`).join("")}</div>
           <div class="cores" id="m-cores">${lerCores(m.Cores).map(linhaCor).join("")}</div>
           <span class="actions"><button type="button" class="btn quiet" data-m="add-cor">+ Adicionar cor</button></span></div>
-        <div class="field full"><span>Logos</span>
+        <div class="field full"><span>Logos${ajuda("logos")}</span>
           <label class="check-tratar"><input type="checkbox" id="m-tratar" ${tratarLogos ? "checked" : ""}> Tratar ao enviar: tirar o fundo, recortar as sobras e criar a versão light ou dark que faltar</label>
           <div class="logos">${slotLogo(m, "Logo", "Logo light", "Para fundos escuros", "escuro")}${slotLogo(m, "LogoDark", "Logo dark", "Para fundos claros", "claro")}${slotLogo(m, "SimboloLight", "Símbolo light", "Só o símbolo, fundos escuros", "escuro")}${slotLogo(m, "SimboloDark", "Símbolo dark", "Só o símbolo, fundos claros", "claro")}</div>
           <p class="hint" style="margin:0">Nas artes, o painel usa a versão que contrasta com o fundo de cada imagem. PNG ou SVG com fundo transparente, até 5 MB.</p></div>
-        <div class="field full"><span>Mood board (opcional)</span>
+        <div class="field full"><span>Mood board (opcional)${ajuda("mood")}</span>
           <div class="mood">${(m.MoodBoard || []).map(a => `<figure><img src="${esc(urlArq(a))}" alt="" onerror="this.style.display='none'"><button type="button" data-m="mood-rm" data-id="${esc(a.id)}" aria-label="Remover imagem">✕</button></figure>`).join("")}</div>
           <span class="actions"><label class="btn quiet" ${M.modo === "web" ? "" : "hidden"}>+ Adicionar imagens<input type="file" class="arquivo-oculto" data-arquivo="MoodBoard" accept="image/png,image/jpeg,image/webp" multiple></label></span>
           <p class="hint" style="margin:0">Referências visuais da marca: fotos, texturas, paletas. A IA usa como direção de arte ao criar as fotos e os vídeos.${M.modo === "web" ? "" : " Para enviar arquivos, abra pelo link do GitHub ou arraste no campo MoodBoard do Airtable."}</p></div>
@@ -3016,7 +3080,7 @@ function renderMarca() {
       <div class="actions" style="justify-content:flex-end"><button class="btn primary" data-m="salvar-marca">Salvar marca</button></div>
     </form>
     <section class="glass box">
-      <div class="actions" style="justify-content:space-between"><h2>Fontes</h2><button class="btn" data-m="nova-fonte">+ Nova fonte</button></div>
+      <div class="actions" style="justify-content:space-between"><h2>Fontes${ajuda("fontes")}</h2><button class="btn" data-m="nova-fonte">+ Nova fonte</button></div>
       <p class="hint">A coleta lê as fontes ativas quando você clica em Buscar ideias novas, na aba Ideias.</p>
       <div class="fontes" id="m-fontes"></div>
     </section>
