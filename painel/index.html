@@ -113,6 +113,8 @@ button { cursor: pointer; }
 .panel { margin-top: 28px; }
 .panel-head { display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .panel-head p { margin: 0; color: var(--ink-soft); max-width: 62ch; }
+.panel-head > p { display: none; }
+.panel-head:not(:has(> :not(p))) { display: none; }
 .filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; border-radius: 99px; background: var(--glass); border: 1px solid var(--line); }
 .filters button { border: 0; background: none; border-radius: 99px; padding: 6px 14px; font-size: 12px; color: var(--ink-soft); }
 .filters button:hover { color: var(--ink); }
@@ -341,8 +343,8 @@ button { cursor: pointer; }
 .ig-slide.ed { background: #F4F4F6; color: #111; }
 .ig-slide.ed.escuro { background: var(--b-bg); color: #fff; }
 .ed .ed-img { position: absolute; left: 6cqw; top: 13cqw; width: 88cqw; height: 47cqw; border-radius: 3cqw; background: #d9d9de center / cover no-repeat; object-fit: cover; }
-.ed.escuro .ed-img { left: 0; top: 0; width: 100cqw; height: 58cqw; border-radius: 0; }
-.ed.escuro.com-img::before { content: ""; position: absolute; left: 0; right: 0; top: 30cqw; height: 28.5cqw; background: linear-gradient(transparent, var(--b-bg)); z-index: 1; }
+.ed.editorial.escuro .ed-img { left: 0; top: 0; width: 100cqw; height: 58cqw; border-radius: 0; }
+.ed.editorial.escuro.com-img::before { content: ""; position: absolute; left: 0; right: 0; top: 30cqw; height: 28.5cqw; background: linear-gradient(transparent, var(--b-bg)); z-index: 1; }
 .ed.lateral .ed-img { left: 52cqw; top: 13cqw; width: 42cqw; height: 96cqw; }
 .ed .ed-topo { position: absolute; top: 4.5cqw; left: 6cqw; right: 6cqw; height: 4.5cqw; display: flex; justify-content: center; align-items: center; z-index: 2; }
 .ed .ed-topo.lp-te { justify-content: flex-start; } .ed .ed-topo.lp-td { justify-content: flex-end; }
@@ -350,7 +352,7 @@ button { cursor: pointer; }
 .ed .ed-cont { position: absolute; top: 3.8cqw; right: 6cqw; z-index: 2; font-size: 3cqw; font-weight: 600; padding: 1cqw 2.6cqw; border-radius: 99px; background: rgba(0,0,0,.08); }
 .ed.escuro .ed-cont { background: rgba(255,255,255,.14); } .ed .ed-cont.esq { right: auto; left: 6cqw; }
 .ed .ed-corpo { position: absolute; left: 6cqw; right: 6cqw; top: 26cqw; display: grid; gap: 3cqw; z-index: 2; justify-items: start; }
-.ed.com-img .ed-corpo { top: 66cqw; } .ed.escuro.com-img .ed-corpo { top: 60cqw; } .ed.lateral.com-img .ed-corpo { top: 18cqw; right: 53cqw; }
+.ed.com-img .ed-corpo { top: 66cqw; } .ed.editorial.escuro.com-img .ed-corpo { top: 60cqw; } .ed.lateral.com-img .ed-corpo { top: 18cqw; right: 53cqw; }
 .ed .titulo { font-weight: 800; font-size: 8.4cqw; line-height: 1.04; letter-spacing: -.02em; text-wrap: balance; }
 .ed:not(.com-img) .titulo { font-size: 10.5cqw; } .ed.lateral.com-img .titulo { font-size: 7cqw; }
 .ed .texto { font-size: 4cqw; line-height: 1.35; color: #55565E; background: #E7E7EC; border-radius: 2.4cqw; padding: 3.4cqw; max-width: none; justify-self: stretch; }
@@ -373,6 +375,8 @@ button { cursor: pointer; }
 .editor-textos fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 6px; margin: 0; }
 .editor-textos legend { font-size: 12px; font-weight: 700; padding: 0 4px; }
 .editor-textos input, .editor-textos textarea { width: 100%; }
+.diag .modelos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.amostra-cor { display: inline-block; width: 12px; height: 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,.35); margin-right: 6px; vertical-align: -2px; }
 .diag .seg.pos-logo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ig-aviso { font-size: 11px; color: var(--ink-faint); padding: 0 14px 12px; background: #0b0b0d; }
 
@@ -462,6 +466,46 @@ body.travado .wrap { visibility: hidden; }
 .check-tratar input { margin-top: 2px; accent-color: var(--red, #F8395A); }
 .auth-rodape { margin: 4px 0 0; text-align: center; font-size: 13px; color: var(--ink-soft); }
 .auth-rodape button { background: none; border: 0; padding: 0 2px; color: var(--red, #F8395A); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+/* próximo passo */
+.proximo { display: flex; align-items: center; gap: 14px; padding: 12px 14px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 9px; background: linear-gradient(90deg, rgba(248,57,90,.10), transparent 70%), var(--card); }
+.proximo[hidden] { display: none; }
+.proximo div { display: grid; gap: 1px; flex: 1; min-width: 0; } .proximo b { font-size: 14px; } .proximo small { font-size: 12px; color: var(--ink-faint); }
+.proximo .btn { white-space: nowrap; }
+.px-ponto { width: 9px; height: 9px; border-radius: 50%; background: var(--red, #F8395A); box-shadow: 0 0 0 5px rgba(248,57,90,.18); flex: none; animation: px-pulsa 2s ease-in-out infinite; }
+.px-ponto.bad { background: #ff8a3d; box-shadow: 0 0 0 5px rgba(255,138,61,.18); }
+@keyframes px-pulsa { 50% { box-shadow: 0 0 0 9px rgba(248,57,90,0); } }
+@media (max-width: 520px) { .proximo { flex-wrap: wrap; } .proximo .btn { width: 100%; justify-content: center; } }
+/* esqueleto de carregamento */
+.esqueleto { display: grid; gap: 12px; }
+.esqueleto i { display: block; height: 92px; border-radius: 9px; background: linear-gradient(90deg, var(--card) 0%, rgba(255,255,255,.06) 50%, var(--card) 100%); background-size: 200% 100%; animation: esq 1.3s linear infinite; }
+.esqueleto i:nth-child(2) { height: 140px; } .esqueleto i:nth-child(3) { height: 64px; opacity: .7; }
+@keyframes esq { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .esqueleto i, .px-ponto { animation: none; } }
+/* estados vazios */
+.empty { display: grid; gap: 8px; justify-items: center; text-align: center; }
+.empty b { font-size: 15px; color: var(--ink); } .empty span { color: var(--ink-soft); }
+/* revisão: colunas que se ajustam ao espaço, abas e barra de decisão fixa */
+.wrap { container-type: inline-size; }
+.rcard { grid-template-columns: minmax(0, 420px) minmax(300px, 1fr); }
+@container (max-width: 780px) { .rcard { grid-template-columns: 1fr; } .rcard .ig { max-width: 440px; margin: 0 auto; } }
+.abas-rev { margin-bottom: 4px; }
+.abas-rev button { flex: 1; justify-content: center; }
+.barra-decisao { display: grid; gap: 10px; position: sticky; bottom: 0; z-index: 3; padding: 12px 0 4px; margin-top: 4px; background: linear-gradient(transparent, var(--card) 18%); }
+@media (max-width: 760px) { .barra-decisao { bottom: calc(64px + env(safe-area-inset-bottom)); } }
+.barra-decisao .actions .btn.primary { flex: 1; justify-content: center; }
+/* navegação de baixo no celular */
+.nav-baixo { display: none; }
+@media (max-width: 760px) {
+  .nav-baixo:not([hidden]) { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); background: rgba(10,12,21,.92); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--line); }
+  .nav-baixo button { position: relative; display: grid; justify-items: center; gap: 3px; padding: 6px 2px; border: 0; background: none; color: var(--ink-faint); font: 600 10px/1.1 inherit; font-family: inherit; border-radius: 10px; min-width: 0; }
+  .nav-baixo span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: -.01em; }
+  .nav-baixo svg { width: 22px; height: 22px; }
+  .nav-baixo button[aria-current="true"] { color: #fff; }
+  .nav-baixo button[aria-current="true"] svg { color: var(--red, #F8395A); }
+  .nav-baixo i { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: var(--red, #F8395A); color: #fff; font: 700 10px/17px inherit; font-family: inherit; font-style: normal; }
+  body { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .toast { bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+}
 /* logo da Content Post */
 .cp-logo { display: inline-flex; align-items: center; gap: 10px; }
 .cp-simbolo { width: 30px; height: 30px; flex: none; display: block; }
@@ -717,6 +761,8 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
   .kpi b { font-size: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { .box::before, .rcard::before, .vitrine .col, .dlg[open] { animation: none; } .side { transition: none; } }
+input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16px; min-width: 16px; padding: 0 !important; margin: 2px 0 0; flex: none; border-radius: 4px; accent-color: var(--red, #F8395A); }
+.check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
 <div class="app">
@@ -741,7 +787,8 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
       <header class="pg">
         <div><div class="crumb"><span>Pauta</span> / <b id="pg-crumb">Ideias</b></div><h1 id="pg-titulo">Ideias</h1><p id="pg-sub"></p></div>
       </header>
-      <div class="kpis">
+      <div class="proximo" id="proximo" hidden></div>
+      <div class="kpis" hidden>
         <button class="kpi" data-tab="marca"><span class="lbl">Fontes ativas</span><b id="k-marca">–</b><small>Base da marca</small></button>
         <button class="kpi" data-tab="ideias"><span class="lbl">Ideias para decidir</span><b id="k-ideias">0</b><small>Etapa 0 · Ideação</small></button>
         <button class="kpi" data-tab="cal"><span class="lbl">Posts na pauta</span><b id="k-cal">0</b><small>Etapa 1 · Calendário</small></button>
@@ -808,7 +855,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
-    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", logo: "auto", logoPos: "te" }; try { return Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { return pad; } })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "claro", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -834,7 +881,7 @@ function semPauta() {
   if (pauta.erro) {
     return `<div class="msg erro"><span>${esc(textoErro(pauta.erro))}</span><button class="btn" data-act="recarregar-pauta">Tentar de novo</button></div>`;
   }
-  return `<div class="glass empty">Carregando a pauta do Airtable…</div>`;
+  return `<div class="esqueleto" aria-busy="true" aria-label="Carregando"><i></i><i></i><i></i></div>`;
 }
 
 /* ---------- Disparos: buscar ideias e criar post ---------- */
@@ -1312,7 +1359,7 @@ function renderRev() {
     return;
   }
   el.innerHTML = head + (lista.length ? `<div class="review">${lista.map(cardRev).join("")}</div>`
-    : `<div class="empty glass">Nada para revisar agora. Quando a IA terminar um post, ele aparece aqui e você recebe a prévia no Telegram.</div>`);
+    : `<div class="empty glass"><b>Tudo revisado por aqui.</b><span>Quando a IA terminar um post, ele aparece nesta aba.</span><div class="actions" style="justify-content:center"><button class="btn" data-tab="cal">Ver calendário</button><button class="btn primary" data-tab="ideias">Buscar ideias</button></div></div>`);
 }
 const urlArq = a => (a && a.thumbnails && a.thumbnails.large && a.thumbnails.large.url) || (a && a.url) || "";
 function coresMarca() {
@@ -1437,7 +1484,7 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const W = ARTE_L, H = ARTE_A, U = CQ;
   const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = W; cv.height = H; }
   const ctx = cv.getContext("2d");
-  const escuro = diag.modelo === "escuro", lateral = diag.modelo === "lateral";
+  const escuro = diag.fundo === "escuro", lateral = diag.modelo === "lateral";
   const ultimo = i === total - 1 && total > 1, cta = ultimo && !foto;
   const fundo = escuro ? cores.bg : "#F4F4F6", tinta = escuro ? "#FFFFFF" : "#111111", suave = escuro ? "rgba(255,255,255,.72)" : "#55565E", caixa = escuro ? "rgba(255,255,255,.08)" : "#E7E7EC";
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
@@ -1445,7 +1492,7 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   let topoTexto = 26 * U, largTexto = 88 * U;
   const xTexto = 6 * U;
   if (foto && !cta) {
-    if (escuro) {
+    if (escuro && !lateral) {
       capaEm(ctx, foto, 0, 0, W, 58 * U, 0);
       const g = ctx.createLinearGradient(0, 30 * U, 0, 58.5 * U); g.addColorStop(0, hexRgba(cores.bg, 0)); g.addColorStop(1, hexRgba(cores.bg, 1));
       ctx.fillStyle = g; ctx.fillRect(0, 30 * U, W, 28.6 * U); topoTexto = 60 * U;
@@ -1709,7 +1756,7 @@ async function salvarTextos(p) {
     }
     p.slidesBrutos = brutos; p.legenda = legenda; p.hashtags = hashtags;
     p.slides = brutos.map((x, i) => ({ n: Number(x.n) || i + 1, t: x.titulo || x.visual || "", x: x.texto || x.fala_ou_texto || "", img: !!x.usa_imagem }));
-    const tinha = p.artesProntas; p.artesProntas = false; textoAberto = null;
+    const tinha = p.artesProntas; p.artesProntas = false; textoAberto = null; abaRev[p.id] = "visual";
     toast(tinha ? "Textos salvos. Gere as artes finais de novo para aplicar." : "Textos salvos.");
   } catch (e) { toast("Não deu para salvar os textos: " + textoErro(e)); }
   salvandoTexto = null; render();
@@ -1735,7 +1782,7 @@ async function revisarPost(p, acao, comentario, extra) {
   }
 }
 async function gerarArtes(p) {
-  if (gerandoArtes) return;
+  if (gerandoArtes) return false;
   gerandoArtes = p.id; render();
   try {
     await Promise.all([document.fonts.load(`700 ${10 * CQ}px Poppins`), document.fonts.load(`400 ${4.4 * CQ}px Poppins`), document.fonts.load(`600 ${3 * CQ}px Poppins`)]).catch(() => {});
@@ -1764,14 +1811,28 @@ async function gerarArtes(p) {
     toast(ehVideoFmt(p) ? "Pronto: vídeo final salvo. Agora é só aprovar." : `Pronto: ${artes.length} arte${artes.length > 1 ? "s" : ""} salva${artes.length > 1 ? "s" : ""}. Agora é só aprovar.`);
     gerandoArtes = null;
     await carregarPauta();
+    return true;
   } catch (e) {
     gerandoArtes = null; render();
     toast("Não deu para gerar as artes: " + textoErro(e));
+    return false;
   }
 }
+// Um clique: se as artes ainda não existem, gera e já aprova.
+async function aprovarDeUmaVez(p) {
+  if (!p.artesProntas) {
+    if (M.modo !== "web") { toast("Abra o painel pelo link do GitHub para gerar as artes."); return; }
+    const ok = await gerarArtes(p);
+    if (!ok) return;
+    p = state.posts.find(x => x.id === p.id) || p;
+    if (!p.artesProntas) { toast("As artes foram salvas, mas ainda não apareceram. Tente aprovar de novo em alguns segundos."); return; }
+  }
+  return revisarPost(p, "aprovar");
+}
+let abaRev = {};
 const cssUrl = u => "url('" + String(u).replace(/['\\()]/g, encodeURIComponent) + "')";
 const perfilMarca = () => { const v = String((M.marca && M.marca.Perfil) || "").trim().replace(/^@+/, ""); return v ? "@" + v : ""; };
-const MODELOS_ED = ["claro", "escuro", "lateral"];
+const MODELOS_ED = ["editorial", "lateral"];
 function logoEscolhido(diag, fundoClaro) {
   const d = diag || {}, op = urlsLogos(false);
   if (d.logo === "nenhum") return "";
@@ -1779,12 +1840,12 @@ function logoEscolhido(diag, fundoClaro) {
   return escolherLogo(op, fundoClaro, false) || "";
 }
 function slideEditorial(sl, i, total, img, video, nome, diag) {
-  const escuro = diag.modelo === "escuro";
+  const escuro = diag.fundo === "escuro";
   const ultimo = i === total - 1 && total > 1, temFundo = !!(img || video), cta = ultimo && !temFundo;
   const logo = logoEscolhido(diag, !escuro), sim = escolherLogo(urlsLogos(false), !escuro, true);
   const pos = String(diag.logoPos || "tc")[0] === "b" ? "tc" : (diag.logoPos || "tc");
   const perfil = perfilMarca();
-  return `<div class="ig-slide ed ${esc(diag.modelo)} ${cta ? "ed-cta" : ""} ${temFundo && !cta ? "com-img" : ""}">
+  return `<div class="ig-slide ed ${esc(diag.modelo)} ${escuro ? "escuro" : "claro"} ${cta ? "ed-cta" : ""} ${temFundo && !cta ? "com-img" : ""}">
     ${temFundo && !cta ? (video ? `<video class="ed-img" src="${esc(video)}" muted loop autoplay playsinline></video>` : `<div class="ed-img" style="background-image:${cssUrl(img)}"></div>`) : ""}
     <div class="ed-topo lp-${pos}">${logo ? `<img src="${esc(logo)}" alt="">` : diag.logo === "nenhum" ? "" : `<b>${esc(nome.toUpperCase())}</b>`}</div>
     ${total > 1 ? `<span class="ed-cont ${pos === "td" ? "esq" : ""}">${i + 1}/${total}</span>` : ""}
@@ -1799,10 +1860,12 @@ const MINI_MODELO = (() => {
   return {
     foto: svg(`<defs><linearGradient id="mm-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d93b5"/><stop offset="1" stop-color="#1b2133"/></linearGradient></defs><rect width="40" height="50" rx="3" fill="url(#mm-f)"/><circle cx="26" cy="15" r="7" fill="#f3c76a" opacity=".85"/><rect x="5" y="5" width="9" height="2.5" rx="1" fill="#fff"/>${linhas(5, 32, 26, "#fff")}<rect x="5" y="43" width="18" height="2" rx="1" fill="#fff" opacity=".6"/>`),
     claro: svg(`<rect width="40" height="50" rx="3" fill="#F4F4F6"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#111"/><rect x="4" y="7" width="32" height="15" rx="2" fill="#9fb3c8"/><circle cx="20" cy="14.5" r="4.5" fill="#f3c76a"/>${linhas(4, 26, 28, "#111")}<rect x="4" y="37" width="32" height="7" rx="1.5" fill="#dcdce2"/>`),
+    editorial: null, editorialEscuro: null, lateralEscuro: svg(`<rect width="40" height="50" rx="3" fill="#141826"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#fff"/><rect x="22" y="7" width="14" height="37" rx="2" fill="#6f86a6"/><circle cx="29" cy="20" r="4" fill="#f3c76a"/>${linhas(4, 10, 15, "#fff")}<rect x="4" y="22" width="15" height="13" rx="1.5" fill="#fff" opacity=".14"/>`),
     escuro: svg(`<rect width="40" height="50" rx="3" fill="#141826"/><rect width="40" height="21" rx="3" fill="#6f86a6"/><rect y="12" width="40" height="9" fill="#141826" opacity=".55"/><circle cx="20" cy="9" r="4.5" fill="#f3c76a"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#fff"/>${linhas(4, 25, 28, "#fff")}<rect x="4" y="36" width="32" height="7" rx="1.5" fill="#fff" opacity=".14"/>`),
     lateral: svg(`<rect width="40" height="50" rx="3" fill="#F4F4F6"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#111"/><rect x="22" y="7" width="14" height="37" rx="2" fill="#9fb3c8"/><circle cx="29" cy="20" r="4" fill="#f3c76a"/>${linhas(4, 10, 15, "#111")}<rect x="4" y="22" width="15" height="13" rx="1.5" fill="#dcdce2"/>`),
   };
 })();
+MINI_MODELO.editorial = MINI_MODELO.claro; MINI_MODELO.editorialEscuro = MINI_MODELO.escuro;
 function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo) {
   const d = diag || { modelo: "foto", logo: "auto", logoPos: "te" };
   if (!prontas && !semModelo && MODELOS_ED.includes(d.modelo)) return slideEditorial(sl, i, total, img, video, nome, d);
@@ -1851,7 +1914,7 @@ function cardRev(p) {
     if (M.modo !== "web") artes = `<div class="msg">Para gerar as ${ehVideo ? "o vídeo final" : "artes finais"}, abra o painel pelo link do GitHub. No claude.ai as fotos e os vídeos ficam bloqueados.</div>`;
     else if (gerandoArtes === p.id) artes = `<div class="working"><span class="dot"></span>${ehVideo || temClipes ? "Gravando… deixe esta aba aberta e visível." : "Gerando as artes finais…"}</div>`;
     else if (ehVideo && !temClipes) artes = "";
-    else artes = `<div class="actions"><button class="btn ${prontas ? "" : "primary"}" data-act="gerar-artes" data-id="${p.id}" ${gerandoArtes ? "disabled" : ""}>${prontas ? "Refazer " + nomeArte : "Gerar " + nomeArte}</button></div>
+    else artes = `<div class="actions"><button class="btn quiet" data-act="gerar-artes" data-id="${p.id}" ${gerandoArtes ? "disabled" : ""}>${prontas ? "Refazer " + nomeArte : "Só gerar " + nomeArte + ", sem aprovar"}</button></div>
       <p class="small" style="margin:0">${prontas ? (ehVideo ? "Vídeo final pronto: é ele que vai para a publicação." : "Artes finais prontas: são elas que vão para a publicação.")
         : ehVideo ? "Junta os clipes do Magnific com o texto de cada cena e o logo, e salva o vídeo que será publicado. A gravação leva o tempo do vídeo."
         : temClipes ? "Coloca o texto e o logo sobre as fotos e os clipes, e salva o que será publicado. Os slides em vídeo levam alguns segundos cada."
@@ -1868,16 +1931,22 @@ function cardRev(p) {
       <label class="small" for="ajuste-${p.id}">O que você quer mudar?</label>
       <textarea id="ajuste-${p.id}" rows="4" maxlength="2000" placeholder="Ex.: deixe o título do slide 2 mais curto e troque a foto da capa por algo mais claro"></textarea>
       <div class="actions"><button class="btn primary" data-act="ajuste-enviar" data-id="${p.id}">Enviar ajuste</button><button class="btn quiet" data-act="ajuste-cancelar">Cancelar</button></div></div>`;
-  else decisao = `<div class="actions"><button class="btn primary" data-act="post-aprovar" data-id="${p.id}" ${falta || revisando ? "disabled" : ""}>Aprovar e agendar</button>
+  else {
+    const semClipes = ehVideo && !temClipes && !prontas;
+    decisao = `<div class="actions"><button class="btn primary" data-act="post-aprovar" data-id="${p.id}" ${semClipes || revisando || gerandoArtes ? "disabled" : ""}>${prontas ? "Aprovar e agendar" : ehVideo ? "Gravar vídeo e aprovar" : "Gerar artes e aprovar"}</button>
       <button class="btn" data-act="post-ajustar" data-id="${p.id}" ${revisando ? "disabled" : ""}>Pedir ajuste</button></div>
-      ${falta ? `<p class="small" style="margin:0">${ehVideo && !temClipes ? "Os clipes ainda não chegaram do Magnific. Se não aparecerem, peça um ajuste." : "Gere " + (ehVideo ? "o vídeo final" : "as artes finais") + " antes de aprovar."}</p>` : ""}`;
+      <p class="small" style="margin:0">${semClipes ? "Os clipes ainda não chegaram do Magnific. Se não aparecerem, peça um ajuste." : prontas ? "Vai para a fila e publica em " + fmtData(p.data) + "." : "As " + (ehVideo ? "cenas" : "artes") + " são montadas com a diagramação escolhida e o post vai para a fila de " + fmtData(p.data) + "."}</p>`;
+  }
   const ic = { esquerda: "M4 6h16M4 10h10M4 14h16M4 18h10", centro: "M4 6h16M7 10h10M4 14h16M7 18h10", direita: "M4 6h16M10 10h10M4 14h16M10 18h10" };
   const segA = ["esquerda", "centro", "direita"].map(a => `<button data-act="diag" data-id="${p.id}" data-k="alinhar" data-v="${a}" aria-pressed="${p.diag.alinhar === a}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="${ic[a]}"/></svg>${a === "centro" ? "Centro" : a[0].toUpperCase() + a.slice(1)}</button>`).join("");
   const segP = [["auto", "Automática"], ["topo", "Topo"], ["meio", "Meio"], ["base", "Base"]].map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="posicao" data-v="${v}" aria-pressed="${p.diag.posicao === v}">${t}</button>`).join("");
   const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
   const versoes = urlsLogos(false);
-  const segM = ehVideo ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["claro", "Editorial claro"], ["escuro", "Editorial escuro"], ["lateral", "Imagem lateral"]].map(([v, t]) =>
-      `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${MINI_MODELO[v]}<span>${t}</span></button>`).join("")}</div>`;
+  const fundoEscuro = p.diag.fundo === "escuro";
+  const segM = ehVideo ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"]].map(([v, t]) =>
+      `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" ? MINI_MODELO.foto : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
+      ${MODELOS_ED.includes(p.diag.modelo) ? `<span class="small">Fundo</span><div class="seg fundos" role="group" aria-label="Fundo">${[["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", cores.bg]].map(([v, t, c]) =>
+        `<button data-act="diag" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "claro") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>` : ""}`;
   const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
   const editorial = !ehVideo && MODELOS_ED.includes(p.diag.modelo);
   const posicoes = editorial ? [["te", "Topo esquerda"], ["tc", "Topo centro"], ["td", "Topo direita"]] : [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
@@ -1890,17 +1959,19 @@ function cardRev(p) {
   const podeEditar = !ehVideo && p.status !== "Ajustes";
   let textos = "";
   if (podeEditar && salvandoTexto === p.id) textos = `<div class="working"><span class="dot"></span>Salvando os textos…</div>`;
-  else if (podeEditar && textoAberto === p.id) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post</span>
+  else if (podeEditar) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post</span>
       ${slides.map((sl, i) => `<fieldset><legend>${slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
         <label class="field"><span>Título</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
         <label class="field"><span>Texto</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label></fieldset>`).join("")}
       <label class="field"><span>Legenda (descrição do post)</span><textarea id="et-leg-${p.id}" rows="5" maxlength="2200">${esc(p.legenda || "")}</textarea></label>
       <label class="field"><span>Hashtags</span><input id="et-tags-${p.id}" maxlength="600" value="${esc(p.hashtags || "")}"></label>
-      <div class="actions"><button class="btn primary" data-act="textos-salvar" data-id="${p.id}">Salvar textos</button><button class="btn quiet" data-act="textos-cancelar">Cancelar</button></div></div>`;
-  else if (podeEditar) textos = `<div class="actions"><button class="btn" data-act="textos-editar" data-id="${p.id}">Editar textos</button></div>`;
+      <div class="actions"><button class="btn primary" data-act="textos-salvar" data-id="${p.id}">Salvar textos</button><button class="btn quiet" data-act="textos-cancelar" data-id="${p.id}">Cancelar</button></div></div>`;
+
+  const aba = podeEditar && (abaRev[p.id] === "textos" || textoAberto === p.id) ? "textos" : "visual";
+  const abas = podeEditar ? `<div class="seg abas-rev" role="tablist" aria-label="Editar"><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="visual" aria-selected="${aba === "visual"}" aria-pressed="${aba === "visual"}">Visual</button><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="textos" aria-selected="${aba === "textos"}" aria-pressed="${aba === "textos"}">Textos</button></div>` : "";
   const acoes = p.status === "Ajustes"
     ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui e no Telegram em 1 ou 2 minutos.</div>`
-    : `${diag}${textos}${artes}${decisao}`;
+    : `${abas}${aba === "textos" ? textos : diag}<div class="barra-decisao">${artes}${decisao}</div>`;
   return `<article class="rcard glass" id="rev-${p.id}">
     <div class="ig ${ehVideo ? "vertical" : ""}" data-al="${esc(p.diag.alinhar)}" data-pos="${esc(p.diag.posicao)}" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
       <div class="ig-top"><span class="ig-avatar">${simboloMarca(cores.bg) ? `<img src="${esc(simboloMarca(cores.bg))}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
@@ -1957,10 +2028,46 @@ function sincronizarCasca() {
     if (de && para) para.textContent = de.textContent;
   }
   document.querySelectorAll(".kpi").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab));
+  desenharProximo();
+  desenharNavBaixo();
   const logo = typeof logoMarca === "function" && M.marca ? logoMarca() : "";
   document.querySelectorAll("[data-wm]").forEach(w => {
     if (logo && w.dataset.logo !== logo) { w.dataset.logo = logo; w.innerHTML = `<img src="${esc(logo)}" alt="Pauta" onerror="this.replaceWith('Pauta')">`; }
   });
+}
+// Mostra só a próxima ação que mais importa, fora da aba onde ela acontece.
+function desenharProximo() {
+  const el = document.getElementById("proximo"); if (!el) return;
+  if (!pauta.carregada) { el.hidden = true; return; }
+  const rev = state.posts.filter(p => p.status === "EmRevisao").length;
+  const ideias = state.ideias.filter(i => i.status === "Sugerida").length;
+  const semConteudo = state.posts.filter(p => p.status === "Planejado" && new Date(p.data) > new Date()).length;
+  const erro = state.posts.filter(p => p.status === "Erro").length;
+  const opcoes = [
+    erro && { t: "cal", cls: "bad", txt: `${erro} post${erro > 1 ? "s" : ""} com erro`, sub: "Veja o que aconteceu e tente de novo.", cta: "Ver no calendário" },
+    rev && { t: "rev", cls: "", txt: `${rev} post${rev > 1 ? "s" : ""} esperando você`, sub: "Confira a prévia e aprove para agendar.", cta: "Revisar agora" },
+    ideias && { t: "ideias", cls: "", txt: `${ideias} ideia${ideias > 1 ? "s" : ""} para decidir`, sub: "Leve as melhores para o calendário.", cta: "Decidir" },
+    semConteudo && { t: "cal", cls: "", txt: `${semConteudo} post${semConteudo > 1 ? "s" : ""} no calendário sem conteúdo`, sub: "Peça para a IA criar.", cta: "Abrir calendário" },
+  ].filter(o => o && o.t !== tab);
+  const o = opcoes[0];
+  el.hidden = !o;
+  if (o) el.innerHTML = `<span class="px-ponto ${o.cls}" aria-hidden="true"></span><div><b>${o.txt}</b><small>${o.sub}</small></div><button class="btn primary" data-tab="${o.t}">${o.cta} →</button>`;
+}
+// Navegação de baixo no celular (como nos apps): um toque para cada etapa, com o número de pendências.
+const ICONES_NAV = {
+  marca: "M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.4 7.2 17.9l.9-5.4L4.2 8.7l5.4-.8z",
+  ideias: "M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z",
+  cal: "M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM4 10h16M8 3v4M16 3v4",
+  rev: "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  agend: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2",
+};
+const NOMES_NAV = { marca: "Marca", ideias: "Ideias", cal: "Calendário", rev: "Revisão", agend: "Agendados" };
+function desenharNavBaixo() {
+  let nav = document.getElementById("nav-baixo");
+  if (!nav) { nav = document.createElement("nav"); nav.id = "nav-baixo"; nav.className = "nav-baixo"; nav.setAttribute("aria-label", "Etapas"); document.body.appendChild(nav); }
+  const pend = { ideias: state.ideias.filter(i => i.status === "Sugerida").length, rev: state.posts.filter(p => p.status === "EmRevisao").length };
+  nav.hidden = !(M.modo !== "web" || U.tela === "ok");
+  nav.innerHTML = Object.keys(NOMES_NAV).map(k => `<button data-tab="${k}" aria-current="${k === tab}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONES_NAV[k]}"/></svg><span>${NOMES_NAV[k]}</span>${pend[k] ? `<i>${pend[k]}</i>` : ""}</button>`).join("");
 }
 document.addEventListener("click", e => {
   if (!e.target.closest("[data-menu]")) return;
@@ -1979,7 +2086,7 @@ async function mudarIdeia(ideia, campos, ok) {
 }
 
 document.addEventListener("click", e => {
-  const tabBtn = e.target.closest(".track button, .kpi"); if (tabBtn) return ir(tabBtn.dataset.tab);
+  const tabBtn = e.target.closest(".track button, .kpi, button[data-tab]"); if (tabBtn) return ir(tabBtn.dataset.tab);
   const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; return render(); }
   const b = e.target.closest("[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
@@ -1997,7 +2104,8 @@ document.addEventListener("click", e => {
   if (act === "publicar-agora" && post) return pedirPublicacao(post);
   if (act === "ver-revisao" && post) { revAberto = post.id; ir("rev"); document.getElementById("rev-" + post.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "rev-abrir") { revAberto = revAberto === id ? null : id; ajusteAberto = null; render(); if (revAberto) document.getElementById("rev-" + id)?.scrollIntoView({ behavior: "smooth", block: "nearest" }); return; }
-  if (act === "post-aprovar" && post) return revisarPost(post, "aprovar");
+  if (act === "post-aprovar" && post) return aprovarDeUmaVez(post);
+  if (act === "aba-rev" && post) { abaRev[post.id] = b.dataset.v; textoAberto = b.dataset.v === "textos" ? post.id : (textoAberto === post.id ? null : textoAberto); return render(); }
   if (act === "post-ajustar" && post) { ajusteAberto = id; render(); document.getElementById("ajuste-" + id)?.focus(); return; }
   if (act === "ajuste-cancelar") { ajusteAberto = null; return render(); }
   if (act === "ajuste-enviar" && post) {
@@ -2013,7 +2121,7 @@ document.addEventListener("click", e => {
     return revisarPost(post, "ajustar", prefixo + txt, { slide, novaImagem });
   }
   if (act === "textos-editar" && post) { textoAberto = id; return render(); }
-  if (act === "textos-cancelar") { textoAberto = null; return render(); }
+  if (act === "textos-cancelar" && post) { textoAberto = null; abaRev[post.id] = "visual"; return render(); }
   if (act === "textos-salvar" && post) return salvarTextos(post);
   if (act === "recarregar-pauta") { pauta.erro = null; render(); return M.modo === "web" ? carregarPauta() : recarregar(); }
   if (act === "aprovar" && ideia) return abrirAgenda(ideia);
