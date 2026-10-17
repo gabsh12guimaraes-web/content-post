@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Content Post · Seu Instagram postando todo dia</title>
+<meta name="description" content="A Content Post cria e publica os posts do Instagram da sua marca com IA: ideias, textos, fotos e vídeos. Você só aprova.">
+<link rel="icon" type="image/png" href="marca/content-post-icone.png">
+<meta property="og:title" content="Content Post · Seu Instagram postando todo dia">
+<meta property="og:description" content="Ideias, textos, fotos e vídeos com IA, com a cara da sua marca. Você aprova e ele publica sozinho.">
+<meta property="og:image" content="marca/content-post-capa.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #0A0C15; --card: #121522; --card2: #171a29; --line: rgba(255,255,255,.09); --ink: #fff; --soft: rgba(255,255,255,.74); --faint: rgba(255,255,255,.5); --red: #F8395A; --ok: #3ddc97; }
+* { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--ink); font-family: Poppins, system-ui, sans-serif; line-height: 1.55; overflow-x: hidden; }
+a { color: inherit; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+.estreito { max-width: 860px; }
+header.topo { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; }
+.logo img { height: 26px; display: block; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; padding: 12px 18px; font: 600 14px Poppins, sans-serif; text-decoration: none; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; text-align: center; }
+.btn.primary { background: linear-gradient(135deg, #FF5F7A, #F8395A 55%, #C8102E); border-color: transparent; box-shadow: 0 14px 40px -16px rgba(248,57,90,.9); }
+.btn.cta { padding: 18px 28px; font-size: 17px; font-weight: 700; width: 100%; max-width: 440px; }
+.hero { text-align: center; padding: 28px 0 10px; }
+.pre { display: inline-block; font-size: 13px; font-weight: 600; color: var(--red); background: rgba(248,57,90,.12); border: 1px solid rgba(248,57,90,.35); border-radius: 99px; padding: 5px 14px; margin-bottom: 16px; }
+.hero h1 { font-size: clamp(30px, 5.6vw, 54px); line-height: 1.05; letter-spacing: -.035em; font-weight: 800; text-wrap: balance; max-width: 900px; margin: 0 auto; }
+.hero h1 em { font-style: normal; color: var(--red); }
+.hero .sub { color: var(--soft); font-size: clamp(16px, 2.2vw, 19px); max-width: 640px; margin: 16px auto 26px; text-wrap: pretty; }
+.vsl { position: relative; max-width: 860px; margin: 0 auto; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; border: 1px solid rgba(248,57,90,.35); box-shadow: 0 30px 80px -30px rgba(248,57,90,.55); background: #05060b; }
+.vsl iframe, .vsl video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+/* demonstração animada (aparece enquanto não houver vídeo) */
+.demo { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1.1fr; gap: 4%; padding: 5% 6%; background: radial-gradient(90% 120% at 100% 0%, rgba(248,57,90,.2), transparent 60%), #0d0f1a; }
+.demo .passos-demo { display: grid; align-content: center; gap: 3.2cqw; container-type: inline-size; }
+.vsl { container-type: inline-size; }
+.passo-demo { display: flex; gap: 2.4cqw; align-items: center; opacity: .35; transition: opacity .4s, transform .4s; font-size: max(11px, 2cqw); text-align: left; }
+.passo-demo.on { opacity: 1; transform: translateX(.6cqw); }
+.passo-demo i { flex: none; width: 4.2cqw; height: 4.2cqw; min-width: 22px; min-height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); border: 1px solid var(--line); font-style: normal; font-weight: 800; font-size: max(10px, 1.6cqw); }
+.passo-demo.on i { background: var(--red); border-color: var(--red); }
+.passo-demo b { display: block; font-size: max(12px, 2.2cqw); }
+.passo-demo span { color: var(--faint); font-size: max(10px, 1.55cqw); }
+.tela-demo { align-self: center; justify-self: center; height: 100%; aspect-ratio: 4 / 5; max-height: 100%; border-radius: 2cqw; overflow: hidden; position: relative; background: #000; border: 1px solid rgba(255,255,255,.12); }
+.cena { position: absolute; inset: 0; opacity: 0; transition: opacity .5s; display: grid; padding: 7%; }
+.cena.on { opacity: 1; }
+.cena.ideias { align-content: start; gap: 5%; background: #10131f; }
+.cena.ideias div { background: #1b1f30; border-radius: 1.2cqw; padding: 5%; font-size: max(9px, 1.5cqw); color: var(--soft); text-align: left; }
+.cena.ideias div b { color: #fff; display: block; font-size: max(10px, 1.7cqw); }
+.cena.ideias div em { font-style: normal; color: var(--red); font-weight: 700; }
+.cena.criando { place-content: center; justify-items: center; gap: 6%; background: #10131f; color: var(--soft); font-size: max(10px, 1.7cqw); }
+.anel { width: 9cqw; height: 9cqw; border-radius: 50%; border: .9cqw solid rgba(248,57,90,.25); border-top-color: var(--red); animation: gira 1s linear infinite; }
+@keyframes gira { to { transform: rotate(360deg); } }
+.cena.post { background: linear-gradient(160deg, #6a8 0%, #234 70%); align-content: end; text-align: left; }
+.cena.post::before { content: ""; position: absolute; width: 38%; aspect-ratio: 1; border-radius: 50%; background: #f3c76a; top: 18%; left: 31%; opacity: .9; }
+.cena.post b { position: relative; font-size: max(13px, 3cqw); line-height: 1.05; letter-spacing: -.02em; }
+.cena.post span { position: relative; font-size: max(9px, 1.5cqw); color: rgba(255,255,255,.8); margin-top: 3%; }
+.cena.publicado { place-content: center; justify-items: center; gap: 5%; background: #10131f; font-size: max(11px, 2cqw); font-weight: 700; }
+.cena.publicado .check { width: 10cqw; height: 10cqw; border-radius: 50%; background: var(--ok); display: grid; place-items: center; color: #05210f; font-size: 5cqw; }
+.selo-demo { position: absolute; left: 3%; bottom: 4%; font-size: max(10px, 1.4cqw); color: var(--faint); }
+@media (max-width: 620px) { .demo { grid-template-columns: 1fr; grid-template-rows: auto 1fr; padding: 5%; } .demo .passos-demo { grid-template-columns: repeat(4, 1fr); gap: 2%; } .passo-demo { flex-direction: column; text-align: center; transform: none !important; } .passo-demo span { display: none; } .vsl { aspect-ratio: 4 / 5; } }
+.abaixo-video { display: grid; justify-items: center; gap: 10px; margin: 26px auto 0; }
+.abaixo-video small { color: var(--faint); font-size: 13px; }
+.abaixo-video small a { color: var(--soft); }
+.faixa { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 26px; margin: 34px 0 0; color: var(--soft); font-size: 14px; }
+.faixa span::before { content: "✓"; color: var(--red); font-weight: 800; margin-right: 8px; }
+h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.025em; line-height: 1.12; margin: 84px 0 10px; text-align: center; text-wrap: balance; }
+.lead { color: var(--soft); text-align: center; max-width: 620px; margin: 0 auto; }
+.dores { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 28px; }
+.dor { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+.dor b { display: block; font-size: 17px; margin-bottom: 6px; }
+.dor p { color: var(--soft); font-size: 14px; }
+.dor .x { color: var(--red); font-weight: 800; font-size: 20px; line-height: 1; display: block; margin-bottom: 10px; }
+.etapas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 28px; counter-reset: e; }
+.etapa { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; position: relative; }
+.etapa::before { counter-increment: e; content: counter(e); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--red); font-weight: 800; margin-bottom: 12px; }
+.etapa b { display: block; font-size: 17px; margin-bottom: 6px; } .etapa p { color: var(--soft); font-size: 14px; }
+.formatos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 28px; }
+.formato { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+.formato .arte { aspect-ratio: 4 / 5; display: grid; align-content: end; padding: 12%; position: relative; }
+.formato.vert .arte { aspect-ratio: 4 / 5; }
+.formato .arte b { position: relative; font-size: clamp(13px, 1.7vw, 17px); line-height: 1.1; }
+.formato .arte small { position: relative; font-size: 11px; opacity: .8; }
+.formato .arte::after { content: attr(data-tag); position: absolute; top: 8%; right: 8%; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; background: rgba(0,0,0,.45); padding: 3px 8px; border-radius: 99px; }
+.formato p { padding: 12px 14px 14px; color: var(--soft); font-size: 13px; }
+.formato p b { color: #fff; display: block; font-size: 15px; }
+@media (max-width: 760px) { .formatos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.publico { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 28px; }
+.publico div { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+.publico b { display: block; font-size: 17px; margin-bottom: 6px; } .publico p { color: var(--soft); font-size: 14px; }
+.comparar { margin-top: 28px; overflow-x: auto; border-radius: 16px; border: 1px solid var(--line); }
+.comparar table { width: 100%; border-collapse: collapse; min-width: 560px; font-size: 14px; }
+.comparar th, .comparar td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+.comparar th { background: var(--card); font-weight: 600; }
+.comparar th.nos, .comparar td.nos { background: rgba(248,57,90,.1); color: #fff; font-weight: 600; }
+.comparar td { color: var(--soft); }
+.comparar tr:last-child td { border-bottom: 0; }
+.ciclos { display: flex; justify-content: center; gap: 6px; margin: 26px auto; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 5px; width: fit-content; max-width: 100%; flex-wrap: wrap; }
+.ciclos button { border: 0; background: transparent; color: var(--soft); font: 600 14px Poppins, sans-serif; padding: 9px 14px; border-radius: 8px; cursor: pointer; }
+.ciclos button[aria-pressed="true"] { background: var(--red); color: #fff; }
+.grade-planos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.plano { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; display: grid; gap: 12px; align-content: start; position: relative; }
+.plano.dest { border-color: var(--red); box-shadow: 0 0 0 1px var(--red), 0 20px 60px -30px var(--red); }
+.plano .tag { position: absolute; top: -12px; left: 24px; background: var(--red); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+.plano h3 { font-size: 20px; }
+.preco { font-size: 40px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+.preco small { font-size: 15px; font-weight: 500; color: var(--faint); letter-spacing: 0; }
+.cobranca { font-size: 13px; color: var(--faint); min-height: 20px; }
+.plano ul { list-style: none; padding: 0; display: grid; gap: 8px; font-size: 14px; color: var(--soft); }
+.plano li::before { content: "✓"; color: var(--red); font-weight: 800; margin-right: 8px; }
+.garantia { margin-top: 28px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; max-width: 760px; margin-left: auto; margin-right: auto; }
+.garantia .sel { width: 86px; height: 86px; border-radius: 50%; display: grid; place-items: center; text-align: center; border: 2px solid var(--red); font-weight: 800; line-height: 1; font-size: 26px; }
+.garantia .sel small { display: block; font-size: 10px; font-weight: 600; letter-spacing: .06em; }
+.garantia b { font-size: 18px; } .garantia p { color: var(--soft); font-size: 14px; margin-top: 4px; }
+details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-top: 10px; }
+summary { cursor: pointer; font-weight: 600; } details p { color: var(--soft); margin-top: 8px; font-size: 14px; }
+.final { margin: 84px 0 0; text-align: center; background: radial-gradient(80% 140% at 50% 0%, rgba(248,57,90,.28), transparent 70%), var(--card); border: 1px solid rgba(248,57,90,.35); border-radius: 22px; padding: 44px 20px; display: grid; justify-items: center; gap: 12px; }
+.final h2 { margin: 0; } .final p { color: var(--soft); max-width: 560px; }
+footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px 0 110px; }
+footer a { color: var(--soft); }
+.barra-cta { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(10,12,21,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--line); display: flex; justify-content: center; gap: 12px; align-items: center; transform: translateY(110%); transition: transform .3s; }
+.barra-cta.on { transform: none; }
+.barra-cta span { color: var(--soft); font-size: 14px; }
+.barra-cta .btn { padding: 12px 20px; }
+@media (max-width: 560px) { .barra-cta span { display: none; } .barra-cta .btn { width: 100%; } .garantia { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+@media (prefers-reduced-motion: reduce) { .anel { animation: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topo">
+    <a class="logo" href="./"><img src="marca/content-post-logo-branco.png" alt="Content Post"></a>
+    <a class="btn" href="./">Entrar</a>
+  </header>
+
+  <section class="hero">
+    <span class="pre">Para quem precisa postar e não tem tempo</span>
+    <h1>Seu Instagram postando <em>todo dia</em>, sem você passar a noite criando post</h1>
+    <p class="sub">A Content Post usa inteligência artificial para criar ideias, textos, fotos e vídeos com a cara da sua marca. Você só aprova, e ela publica sozinha.</p>
+    <div class="vsl" id="vsl" aria-label="Vídeo de apresentação"></div>
+    <div class="abaixo-video" id="cta-video">
+      <a class="btn primary cta" href="#planos" data-cta>Quero meu Instagram no automático</a>
+      <small>Ou <a href="./">teste grátis por 7 dias</a>, com 3 posts, sem cartão.</small>
+    </div>
+    <div class="faixa"><span>IA já incluída</span><span>Carrossel, Reels, Estático e Stories</span><span>Publica sozinho</span><span>7 dias de garantia</span></div>
+  </section>
+
+  <h2>Postar todo dia dá trabalho demais</h2>
+  <p class="lead">E quando o perfil para, parece que a empresa parou também.</p>
+  <div class="dores">
+    <div class="dor"><span class="x">✕</span><b>Falta assunto</b><p>Você abre o Instagram e não sabe o que postar. A semana passa e o feed fica parado.</p></div>
+    <div class="dor"><span class="x">✕</span><b>Falta tempo</b><p>Pensar, escrever, achar foto, montar arte e lembrar de publicar toma horas que você não tem.</p></div>
+    <div class="dor"><span class="x">✕</span><b>Falta consistência</b><p>Posts com cores e jeitos diferentes deixam a marca bagunçada e sem cara de profissional.</p></div>
+  </div>
+
+  <h2>Como a Content Post resolve</h2>
+  <p class="lead">Quatro passos, e a parte pesada fica com a IA.</p>
+  <div class="etapas">
+    <div class="etapa"><b>Conte quem é a sua marca</b><p>Tom de voz, público, cores e logo. Você faz uma vez e vale para todos os posts.</p></div>
+    <div class="etapa"><b>Receba ideias prontas</b><p>A IA observa concorrentes e hashtags do seu nicho e sugere pautas com nota de aderência.</p></div>
+    <div class="etapa"><b>A IA cria o post</b><p>Textos, fotos e até vídeos gerados com a sua identidade visual. Você escolhe o modelo e ajusta o que quiser.</p></div>
+    <div class="etapa"><b>Aprove e pronto</b><p>Um clique e o post entra no calendário. Ele é publicado sozinho na data e hora marcadas.</p></div>
+  </div>
+
+  <h2>Todos os formatos que o Instagram pede</h2>
+  <div class="formatos">
+    <div class="formato"><div class="arte" data-tag="Carrossel" style="background:linear-gradient(160deg,#c86,#422)"><b>5 erros que travam o seu caixa</b><small>Arraste para o lado →</small></div><p><b>Carrossel</b>Slides com fotos, vídeos ou só texto.</p></div>
+    <div class="formato"><div class="arte" data-tag="Reels" style="background:linear-gradient(160deg,#68a,#123)"><b>Bastidores de uma sexta lotada</b><small>▶ 0:30</small></div><p><b>Reels</b>Cenas em vídeo com texto na tela.</p></div>
+    <div class="formato"><div class="arte" data-tag="Estático" style="background:#F4F4F6;color:#111"><b>Pix na mesa em 3 passos</b><small>Salve o post</small></div><p><b>Estático</b>Uma arte só, com foto ou só texto.</p></div>
+    <div class="formato"><div class="arte" data-tag="Stories" style="background:linear-gradient(160deg,#a6c,#214)"><b>Vem aí: novidade na sexta</b><small>Toque para ver</small></div><p><b>Stories</b>Imagem, vídeo contínuo ou vários vídeos.</p></div>
+  </div>
+
+  <h2>Feita para quem vive de Instagram</h2>
+  <div class="publico">
+    <div><b>Donos de negócio</b><p>Bares, restaurantes, lojas, clínicas e serviços que precisam aparecer, mas não têm tempo para criar conteúdo.</p></div>
+    <div><b>Social medias</b><p>Cuide de várias marcas no mesmo lugar, com a IA fazendo o rascunho e você dando o toque final.</p></div>
+    <div><b>Agências</b><p>Entregue mais posts sem aumentar a equipe, com equipe e calendário separados por cliente.</p></div>
+  </div>
+
+  <h2>Compare</h2>
+  <div class="comparar estreito wrap" style="padding:0">
+    <table>
+      <tr><th></th><th>Fazer sozinho</th><th>Contratar alguém</th><th class="nos">Content Post</th></tr>
+      <tr><td>Tempo seu por semana</td><td>Muitas horas</td><td>Reuniões e aprovações</td><td class="nos">Só revisar e aprovar</td></tr>
+      <tr><td>Ideias de conteúdo</td><td>Depende de você</td><td>Depende da pessoa</td><td class="nos">IA sugere toda semana</td></tr>
+      <tr><td>Fotos e vídeos</td><td>Banco de imagens ou celular</td><td>Custo à parte</td><td class="nos">Gerados por IA, inclusos</td></tr>
+      <tr><td>Publicação</td><td>Manual</td><td>Manual</td><td class="nos">Automática, na hora marcada</td></tr>
+      <tr><td>Custo</td><td>Seu tempo</td><td>Variável</td><td class="nos">Fixo por mês, a partir de R$ 307</td></tr>
+    </table>
+  </div>
+
+  <h2 id="planos">Escolha seu plano</h2>
+  <p class="lead">A inteligência artificial já vem incluída. Sem contratar outras ferramentas.</p>
+  <div class="ciclos" role="group" aria-label="Ciclo de cobrança">
+    <button data-ciclo="mensal">Mensal</button><button data-ciclo="semestral">Semestral -8%</button><button data-ciclo="anual">Anual -17%</button>
+  </div>
+  <div class="grade-planos" id="grade"></div>
+
+  <div class="garantia">
+    <div class="sel">7<small>DIAS</small></div>
+    <div><b>Garantia de 7 dias</b><p>Assinou e não gostou? Peça o reembolso em até 7 dias e você recebe seu dinheiro de volta, sem burocracia. O pagamento é processado com segurança pela Kiwify.</p></div>
+  </div>
+
+  <h2>Perguntas frequentes</h2>
+  <div class="estreito wrap" style="padding:0">
+    <details><summary>Preciso saber design ou mexer com IA?</summary><p>Não. Você responde algumas perguntas sobre a marca e a plataforma faz o resto. Para ajustar, é só clicar no modelo que preferir ou escrever o que quer mudar.</p></details>
+    <details><summary>Os posts ficam com a cara da minha marca?</summary><p>Sim. A IA usa o seu tom de voz, as suas cores e o seu logo, e você ainda pode enviar imagens de referência (mood board) do estilo que gosta.</p></details>
+    <details><summary>Ele publica sem eu ver?</summary><p>Não. Todo post passa pela sua revisão. Só depois que você aprova ele entra na fila de publicação.</p></details>
+    <details><summary>Preciso pagar a IA à parte?</summary><p>Não. Os planos já incluem a geração de textos, fotos e vídeos dentro do limite de posts de cada plano.</p></details>
+    <details><summary>Posso colocar minha equipe?</summary><p>Sim, sem limite de pessoas, com papéis de dono, administrador e editor.</p></details>
+    <details><summary>Como funciona o pagamento?</summary><p>Pela Kiwify, com cartão, Pix ou boleto. O plano é liberado assim que o pagamento é aprovado, e você pode cancelar quando quiser.</p></details>
+  </div>
+
+  <section class="final">
+    <h2>Seu Instagram no automático, a partir de hoje</h2>
+    <p>Escolha o plano, conte quem é a sua marca e receba os primeiros posts prontos para aprovar.</p>
+    <a class="btn primary cta" href="#planos" data-cta>Quero começar agora</a>
+  </section>
+
+  <footer><img src="marca/content-post-logo-branco.png" alt="Content Post" style="height:18px;opacity:.6;margin-bottom:10px"><br><a href="ajuda.html">Como usar</a> · <a href="afiliados.html">Seja afiliado</a> · <a href="planos.html">Planos</a></footer>
+</div>
+<div class="barra-cta" id="barra-cta"><span>Seu Instagram postando todo dia</span><a class="btn primary" href="#planos" data-cta>Ver planos</a></div>
+<script>
+/* ================= Configuração da campanha ================= */
+// Link do vídeo (YouTube, Vimeo, Panda Video ou arquivo .mp4). Vazio = mostra a demonstração animada.
+const VIDEO_URL = "";
+// ID do Pixel da Meta (só números). Vazio = sem pixel.
+const PIXEL_META = "";
+// Mostrar o botão abaixo do vídeo só depois de X segundos (0 = sempre visível). Funciona com vídeo; sem vídeo fica sempre visível.
+const CTA_APOS_SEGUNDOS = 0;
+const CHECKOUT = {
+  "essencial:mensal": "https://pay.kiwify.com.br/xqTdun0", "essencial:semestral": "https://pay.kiwify.com.br/AzjShuU", "essencial:anual": "https://pay.kiwify.com.br/CeMO1Jy",
+  "profissional:mensal": "https://pay.kiwify.com.br/UcKEj8c", "profissional:semestral": "https://pay.kiwify.com.br/Al5OS48", "profissional:anual": "https://pay.kiwify.com.br/dJQ5mGY",
+  "agencia:mensal": "https://pay.kiwify.com.br/m0o5fO1", "agencia:semestral": "https://pay.kiwify.com.br/AOdsIi5", "agencia:anual": "https://pay.kiwify.com.br/bRdatlT",
+};
+/* ============================================================ */
+const PLANOS = [
+  { id: "essencial", nome: "Essencial", posts: 12, ideias: 8, precos: { mensal: 369, semestral: 339, anual: 307 }, extra: "Para quem posta 3 vezes por semana" },
+  { id: "profissional", nome: "Profissional", posts: 30, ideias: 20, precos: { mensal: 877, semestral: 807, anual: 729 }, extra: "Um post por dia", destaque: true },
+  { id: "agencia", nome: "Agência", posts: 80, ideias: 50, precos: { mensal: 2307, semestral: 2117, anual: 1919 }, extra: "Para agências e várias marcas" },
+];
+const MESES = { mensal: 1, semestral: 6, anual: 12 };
+const reais = v => "R$ " + v.toLocaleString("pt-BR");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const daUrl = new URLSearchParams(location.search);
+// Repassa a origem da campanha (utm_*, src, sck) para o checkout da Kiwify.
+function comOrigem(link) {
+  try { const u = new URL(link); for (const [k, v] of daUrl) if (/^(utm_[a-z]+|src|sck)$/.test(k)) u.searchParams.set(k, v); if (!u.searchParams.has("src")) u.searchParams.set("src", "lp"); return u.toString(); }
+  catch (e) { return link; }
+}
+// Pixel da Meta (opcional)
+function evento(nome, dados) { try { if (window.fbq) fbq("track", nome, dados || {}); } catch (e) {} }
+if (/^\d{6,20}$/.test(PIXEL_META)) {
+  !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+  fbq("init", PIXEL_META); fbq("track", "PageView");
+}
+// Vídeo ou demonstração
+const vsl = document.getElementById("vsl");
+function montarVideo(url) {
+  let m;
+  if ((m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/))) return `<iframe src="https://www.youtube-nocookie.com/embed/${m[1]}?rel=0&modestbranding=1&playsinline=1" title="Vídeo da Content Post" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/))) return `<iframe src="https://player.vimeo.com/video/${m[1]}?title=0&byline=0&portrait=0" title="Vídeo da Content Post" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+  if (/pandavideo|player-vz/.test(url)) return `<iframe src="${esc(url)}" title="Vídeo da Content Post" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+  if (/\.mp4(\?|$)/i.test(url)) return `<video src="${esc(url)}" controls playsinline preload="metadata"></video>`;
+  return "";
+}
+const videoHtml = VIDEO_URL ? montarVideo(VIDEO_URL) : "";
+if (videoHtml) {
+  vsl.innerHTML = videoHtml;
+  if (CTA_APOS_SEGUNDOS > 0) { const c = document.getElementById("cta-video"); c.hidden = true; setTimeout(() => { c.hidden = false; }, CTA_APOS_SEGUNDOS * 1000); }
+} else {
+  vsl.innerHTML = `<div class="demo" aria-hidden="true">
+    <div class="passos-demo">${[["Ideias", "A IA sugere pautas"], ["Criação", "Textos, fotos e vídeos"], ["Revisão", "Você aprova"], ["Publicado", "Na hora marcada"]].map(([t, s], i) => `<div class="passo-demo" data-i="${i}"><i>${i + 1}</i><div><b>${t}</b><span>${s}</span></div></div>`).join("")}</div>
+    <div class="tela-demo">
+      <div class="cena ideias"><div><em>8.5</em> · Carrossel<b>5 erros ao dividir a conta</b></div><div><em>7.9</em> · Reels<b>Bastidores de uma sexta lotada</b></div><div><em>7.2</em> · Stories<b>Novidade chegando</b></div></div>
+      <div class="cena criando"><div class="anel"></div>Criando o post com IA…</div>
+      <div class="cena post"><b>Coisas que você não precisa mais fazer no bar</b><span>Pagamento por QR na mesa · 1/5</span></div>
+      <div class="cena publicado"><div class="check">✓</div>Publicado no Instagram</div>
+    </div>
+  </div><span class="selo-demo">Demonstração</span>`;
+  const passos = [...vsl.querySelectorAll(".passo-demo")], cenas = [...vsl.querySelectorAll(".cena")];
+  let i = 0;
+  const mostrar = () => { passos.forEach((p, k) => p.classList.toggle("on", k === i)); cenas.forEach((c, k) => c.classList.toggle("on", k === i)); i = (i + 1) % 4; };
+  mostrar(); if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(mostrar, 2200);
+}
+// Planos
+let ciclo = MESES[daUrl.get("ciclo")] ? daUrl.get("ciclo") : "anual";
+function desenhar() {
+  document.querySelectorAll("[data-ciclo]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ciclo === ciclo)));
+  document.getElementById("grade").innerHTML = PLANOS.map(p => {
+    const porMes = p.precos[ciclo], m = MESES[ciclo], link = comOrigem(CHECKOUT[p.id + ":" + ciclo]);
+    return `<div class="plano ${p.destaque ? "dest" : ""}">${p.destaque ? `<span class="tag">Mais escolhido</span>` : ""}
+      <h3>${esc(p.nome)}</h3>
+      <div class="preco">${reais(porMes)}<small>/mês</small></div>
+      <div class="cobranca">${m > 1 ? `${reais(porMes * m)} a cada ${m} meses` : "cobrado todo mês"}</div>
+      <ul><li>${p.posts} posts por mês criados pela IA</li><li>${p.ideias} buscas de ideias por mês</li><li>Fotos e vídeos com IA inclusos</li><li>Calendário e publicação automática</li><li>Equipe sem limite de pessoas</li><li>${esc(p.extra)}</li></ul>
+      <a class="btn ${p.destaque ? "primary" : ""}" href="${esc(link)}" data-checkout="${p.id}:${ciclo}" data-valor="${porMes * m}">Assinar ${esc(p.nome)}</a>
+    </div>`;
+  }).join("");
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-ciclo]"); if (b) { ciclo = b.dataset.ciclo; desenhar(); return; }
+  const c = e.target.closest("[data-checkout]"); if (c) evento("InitiateCheckout", { value: Number(c.dataset.valor), currency: "BRL", content_name: c.dataset.checkout });
+  if (e.target.closest("[data-cta]")) evento("ViewContent", { content_name: "planos" });
+});
+desenhar();
+// Barra fixa com o botão depois que a pessoa passa do vídeo
+const barra = document.getElementById("barra-cta"), alvoPlanos = document.getElementById("planos");
+addEventListener("scroll", () => {
+  const passou = scrollY > vsl.offsetTop + vsl.offsetHeight;
+  const vendoPlanos = alvoPlanos.getBoundingClientRect().top < innerHeight && alvoPlanos.getBoundingClientRect().bottom > 0;
+  barra.classList.toggle("on", passou && !vendoPlanos);
+}, { passive: true });
+</script>
+</body>
+</html>
