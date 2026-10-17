@@ -407,6 +407,12 @@ body.travado .wrap { visibility: hidden; }
 .users { display: grid; gap: 8px; }
 .urow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line); }
 .urow .un { font-weight: 600; }
+.uso { height: 6px; border-radius: 99px; background: var(--line); margin-top: 8px; overflow: hidden; } .uso i { display: block; height: 100%; background: var(--red, #F8395A); }
+.planos-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.plano-card { display: grid; gap: 8px; align-content: start; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(0,0,0,.2); font-size: 13px; }
+.plano-card.dest { border-color: var(--red, #F8395A); }
+.plano-card .preco { font-size: 22px; font-weight: 800; } .plano-card .preco small { font-size: 12px; font-weight: 500; opacity: .7; }
+.plano-card .btn { justify-content: center; text-align: center; }
 .urow .ue { font-size: 12px; color: var(--ink-faint); overflow-wrap: anywhere; }
 .urow.off { opacity: 0.55; }
 /* calendário mensal */
@@ -584,7 +590,10 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .track button[aria-selected="true"] .count { color: var(--red); }
 .track .step, .track .play { display: none; }
 .side-pe { margin-top: auto; border-top: 1px solid var(--line); padding: 14px 18px 0; display: grid; gap: 4px; }
-.side-pe .quem { margin-bottom: 8px; }
+.side-pe .quem { margin: 6px 0 4px; }
+.org-sel { display: grid; gap: 6px; margin-bottom: 4px; }
+.org-sel select { width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: #fff; padding: 9px 10px; font-weight: 700; font-size: 12.5px; }
+.side-pe .btn[data-u="nova-org"] { color: var(--red); font-weight: 600; padding: 4px 0 8px; }
 .side-pe .btn, .side-pe .btn.quiet { justify-content: flex-start; width: 100%; padding: 8px 0; border: 0; background: none; color: var(--ink-soft); font-weight: 500; }
 .side-pe .btn:hover { color: #fff; background: none; }
 .side-pe .notice { font-size: 11px; }
@@ -832,7 +841,7 @@ let flashId = null;
 const STATUS = {
   Planejado: ["Planejado", ""], EmCriacao: ["Em criação", "acc"], AguardandoVideo: ["Aguardando vídeo", "acc"], VideoAnexado: ["Vídeo anexado", "acc"],
   EmRevisao: ["Em revisão", "warn"], Ajustes: ["IA ajustando", "warn"], Aprovado: ["Aprovado", "info"], Agendado: ["Agendado", "info"],
-  Publicado: ["Publicado", "ok"], Erro: ["Erro", "bad"],
+  Publicando: ["Publicando", "info"], Publicado: ["Publicado", "ok"], Erro: ["Erro", "bad"],
 };
 const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -863,7 +872,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
-    ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "claro", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "claro", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -879,6 +888,7 @@ function receberPauta(ideias, posts) {
 async function carregarPauta() {
   try {
     const j = await api({ acao: "pauta" });
+    pauta.tarefas = j.tarefas || [];
     receberPauta(j.ideias || [], j.posts || []);
   } catch (e) {
     pauta.erro = e; render();
@@ -898,7 +908,8 @@ const DISP_KEY = KEY + ":disparos", DISP_MAX = 12 * 60 * 1000;
 let disparos = (() => { try { return JSON.parse(localStorage.getItem(DISP_KEY) || "{}"); } catch (e) { return {}; } })();
 if (!disparos.posts) disparos.posts = {};
 function salvarDisparos() { try { localStorage.setItem(DISP_KEY, JSON.stringify(disparos)); } catch (e) {} }
-const buscandoIdeias = () => !!disparos.ideias && Date.now() - disparos.ideias.em < DISP_MAX;
+const tarefaIdeias = () => (pauta.tarefas || []).find(t => t.tipo === "ideias");
+const buscandoIdeias = () => (!!disparos.ideias && Date.now() - disparos.ideias.em < DISP_MAX) || ["pendente", "rodando"].includes((tarefaIdeias() || {}).status);
 const criando = id => !!disparos.posts[id];
 function conferirDisparos() {
   const agora = Date.now();
@@ -913,7 +924,7 @@ function conferirDisparos() {
     if (!p || passou > DISP_MAX) { delete disparos.posts[id]; continue; }
     if (!["Planejado", "EmCriacao", "Erro"].includes(p.status) || (p.status === "Erro" && passou > 90000)) {
       delete disparos.posts[id];
-      toast(p.status === "Erro" ? 'Não deu para criar "' + p.titulo + '". Veja o aviso no Telegram.' : '"' + p.titulo + '" está pronto para revisão.');
+      toast(p.status === "Erro" ? 'Não deu para criar "' + p.titulo + '". Veja o erro no calendário.' : '"' + p.titulo + '" está pronto para revisão.');
     }
   }
   salvarDisparos();
@@ -1187,12 +1198,14 @@ function renderIdeias() {
   const botao = M.modo !== "web" ? ""
     : buscandoIdeias() ? `<div class="working"><span class="dot"></span>Buscando ideias nas fontes…</div>`
     : `<button class="btn primary" data-act="buscar-ideias">Buscar ideias novas</button>`;
+  const ti = tarefaIdeias();
+  const falhaIdeias = ti && ti.status === "erro" ? `<div class="msg erro" style="margin-bottom:12px">A última busca de ideias falhou: ${esc(ti.erro || "")}</div>` : "";
   const head = `<div class="panel-head"><p>A IA lê as fontes cadastradas e sugere ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>${botao}`;
   if (!pauta.carregada) { el.innerHTML = head + `</div>` + semPauta(); return; }
   const lista = state.ideias.filter(i => filtro === "Todas" || i.status === filtro).sort((a, b) => b.score - a.score);
   const contagem = s => state.ideias.filter(i => s === "Todas" || i.status === s).length;
   const fb = (s, label) => `<button aria-pressed="${filtro === s}" data-filtro="${s}">${label} · ${contagem(s)}</button>`;
-  el.innerHTML = head + `<div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div></div>
+  el.innerHTML = falhaIdeias + head + `<div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div></div>
     ${lista.length ? `<div class="ideas">${lista.map(cardIdeia).join("")}</div>`
       : `<div class="empty glass">${state.ideias.length ? "Nenhuma ideia neste filtro." : "Nenhuma ideia ainda. Clique em Buscar ideias novas."}</div>`}`;
 }
@@ -1344,6 +1357,7 @@ function detalhePost() {
     <div class="top"><h3>${esc(p.titulo)}</h3><button class="btn quiet" data-act="fechar-det" aria-label="Fechar">✕</button></div>
     <div class="meta">${chip(p.status)}<span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span>${p.pilar ? `<span class="chip plain">${esc(p.pilar.split(":")[0])}</span>` : ""}</div>
     <div class="small">Publicação: <b>${fmtData(p.data)}</b>${p.versao > 1 ? ` · versão ${p.versao}` : ""}</div>
+    ${p.erro ? `<div class="msg erro">${esc(p.erro)}</div>` : ""}
     ${p.legenda ? `<div class="leg">${esc(p.legenda)}</div>` : `<p class="small" style="margin:0">Ainda sem legenda: o post não foi criado.</p>`}
     ${acao}
   </section>`;
@@ -1352,7 +1366,7 @@ function detalhePost() {
 /* ---------- Revisão ---------- */
 function renderRev() {
   const el = document.getElementById("p-rev");
-  const head = `<div class="panel-head"><p>Posts prontos esperando seu olhar. Aprove ou peça ajuste aqui mesmo. Os botões do bot no Telegram continuam funcionando.</p></div>`;
+  const head = `<div class="panel-head"><p>Posts prontos esperando seu olhar. Gere as artes, aprove ou peça ajuste.</p></div>`;
   if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
   const lista = state.posts.filter(p => p.status === "EmRevisao" || p.status === "Ajustes").sort((a, b) => new Date(a.data) - new Date(b.data));
   if (lista.length > 1) {
@@ -1814,7 +1828,7 @@ async function gerarArtes(p) {
         artes.push({ tipo: "image/jpeg", base64: await paraBase64(desenharSlide(slides[i], i, slides.length, foto, logo, cores, nome, null, p.diag)) });
       }
     }
-    toast("Salvando no Airtable…");
+    toast("Salvando…");
     await api({ acao: "salvarArtes", id: p.id, artes });
     toast(ehVideoFmt(p) ? "Pronto: vídeo final salvo. Agora é só aprovar." : `Pronto: ${artes.length} arte${artes.length > 1 ? "s" : ""} salva${artes.length > 1 ? "s" : ""}. Agora é só aprovar.`);
     gerandoArtes = null;
@@ -1930,7 +1944,7 @@ function cardRev(p) {
   }
   const falta = !prontas;
   let decisao;
-  if (M.modo !== "web") decisao = `<div class="msg">Para aprovar ou pedir ajuste pelo painel, abra o link do GitHub. Aqui no claude.ai, use os botões do bot no Telegram.</div>`;
+  if (M.modo !== "web") decisao = `<div class="msg">Para aprovar ou pedir ajuste, abra o painel pelo link do GitHub.</div>`;
   else if (revisando === p.id) decisao = `<div class="working"><span class="dot"></span>Enviando…</div>`;
   else if (ajusteAberto === p.id) decisao = `<div class="reason">
       ${slides.length > 1 ? `<label class="field"><span>Onde ajustar</span>
@@ -1978,7 +1992,7 @@ function cardRev(p) {
   const aba = podeEditar && (abaRev[p.id] === "textos" || textoAberto === p.id) ? "textos" : "visual";
   const abas = podeEditar ? `<div class="seg abas-rev" role="tablist" aria-label="Editar"><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="visual" aria-selected="${aba === "visual"}" aria-pressed="${aba === "visual"}">Visual</button><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="textos" aria-selected="${aba === "textos"}" aria-pressed="${aba === "textos"}">Textos</button></div>` : "";
   const acoes = p.status === "Ajustes"
-    ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui e no Telegram em 1 ou 2 minutos.</div>`
+    ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui em alguns minutos.</div>`
     : `${abas}${aba === "textos" ? textos : diag}<div class="barra-decisao">${artes}${decisao}</div>`;
   return `<article class="rcard glass" id="rev-${p.id}">
     <div class="ig ${ehVideo ? "vertical" : ""}" data-al="${esc(p.diag.alinhar)}" data-pos="${esc(p.diag.posicao)}" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
@@ -1993,6 +2007,7 @@ function cardRev(p) {
       <div class="meta">${chip(p.status)}${prontas ? `<span class="chip ok">${ehVideo ? "Vídeo pronto" : "Artes prontas"}</span>` : ""}<span class="chip plain">v${p.versao}</span><span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span></div>
       <h3>${esc(p.titulo)}</h3>
       <div class="small">Publicação: <b>${fmtData(p.data)}</b></div>
+      ${p.erro ? `<div class="msg erro">${esc(p.erro)}</div>` : ""}
       ${acoes}
     </div>
   </article>`;
@@ -2401,77 +2416,122 @@ async function recarregar() {
   try { await M.mcp.invalidate(AT.server, "list_records_for_table"); } catch (e) {}
 }
 
-/* Fora do claude.ai: o painel fala com o fluxo 07 do n8n. Cada pessoa entra com e-mail e senha. */
-const API = "https://easypeasypay.app.n8n.cloud/webhook/pauta-app";
-const API_SENHA = "https://easypeasypay.app.n8n.cloud/webhook/pauta-painel"; // só no primeiro acesso
+/* Fora do claude.ai: o painel fala com a API da plataforma (content-post-api, no Railway). */
+const API_PADRAO = "https://api-production-70f3.up.railway.app";
+const API = (() => {
+  try {
+    const q = new URLSearchParams(location.search).get("api");
+    if (q && /^(https:\/\/[\w.-]+|http:\/\/localhost)(:\d+)?$/.test(q)) localStorage.setItem("pauta-api", q);
+    const salvo = localStorage.getItem("pauta-api");
+    if (salvo) return salvo.replace(/\/$/, "") + "/api";
+  } catch (e) {}
+  return API_PADRAO.startsWith("http") ? API_PADRAO.replace(/\/$/, "") + "/api" : "";
+})();
 const CHAVE_SESSAO = "pauta-painel-sessao";
 const sessao = {
   ler() { try { return JSON.parse(sessionStorage.getItem(CHAVE_SESSAO) || localStorage.getItem(CHAVE_SESSAO) || "null"); } catch (e) { return null; } },
   salvar(v, lembrar) { try { const t = JSON.stringify(v); sessionStorage.setItem(CHAVE_SESSAO, t); if (lembrar) localStorage.setItem(CHAVE_SESSAO, t); } catch (e) {} },
   apagar() { try { for (const k of [CHAVE_SESSAO, "pauta-painel-senha"]) { sessionStorage.removeItem(k); localStorage.removeItem(k); } } catch (e) {} },
 };
-const U = { token: "", usuario: null, tela: "login", erro: "", ocupado: false };
-async function chamar(url, headers, corpo) {
+const U = { token: "", usuario: null, organizacoes: [], organizacao: null, tela: "login", erro: "", ocupado: false, convite: null, conviteInfo: null };
+try { U.convite = new URLSearchParams(location.search).get("convite") || null; } catch (e) {}
+async function chamar(corpo, comToken = true) {
+  if (!API) throw { web: true, message: "O endereço da API ainda não foi configurado neste painel." };
   let r;
   try {
-    r = await fetch(url, { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(corpo) });
+    r = await fetch(API, { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json", ...(comToken && U.token ? { "x-pauta-token": U.token } : {}) }, body: JSON.stringify(corpo) });
   } catch (e) {
-    throw { web: true, message: "Não consegui falar com o n8n. Confira sua internet e se o fluxo 07 (API do painel) está ativo." };
+    throw { web: true, message: "Não consegui falar com a plataforma. Confira sua internet e tente de novo." };
   }
-  if (r.status === 404) throw { web: true, message: "O fluxo 07 (API do painel) não está ativo no n8n." };
   let j = null;
   try { j = await r.json(); } catch (e) {}
-  if (url === API_SENHA && (r.status === 401 || r.status === 403) && !j) throw { web: true, message: "Senha do painel incorreta." };
-  if (!r.ok || !j || j.ok === false) throw { web: true, status: r.status, login: !!(j && j.login), semUsuarios: !!(j && j.semUsuarios), message: (j && j.erro) || ("O n8n respondeu com erro " + r.status + ".") };
+  if (!r.ok || !j || j.ok === false) throw { web: true, status: r.status, login: !!(j && j.login), semOrganizacao: !!(j && j.semOrganizacao), message: (j && j.erro) || ("A plataforma respondeu com erro " + r.status + ".") };
   return j;
 }
 async function api(corpo) {
-  try { return await chamar(API, { "x-pauta-token": U.token }, corpo); }
-  catch (e) { if (e.login) sairLocal("Sua sessão expirou. Entre de novo."); throw e; }
+  try { return await chamar(corpo); }
+  catch (e) {
+    if (e.login) sairLocal("Sua sessão expirou. Entre de novo.");
+    else if (e.semOrganizacao) { U.tela = "semOrg"; renderAuth(); }
+    else if (e.status === 402) setTimeout(() => abrirPlano(e.message), 50);
+    throw e;
+  }
+}
+function guardarInfo(r) {
+  if (r.usuario) U.usuario = r.usuario;
+  if (r.organizacoes) U.organizacoes = r.organizacoes;
+  if ("organizacao" in r) U.organizacao = r.organizacao;
 }
 async function carregarWeb() {
   const j = await api({ acao: "listar" });
   M.marca = j.marca || null; M.fontes = j.fontes || [];
   M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
 }
+function limparDados() {
+  state = { ideias: [], posts: [] }; pauta.carregada = false; pauta.tarefas = [];
+  M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null;
+}
 async function iniciarWeb() {
+  if (!U.organizacao) { U.tela = "semOrg"; renderAuth(); return; }
   U.tela = "ok"; U.erro = ""; renderAuth();
   M.conexao = "carregando"; M.ocupado = true; renderMarca();
   try { await carregarWeb(); M.marcaSuja = false; carregarPauta(); } catch (e) { M.erro = e; if (M.conexao !== "login") M.conexao = "negado"; }
-  M.ocupado = false; renderMarca(); renderAuth();
+  M.ocupado = false; renderMarca(); renderAuth(); render();
+}
+async function depoisDeEntrar(r, lembrar) {
+  U.token = r.token; guardarInfo(r);
+  sessao.salvar({ token: r.token }, lembrar);
+  if (U.convite) {
+    try { guardarInfo(await chamar({ acao: "aceitarConvite", convite: U.convite })); toast("Você entrou na organização " + ((U.organizacao && U.organizacao.nome) || "") + "."); }
+    catch (e) { toast(textoErro(e)); }
+    U.convite = null; U.conviteInfo = null;
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  }
+  U.ocupado = false;
+  return iniciarWeb();
 }
 async function entrar(email, senha, lembrar) {
   U.ocupado = true; U.erro = ""; renderAuth();
-  try {
-    const r = await chamar(API, {}, { acao: "entrar", email, senha, lembrar });
-    U.token = r.token; U.usuario = r.usuario;
-    sessao.salvar({ token: r.token, usuario: r.usuario }, lembrar);
-    U.ocupado = false;
-    return iniciarWeb();
-  } catch (e) {
-    U.ocupado = false;
-    if (e.semUsuarios) { U.tela = "primeiro"; U.erro = ""; }
-    else U.erro = textoErro(e);
-    renderAuth();
-  }
+  try { await depoisDeEntrar(await chamar({ acao: "entrar", email, senha, lembrar }, false), lembrar); }
+  catch (e) { U.ocupado = false; U.erro = textoErro(e); renderAuth(); }
 }
-async function primeiroAcesso(d) {
+async function cadastrar(d) {
   U.ocupado = true; U.erro = ""; renderAuth();
   try {
-    await chamar(API_SENHA, { "x-pauta-senha": d.senhaPainel }, { acao: "salvarUsuario", usuario: { nome: d.nome, email: d.email, senha: d.senha, papel: "Admin" } });
-    U.ocupado = false;
-    return entrar(d.email, d.senha, true);
+    const r = await chamar({ acao: "cadastrar", ...d, convite: U.convite || undefined }, false);
+    U.convite = null;
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    await depoisDeEntrar(r, true);
   } catch (e) { U.ocupado = false; U.erro = textoErro(e); renderAuth(); }
 }
+async function trocarOrg(id) {
+  try {
+    guardarInfo(await api({ acao: "trocarOrganizacao", org: id }));
+    limparDados(); render(); renderMarca();
+    await iniciarWeb();
+    toast("Agora em " + U.organizacao.nome + ".");
+  } catch (e) { toast(textoErro(e)); renderAuth(); }
+}
+async function novaOrg(nome) {
+  U.ocupado = true; U.erro = ""; renderAuth();
+  try {
+    guardarInfo(await api({ acao: "criarOrganizacao", nome }));
+    fecharDlg(); limparDados(); U.ocupado = false;
+    await iniciarWeb();
+    toast("Organização criada. Comece pela marca e pelas integrações.");
+    ir("marca");
+  } catch (e) { U.ocupado = false; U.erro = textoErro(e); renderAuth(); if (dlg().open) abrirNovaOrg(U.erro); }
+}
 function sairLocal(msg) {
-  U.token = ""; U.usuario = null; sessao.apagar();
-  state = { ideias: [], posts: [] }; pauta.carregada = false;
-  M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null; M.conexao = "login";
+  U.token = ""; U.usuario = null; U.organizacoes = []; U.organizacao = null; sessao.apagar();
+  limparDados(); M.conexao = "login";
   U.tela = "login"; U.erro = msg || "";
   render(); renderMarca(); renderAuth();
 }
-function sair() { if (U.token) chamar(API, { "x-pauta-token": U.token }, { acao: "sair" }).catch(() => {}); sairLocal(); }
-const ehAdmin = () => !!U.usuario && U.usuario.papel === "Admin";
+function sair() { if (U.token) chamar({ acao: "sair" }).catch(() => {}); sairLocal(); }
+const PAPEIS = { dono: "Dono", admin: "Administrador", editor: "Editor" };
+const gestor = () => !!U.organizacao && ["dono", "admin"].includes(U.organizacao.papel);
+const ehAdmin = gestor;
 const iniciais = n => String(n || "?").split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join("");
 function marcaDoLogin() {
   return `<div class="auth-marca"><span class="cp-logo grande" aria-label="Content Post"><svg class="cp-simbolo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="cp-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF5F7A"/><stop offset=".55" stop-color="#F8395A"/><stop offset="1" stop-color="#C8102E"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#cp-g)"/><rect x="13" y="11" width="28" height="35" rx="6" fill="none" stroke="#fff" stroke-width="4"/><path d="M19 23h16M19 30h10" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="44" cy="44" r="12" fill="#fff"/><path d="M39.5 48.5l9-9M42 39.5h6.5V46" fill="none" stroke="#C8102E" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="cp-nome">content<b> post</b></span></span></div>`;
@@ -2479,9 +2539,13 @@ function marcaDoLogin() {
 function renderAuth() {
   const el = document.getElementById("auth"), quem = document.getElementById("usuario");
   const web = M.modo === "web";
-  if (quem) quem.innerHTML = web && U.usuario ? `<div class="quem"><span class="av" aria-hidden="true">${esc(iniciais(U.usuario.nome))}</span><span>${esc(U.usuario.nome || U.usuario.email)}<small>${U.usuario.papel === "Admin" ? "Administrador" : "Editor"}</small></span></div>
-      ${ehAdmin() ? `<button class="btn" data-u="equipe">Equipe</button>` : ""}<button class="btn quiet" data-u="minha-senha">Minha senha</button><button class="btn quiet" data-u="sair">Sair</button>`
-    : (web ? "" : `<span class="notice">Aprove ou peça ajustes na aba Revisão ou pelo Telegram.</span>`);
+  if (quem) quem.innerHTML = web && U.usuario ? `
+      ${U.organizacoes.length ? `<label class="org-sel"><span class="lbl">Organização</span><select data-u-sel="org">${U.organizacoes.map(o => `<option value="${o.id}" ${U.organizacao && o.id === U.organizacao.id ? "selected" : ""}>${esc(o.nome)}</option>`).join("")}</select></label>` : ""}
+      <button class="btn" data-u="nova-org">+ Nova organização</button>
+      <div class="quem"><span class="av" aria-hidden="true">${esc(iniciais(U.usuario.nome))}</span><span>${esc(U.usuario.nome || U.usuario.email)}<small>${esc(PAPEIS[U.organizacao && U.organizacao.papel] || "")}</small></span></div>
+      <button class="btn" data-u="equipe">Equipe</button><button class="btn" data-u="integracoes">Integrações</button><button class="btn" data-u="plano">Plano</button>
+      <button class="btn quiet" data-u="minha-senha">Minha senha</button><button class="btn quiet" data-u="sair">Sair</button>`
+    : (web ? "" : `<span class="notice">Aprove ou peça ajustes na aba Revisão.</span>`);
   const aberto = web && U.tela !== "ok";
   el.hidden = !aberto; document.body.classList.toggle("travado", aberto);
   if (!aberto) return;
@@ -2490,102 +2554,172 @@ function renderAuth() {
   const coluna = (lista, cls) => `<div class="col ${cls}">${lista.concat(lista).map(t => { const [a, b] = t.split("|"); return `<div class="tile"><span>${a}</span><b>${b}</b></div>`; }).join("")}</div>`;
   const vitrine = `<div class="vitrine" aria-hidden="true">${coluna(tiles.slice(0, 3), "a")}${coluna(tiles.slice(3), "b")}</div>`;
   const casca = form => `<div class="auth-wrap"><div class="auth-form">${form}</div>${vitrine}</div>`;
-  if (U.tela === "primeiro") {
-    el.innerHTML = casca(`<form class="glass auth-card" id="f-primeiro" onsubmit="return false">
+  const ci = U.conviteInfo;
+  const aviso = ci ? `<div class="msg">Convite para entrar em <b>${esc(ci.organizacao)}</b> como ${esc(PAPEIS[ci.papel] || ci.papel)}.</div>` : "";
+  if (!API) { el.innerHTML = casca(`<div class="auth-card">${marcaDoLogin()}<h1>Quase lá</h1><p class="hint">O endereço da API ainda não foi configurado neste painel.</p></div>`); return; }
+  if (U.tela === "semOrg") {
+    el.innerHTML = casca(`<form class="auth-card" id="f-org" onsubmit="return false">
       ${marcaDoLogin()}
-      <h1>Primeiro acesso</h1>
-      <p class="hint">Ainda não há usuários. Crie a conta de administrador. Para provar que é você, digite a senha do painel (a da credencial <b>Senha do painel</b> no n8n).</p>
-      <label class="field"><span>Senha do painel</span><input id="pa-senha-painel" type="password" autocomplete="off"></label>
-      <label class="field"><span>Seu nome</span><input id="pa-nome" autocomplete="name"></label>
-      <label class="field"><span>E-mail</span><input id="pa-email" type="email" autocomplete="email"></label>
-      <label class="field"><span>Crie uma senha (mínimo 8 caracteres)</span><input id="pa-senha" type="password" autocomplete="new-password"></label>
-      <label class="field"><span>Repita a senha</span><input id="pa-senha2" type="password" autocomplete="new-password"></label>
+      <h1>Crie sua organização</h1>
+      <p class="hint">Você ainda não participa de nenhuma organização. Crie a sua, ou peça um convite para quem já usa a plataforma.</p>
+      <label class="field"><span>Nome da organização</span><input id="o-nome" placeholder="Ex.: Easypeasy Pay"></label>
       ${erro}
-      <button class="btn primary" data-u="criar-admin" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Criando…" : "Criar conta e entrar"}</button>
-      <button class="btn quiet" data-u="voltar-login" type="button">Voltar para o login</button>
+      <button class="btn primary" data-u="criar-org" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Criando…" : "Criar organização"}</button>
+      <button class="btn quiet" type="button" data-u="sair">Sair</button>
     </form>`);
     return;
   }
-  if (U.tela === "cadastro" || U.tela === "cadastroEnviado") {
-    el.innerHTML = casca(U.tela === "cadastroEnviado" ? `<div class="glass auth-card">${marcaDoLogin()}
-      <h1>Pedido enviado</h1>
-      <p class="hint">Sua conta foi criada e está aguardando a aprovação de um administrador. Assim que for aprovada, entre com o e-mail e a senha que você escolheu.</p>
-      <button class="btn primary" data-u="voltar-login" type="button">Voltar para o login</button></div>`
-    : `<form class="glass auth-card" id="f-cadastro" onsubmit="return false">
+  if (U.tela === "cadastro") {
+    el.innerHTML = casca(`<form class="auth-card" id="f-cadastro" onsubmit="return false">
       ${marcaDoLogin()}
-      <h1>Criar nova conta</h1>
-      <p class="hint">Um administrador precisa aprovar seu acesso antes do primeiro login.</p>
-      <label class="field"><span>Seu nome</span><input id="cn-nome" autocomplete="name" maxlength="100"></label>
-      <label class="field"><span>E-mail</span><input id="cn-email" type="email" autocomplete="email"></label>
-      <label class="field"><span>Crie uma senha (mínimo 8 caracteres)</span><input id="cn-senha" type="password" autocomplete="new-password"></label>
-      <label class="field"><span>Repita a senha</span><input id="cn-senha2" type="password" autocomplete="new-password"></label>
+      <h1>Criar conta</h1>
+      ${aviso}
+      <label class="field"><span>Seu nome</span><input id="c-nome" autocomplete="name"></label>
+      <label class="field"><span>E-mail</span><input id="c-email" type="email" autocomplete="email" value="${esc(ci ? ci.email : "")}" ${ci ? "readonly" : ""}></label>
+      <label class="field"><span>Senha (mínimo 8 caracteres)</span><input id="c-senha" type="password" autocomplete="new-password"></label>
+      ${ci ? "" : `<label class="field"><span>Nome da sua organização</span><input id="c-org" placeholder="Ex.: Easypeasy Pay"></label>
+      <p class="hint">Você vira dono(a) dela e pode convidar a equipe depois.</p>`}
       ${erro}
-      <button class="btn primary" data-u="solicitar-conta" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Enviando…" : "Criar conta"}</button>
-      <p class="auth-rodape">Já tem conta? <button type="button" data-u="voltar-login">Entrar</button></p>
+      <button class="btn primary" data-u="cadastrar" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Criando…" : ci ? "Criar conta e entrar" : "Criar conta"}</button>
+      <button class="btn quiet" type="button" data-u="ir-login">Já tenho conta</button>
     </form>`);
-    if (U.tela === "cadastro" && !U.ocupado) document.getElementById("cn-nome")?.focus();
+    if (!U.ocupado) document.getElementById("c-nome")?.focus();
     return;
   }
-  el.innerHTML = casca(`<form class="glass auth-card" id="f-login" onsubmit="return false">
+  el.innerHTML = casca(`<form class="auth-card" id="f-login" onsubmit="return false">
     ${marcaDoLogin()}
     <h1>Entrar</h1>
-    <label class="field"><span>E-mail</span><input id="l-email" type="email" autocomplete="username"></label>
+    ${aviso}
+    <label class="field"><span>E-mail</span><input id="l-email" type="email" autocomplete="username" value="${esc(ci ? ci.email : "")}"></label>
     <label class="field"><span>Senha</span><input id="l-senha" type="password" autocomplete="current-password"></label>
     <label class="actions small"><input id="l-lembrar" type="checkbox" style="width:auto" checked> Manter conectado neste aparelho</label>
     ${erro}
-    <button class="btn primary" data-u="entrar" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Entrando…" : "Entrar"}</button>
-    <p class="hint">Esqueceu a senha? Peça para um administrador definir uma nova em Equipe.</p>
+    <button class="btn primary" data-u="entrar" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Entrando…" : ci ? "Entrar e aceitar o convite" : "Entrar"}</button>
+    <p class="hint">Esqueceu a senha? Peça para um administrador da sua organização remover e convidar você de novo.</p>
     <p class="auth-rodape">Ainda não tem conta? <button type="button" data-u="ir-cadastro">Criar nova conta</button></p>
   </form>`);
-  if (!U.ocupado) document.getElementById("l-email")?.focus();
+  if (!U.ocupado) document.getElementById(ci ? "l-senha" : "l-email")?.focus();
 }
 
-/* ---------- diálogos: equipe, minha senha, agendar, remover ---------- */
+/* ---------- diálogos: equipe, integrações, nova organização, minha senha, agendar, remover ---------- */
 const dlg = () => document.getElementById("dlg");
-function abrirDlg(html) { const d = dlg(); d.innerHTML = html; if (!d.open) d.showModal(); d.querySelector("input, select, textarea")?.focus(); }
+function abrirDlg(html) { const d = dlg(); d.innerHTML = html; if (!d.open) d.showModal(); d.querySelector("input:not([readonly]), select, textarea")?.focus(); }
 function fecharDlg() { const d = dlg(); if (d.open) d.close(); }
-const EQ = { lista: [], editando: null, ocupado: false, erro: "" };
+const EQ = { dados: null, erro: "", link: "" };
 async function abrirEquipe() {
-  EQ.editando = null; EQ.erro = ""; abrirDlg(`<h2>Equipe</h2><p class="hint">Carregando…</p>`);
-  try { EQ.lista = (await api({ acao: "listarUsuarios" })).usuarios || []; } catch (e) { EQ.erro = textoErro(e); }
+  EQ.erro = ""; EQ.link = ""; abrirDlg(`<h2>Equipe</h2><p class="hint">Carregando…</p>`);
+  try { EQ.dados = await api({ acao: "listarMembros" }); } catch (e) { EQ.erro = textoErro(e); EQ.dados = { membros: [], convites: [], podeGerir: false }; }
   desenharEquipe();
 }
-function formUsuario(u) {
-  return `<form class="glass box" style="border-radius:16px" onsubmit="return false">
-    <div class="fgrid">
-      <label class="field"><span>Nome</span><input id="eq-nome" value="${esc(u ? u.nome : "")}"></label>
-      <label class="field"><span>E-mail</span><input id="eq-email" type="email" value="${esc(u ? u.email : "")}"></label>
-      <label class="field"><span>Papel</span><select id="eq-papel"><option value="Editor" ${u && u.papel === "Editor" ? "selected" : ""}>Editor: cuida da pauta</option><option value="Admin" ${u && u.papel === "Admin" ? "selected" : ""}>Administrador: também gerencia a equipe</option></select></label>
-      <label class="field"><span>${u ? "Nova senha (deixe vazio para manter)" : "Senha inicial (mínimo 8)"}</span><input id="eq-senha" type="password" autocomplete="new-password"></label>
-    </div>
-    ${u ? `<label class="actions small"><input id="eq-ativo" type="checkbox" style="width:auto" ${u.ativo ? "checked" : ""}> Acesso ativo</label>` : ""}
-    <div class="actions"><button class="btn quiet" type="button" data-u="eq-cancelar">Cancelar</button><button class="btn primary" data-u="eq-salvar" data-id="${u ? u.id : ""}" ${EQ.ocupado ? "disabled" : ""}>${u ? "Salvar" : "Criar usuário"}</button></div>
-  </form>`;
-}
 function desenharEquipe() {
-  const linhas = EQ.lista.map(u => EQ.editando === u.id ? formUsuario(u) : `<div class="urow ${u.ativo ? "" : "off"}">
-      <div><div class="un">${esc(u.nome || "(sem nome)")}</div><div class="ue">${esc(u.email)}${u.ultimoAcesso ? " · último acesso " + fmtData(u.ultimoAcesso) : " · nunca entrou"}</div></div>
-      <div class="actions"><span class="chip ${u.papel === "Admin" ? "acc" : "plain"}">${u.papel === "Admin" ? "Admin" : "Editor"}</span>${u.ativo ? "" : u.ultimoAcesso ? `<span class="chip bad">Desativado</span>` : `<span class="chip warn">Aguardando aprovação</span><button class="btn primary" data-u="eq-aprovar" data-id="${u.id}">Aprovar</button>`}<button class="btn quiet" data-u="eq-editar" data-id="${u.id}">Editar</button></div>
+  const d = EQ.dados, eu = U.usuario && U.usuario.id;
+  const linhas = d.membros.map(m => `<div class="urow">
+      <div><div class="un">${esc(m.nome || "(sem nome)")}${m.id === eu ? " (você)" : ""}</div><div class="ue">${esc(m.email)}${m.ultimo_acesso ? " · último acesso " + fmtData(m.ultimo_acesso) : ""}</div></div>
+      <div class="actions">${d.podeGerir && m.id !== eu
+        ? `<select data-u-sel="papel" data-id="${m.id}" aria-label="Papel">${Object.entries(PAPEIS).filter(([k]) => k !== "dono" || U.organizacao.papel === "dono").map(([k, t]) => `<option value="${k}" ${m.papel === k ? "selected" : ""}>${t}</option>`).join("")}</select>
+           <button class="btn quiet" data-u="eq-remover" data-id="${m.id}">Remover</button>`
+        : `<span class="chip ${m.papel === "editor" ? "plain" : "acc"}">${esc(PAPEIS[m.papel])}</span>`}
+        ${m.id === eu ? `<button class="btn quiet" data-u="eq-sair">Sair da organização</button>` : ""}</div>
     </div>`).join("");
-  abrirDlg(`<h2>Equipe</h2>
-    <p class="hint">Quem pode entrar no painel. Editores cuidam da pauta; administradores também criam e desativam contas.</p>
+  const convites = d.convites.map(c => `<div class="urow off"><div><div class="un">${esc(c.email)}</div><div class="ue">Convite pendente · ${esc(PAPEIS[c.papel])} · vale até ${fmtData(c.expira_em)}</div></div>
+      <div class="actions"><button class="btn quiet" data-u="eq-cancelar-convite" data-id="${c.id}">Cancelar</button></div></div>`).join("");
+  abrirDlg(`<h2>Equipe · ${esc(U.organizacao.nome)}</h2>
+    <p class="hint">Quem participa desta organização. Editores cuidam da pauta; administradores também convidam pessoas e cadastram as chaves.</p>
     ${EQ.erro ? `<div class="msg erro">${esc(EQ.erro)}</div>` : ""}
-    <div class="users">${EQ.editando === "novo" ? formUsuario(null) : ""}${linhas || `<p class="hint">Nenhum usuário ainda.</p>`}</div>
-    <div class="actions" style="margin-top:14px">${EQ.editando ? "" : `<button class="btn" data-u="eq-novo">+ Novo usuário</button>`}<button class="btn quiet" data-u="fechar">Fechar</button></div>`);
+    <div class="users">${linhas}${convites}</div>
+    ${d.podeGerir ? `<form class="glass box" style="margin-top:14px" onsubmit="return false">
+      <div class="fgrid">
+        <label class="field"><span>Convidar por e-mail</span><input id="cv-email" type="email" placeholder="pessoa@empresa.com"></label>
+        <label class="field"><span>Papel</span><select id="cv-papel"><option value="editor">Editor</option><option value="admin">Administrador</option></select></label>
+      </div>
+      <div class="actions"><button class="btn primary" data-u="eq-convidar">Gerar convite</button></div>
+      ${EQ.link ? `<div class="msg ok" style="display:grid;gap:8px"><span>Envie este link para a pessoa (vale 7 dias, só funciona para o e-mail convidado):</span>
+        <input readonly value="${esc(EQ.link)}" id="cv-link" onclick="this.select()"><button class="btn" data-u="eq-copiar" type="button">Copiar link</button></div>` : ""}
+    </form>` : ""}
+    <div class="actions" style="margin-top:14px"><button class="btn quiet" data-u="fechar">Fechar</button></div>`);
 }
-async function salvarUsuarioEq(id) {
-  const val = k => (document.getElementById(k)?.value || "").trim();
-  const dados = { nome: val("eq-nome"), email: val("eq-email"), papel: val("eq-papel") };
-  const senha = document.getElementById("eq-senha")?.value || "";
-  if (senha) dados.senha = senha;
-  if (id) { dados.id = id; dados.ativo = !!document.getElementById("eq-ativo")?.checked; }
-  EQ.ocupado = true; EQ.erro = "";
-  try {
-    await api({ acao: "salvarUsuario", usuario: dados });
-    EQ.lista = (await api({ acao: "listarUsuarios" })).usuarios || [];
-    EQ.editando = null; toast(id ? "Usuário atualizado." : "Usuário criado. Passe o e-mail e a senha inicial para a pessoa.");
-  } catch (e) { EQ.erro = textoErro(e); }
-  EQ.ocupado = false; desenharEquipe();
+const INT = { dados: null, erro: "", teste: {} };
+// Plano da organização: uso do mês, troca de plano pelo checkout da Kiwify e link de afiliado.
+const PL = { dados: null, erro: "", ciclo: "anual", aviso: "" };
+const reais = v => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 0 });
+async function abrirPlano(aviso) {
+  PL.erro = ""; PL.aviso = aviso || ""; abrirDlg(`<h2>Plano</h2><p class="hint">Carregando…</p>`);
+  try { PL.dados = await api({ acao: "plano" }); } catch (e) { PL.erro = textoErro(e); }
+  desenharPlano();
+}
+function desenharPlano() {
+  const d = PL.dados;
+  if (!d) return abrirDlg(`<h2>Plano</h2><div class="msg erro">${esc(PL.erro || "Não consegui carregar o plano.")}</div>`);
+  const s = d.situacao, barra = (u, l) => `<div class="uso"><i style="width:${Math.min(100, Math.round(u / Math.max(1, l) * 100))}%"></i></div>`;
+  const ate = s.ate ? new Date(s.ate).toLocaleDateString("pt-BR") : "";
+  const atual = s.isenta ? "Sem limite (organização isenta)" : `${esc(s.nome)}${s.ciclo ? " · " + esc(s.ciclo) : ""} · ${s.ativo ? "até " + ate : "venceu em " + ate}`;
+  const ciclos = [["mensal", "Mensal"], ["semestral", "Semestral"], ["anual", "Anual"]];
+  const cards = d.planos.map(p => {
+    const c = p.ciclos.find(k => k.ciclo === PL.ciclo) || p.ciclos[0];
+    const meu = s.plano === p.id && s.ciclo === c.ciclo && s.ativo;
+    return `<div class="plano-card ${p.id === "profissional" ? "dest" : ""}">
+      <b>${esc(p.nome)}</b><span class="preco">${reais(c.porMes)}<small>/mês</small></span>
+      <span class="small">${c.meses > 1 ? "cobrado " + reais(c.total) + " a cada " + c.meses + " meses" : "cobrado todo mês"}</span>
+      <span>${p.posts} posts por mês com IA<br>${p.ideias} buscas de ideias</span>
+      ${meu ? `<span class="chip ok">Seu plano</span>` : c.checkout ? `<a class="btn ${p.id === "profissional" ? "primary" : ""}" href="${esc(c.checkout)}" target="_blank" rel="noopener">Assinar</a>` : `<span class="small">Checkout ainda não configurado</span>`}
+    </div>`;
+  }).join("");
+  abrirDlg(`<h2>Plano · ${esc(U.organizacao.nome)}</h2>
+    ${PL.aviso ? `<div class="msg erro">${esc(PL.aviso)}</div>` : ""}
+    <div class="urow"><div><div class="un">${atual}</div>
+      <div class="ue">Posts ${s.periodo === "teste" ? "no teste" : "neste mês"}: ${s.posts.usados} de ${s.isenta ? "∞" : s.posts.limite} · Buscas de ideias: ${s.ideias.usadas} de ${s.isenta ? "∞" : s.ideias.limite}</div>
+      ${s.isenta ? "" : barra(s.posts.usados, s.posts.limite)}</div></div>
+    ${s.cobranca ? "" : `<p class="hint">Os limites ainda não estão valendo: a cobrança será ligada quando os planos forem lançados.</p>`}
+    <div class="seg" role="group" aria-label="Ciclo" style="margin:14px 0 10px">${ciclos.map(([v, t]) => `<button data-u="ciclo" data-v="${v}" aria-pressed="${PL.ciclo === v}">${t}${v === "anual" ? " (-17%)" : v === "semestral" ? " (-8%)" : ""}</button>`).join("")}</div>
+    <div class="planos-grade">${cards}</div>
+    <p class="hint">O pagamento é feito na Kiwify (cartão, Pix ou boleto). Assim que for aprovado, o plano é liberado aqui.</p>
+    ${d.afiliados ? `<div class="urow" style="margin-top:10px"><div><div class="un">Indique e ganhe</div><div class="ue">Seja afiliado da Content Post e ganhe comissão por cada assinatura que vier do seu link.</div></div><a class="btn" href="${esc(d.afiliados)}" target="_blank" rel="noopener">Quero ser afiliado</a></div>` : ""}
+    <div class="actions" style="margin-top:14px"><button class="btn" data-u="fechar">Fechar</button></div>`);
+}
+async function abrirIntegracoes() {
+  INT.erro = ""; INT.teste = {}; abrirDlg(`<h2>Integrações</h2><p class="hint">Carregando…</p>`);
+  try { INT.dados = await api({ acao: "listarIntegracoes" }); } catch (e) { INT.erro = textoErro(e); INT.dados = { integracoes: [], podeGerir: false }; }
+  desenharIntegracoes();
+}
+function desenharIntegracoes() {
+  const d = INT.dados;
+  const imp = (pauta.tarefas || []).find(t => t.tipo === "importar");
+  const impTxt = !imp ? "" : imp.status === "feito"
+    ? `<div class="msg ok">Importação concluída: ${["marca", "fontes", "ideias", "posts"].map(k => `${(imp.payload && imp.payload.resultado && imp.payload.resultado[k]) || 0} ${k}`).join(", ")}.</div>`
+    : imp.status === "erro" ? `<div class="msg erro">A importação falhou: ${esc(imp.erro || "")}</div>`
+    : `<div class="working"><span class="dot"></span>Importando do Airtable…</div>`;
+  abrirDlg(`<h2>Integrações · ${esc(U.organizacao.nome)}</h2>
+    <p class="hint">Cada organização usa as próprias chaves. Elas ficam cifradas na plataforma e nunca voltam para a tela${d.podeGerir ? "" : ". Só donos e administradores podem cadastrar"}.</p>
+    ${INT.erro ? `<div class="msg erro">${esc(INT.erro)}</div>` : ""}
+    <div class="users">${d.integracoes.map(i => `<div class="glass box" style="gap:10px">
+      <div class="actions" style="justify-content:space-between"><div><b>${esc(i.nome)}</b><div class="small">${esc(i.uso)}</div></div>
+        ${i.configurada ? `<span class="chip ok">Configurada ${esc(i.dica)}</span>` : `<span class="chip bad">Falta configurar</span>`}</div>
+      ${d.podeGerir ? `<div class="actions"><input type="password" id="int-${i.id}" placeholder="${i.configurada ? "Cole uma chave nova para trocar" : "Cole a chave aqui"}" autocomplete="off" style="flex:1;min-width:180px">
+        <button class="btn primary" data-u="int-salvar" data-id="${i.id}">Salvar</button>
+        ${i.configurada ? `<button class="btn" data-u="int-testar" data-id="${i.id}">Testar</button><button class="btn quiet" data-u="int-remover" data-id="${i.id}">Remover</button>` : ""}</div>
+        <p class="hint" style="margin:0">Onde pegar: ${esc(i.onde)}</p>` : ""}
+      ${INT.teste[i.id] ? `<div class="msg ${INT.teste[i.id].ok ? "ok" : "erro"}">${esc(INT.teste[i.id].mensagem)}</div>` : ""}
+    </div>`).join("")}</div>
+    ${d.podeGerir ? `<form class="glass box" style="margin-top:14px" onsubmit="return false">
+      <b>Trazer do Airtable (opcional)</b>
+      <p class="hint" style="margin:0">Importa marca, logos, mood board, fontes, ideias e calendário de uma base do Airtable no formato antigo. O token é usado só nesta importação.</p>
+      <div class="fgrid">
+        <label class="field"><span>Token do Airtable</span><input id="imp-token" type="password" autocomplete="off" placeholder="pat…"></label>
+        <label class="field"><span>ID da base</span><input id="imp-base" placeholder="app…"></label>
+      </div>
+      ${impTxt}
+      <div class="actions"><button class="btn" data-u="importar">Importar</button></div>
+    </form>` : ""}
+    <div class="actions" style="margin-top:14px"><button class="btn quiet" data-u="fechar">Fechar</button></div>`);
+}
+function abrirNovaOrg(erro) {
+  abrirDlg(`<h2>Nova organização</h2>
+    <form onsubmit="return false">
+      <p class="hint">Cada organização tem marca, equipe, calendário e chaves próprias. Você vira dono(a).</p>
+      <label class="field"><span>Nome</span><input id="no-nome" placeholder="Ex.: Minha outra marca"></label>
+      ${erro ? `<div class="msg erro">${esc(erro)}</div>` : ""}
+      <div class="actions"><button class="btn quiet" type="button" data-u="fechar">Cancelar</button><button class="btn primary" data-u="no-criar">Criar</button></div>
+    </form>`);
 }
 function abrirMinhaSenha(erro) {
   abrirDlg(`<h2>Minha senha</h2>
@@ -2597,48 +2731,84 @@ function abrirMinhaSenha(erro) {
       <div class="actions"><button class="btn quiet" type="button" data-u="fechar">Cancelar</button><button class="btn primary" data-u="ms-salvar">Trocar senha</button></div>
     </form>`);
 }
+document.addEventListener("change", async e => {
+  const s = e.target.closest("[data-u-sel]"); if (!s) return;
+  if (s.dataset.uSel === "org") return trocarOrg(s.value);
+  if (s.dataset.uSel === "papel") {
+    try { await api({ acao: "mudarPapel", usuario: s.dataset.id, papel: s.value }); toast("Papel atualizado."); EQ.dados = await api({ acao: "listarMembros" }); }
+    catch (err) { EQ.erro = textoErro(err); }
+    desenharEquipe();
+  }
+});
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-u]"); if (!b) return;
-  const a = b.dataset.u;
+  const a = b.dataset.u, id = b.dataset.id;
   const val = k => (document.getElementById(k)?.value || "").trim();
   if (a === "entrar") { const em = val("l-email"), se = document.getElementById("l-senha").value; if (!em || !se) { U.erro = "Preencha o e-mail e a senha."; return renderAuth(); } return entrar(em, se, document.getElementById("l-lembrar").checked); }
-  if (a === "criar-admin") {
-    const d = { senhaPainel: document.getElementById("pa-senha-painel").value, nome: val("pa-nome"), email: val("pa-email"), senha: document.getElementById("pa-senha").value };
-    if (!d.senhaPainel || !d.nome || !d.email || !d.senha) { U.erro = "Preencha todos os campos."; return renderAuth(); }
+  if (a === "cadastrar") {
+    const d = { nome: val("c-nome"), email: val("c-email"), senha: document.getElementById("c-senha").value, organizacao: val("c-org") };
+    if (!d.nome || !d.email || !d.senha) { U.erro = "Preencha nome, e-mail e senha."; return renderAuth(); }
     if (d.senha.length < 8) { U.erro = "A senha precisa ter pelo menos 8 caracteres."; return renderAuth(); }
-    if (d.senha !== document.getElementById("pa-senha2").value) { U.erro = "As senhas não são iguais."; return renderAuth(); }
-    return primeiroAcesso(d);
+    if (!U.convite && !d.organizacao) { U.erro = "Dê um nome para a sua organização."; return renderAuth(); }
+    return cadastrar(d);
   }
-  if (a === "voltar-login") { U.tela = "login"; U.erro = ""; return renderAuth(); }
   if (a === "ir-cadastro") { U.tela = "cadastro"; U.erro = ""; return renderAuth(); }
-  if (a === "solicitar-conta") {
-    const nome = val("cn-nome"), email = val("cn-email"), senha = document.getElementById("cn-senha").value;
-    if (!nome || !email) { U.erro = "Preencha o nome e o e-mail."; return renderAuth(); }
-    if (senha.length < 8) { U.erro = "A senha precisa ter pelo menos 8 caracteres."; return renderAuth(); }
-    if (senha !== document.getElementById("cn-senha2").value) { U.erro = "As senhas não são iguais."; return renderAuth(); }
-    U.ocupado = true; U.erro = ""; renderAuth();
-    try { await chamar(API, {}, { acao: "solicitarConta", nome, email, senha }); U.tela = "cadastroEnviado"; }
-    catch (err) { if (err.semUsuarios) { U.tela = "primeiro"; U.erro = "Ainda não há nenhum usuário: crie a conta de administrador."; } else U.erro = textoErro(err); }
-    U.ocupado = false; return renderAuth();
-  }
-  if (a === "eq-aprovar") {
-    try { await api({ acao: "salvarUsuario", usuario: { id: b.dataset.id, ativo: true } }); EQ.lista = (await api({ acao: "listarUsuarios" })).usuarios || []; toast("Acesso aprovado. A pessoa já pode entrar."); }
-    catch (err) { EQ.erro = textoErro(err); }
-    return desenharEquipe();
-  }
+  if (a === "ir-login") { U.tela = "login"; U.erro = ""; return renderAuth(); }
+  if (a === "criar-org") { const n = val("o-nome"); if (!n) { U.erro = "Dê um nome para a organização."; return renderAuth(); } return novaOrg(n); }
+  if (a === "nova-org") return abrirNovaOrg();
+  if (a === "no-criar") { const n = val("no-nome"); if (!n) return abrirNovaOrg("Dê um nome para a organização."); return novaOrg(n); }
   if (a === "sair") return sair();
   if (a === "fechar") return fecharDlg();
   if (a === "equipe") return abrirEquipe();
-  if (a === "eq-novo") { EQ.editando = "novo"; return desenharEquipe(); }
-  if (a === "eq-editar") { EQ.editando = b.dataset.id; return desenharEquipe(); }
-  if (a === "eq-cancelar") { EQ.editando = null; EQ.erro = ""; return desenharEquipe(); }
-  if (a === "eq-salvar") return salvarUsuarioEq(b.dataset.id || null);
+  if (a === "eq-convidar") {
+    const email = val("cv-email"); if (!email) return;
+    try {
+      const r = await api({ acao: "convidar", email, papel: val("cv-papel") });
+      EQ.link = location.origin + location.pathname + "?convite=" + r.convite;
+      EQ.dados = await api({ acao: "listarMembros" }); EQ.erro = "";
+    } catch (err) { EQ.erro = textoErro(err); }
+    return desenharEquipe();
+  }
+  if (a === "eq-copiar") { try { await navigator.clipboard.writeText(EQ.link); toast("Link copiado."); } catch (err) { document.getElementById("cv-link")?.select(); } return; }
+  if (a === "eq-cancelar-convite") { try { await api({ acao: "cancelarConvite", id }); EQ.dados = await api({ acao: "listarMembros" }); } catch (err) { EQ.erro = textoErro(err); } return desenharEquipe(); }
+  if (a === "eq-remover") {
+    if (!confirm("Remover esta pessoa da organização?")) return;
+    try { await api({ acao: "removerMembro", usuario: id }); EQ.dados = await api({ acao: "listarMembros" }); toast("Pessoa removida."); } catch (err) { EQ.erro = textoErro(err); }
+    return desenharEquipe();
+  }
+  if (a === "eq-sair") {
+    if (!confirm("Sair desta organização? Você perde o acesso ao calendário dela.")) return;
+    try { guardarInfo(await api({ acao: "removerMembro", usuario: U.usuario.id })); fecharDlg(); limparDados(); render(); await iniciarWeb(); } catch (err) { EQ.erro = textoErro(err); desenharEquipe(); }
+    return;
+  }
+  if (a === "integracoes") return abrirIntegracoes();
+  if (a === "plano") return abrirPlano();
+  if (a === "ciclo") { PL.ciclo = b.dataset.v; return desenharPlano(); }
+  if (a === "int-salvar") {
+    const v = (document.getElementById("int-" + id)?.value || "").trim(); if (!v) return;
+    try { await api({ acao: "salvarIntegracao", provedor: id, valor: v }); INT.dados = await api({ acao: "listarIntegracoes" }); INT.teste[id] = await api({ acao: "testarIntegracao", provedor: id }).then(r => r.resultado); }
+    catch (err) { INT.erro = textoErro(err); }
+    return desenharIntegracoes();
+  }
+  if (a === "int-testar") { try { INT.teste[id] = (await api({ acao: "testarIntegracao", provedor: id })).resultado; } catch (err) { INT.erro = textoErro(err); } return desenharIntegracoes(); }
+  if (a === "int-remover") {
+    if (!confirm("Remover esta chave? As etapas que dependem dela param de funcionar.")) return;
+    try { await api({ acao: "removerIntegracao", provedor: id }); INT.dados = await api({ acao: "listarIntegracoes" }); delete INT.teste[id]; } catch (err) { INT.erro = textoErro(err); }
+    return desenharIntegracoes();
+  }
+  if (a === "importar") {
+    const token = val("imp-token"), base = val("imp-base");
+    if (!token || !base) { INT.erro = "Preencha o token e o ID da base."; return desenharIntegracoes(); }
+    try { await api({ acao: "importarAirtable", token, base }); INT.erro = ""; toast("Importação começou. Leva alguns minutos."); setTimeout(() => carregarPauta(), 15000); }
+    catch (err) { INT.erro = textoErro(err); }
+    await carregarPauta(); return desenharIntegracoes();
+  }
   if (a === "minha-senha") return abrirMinhaSenha();
   if (a === "ms-salvar") {
     const atual = document.getElementById("ms-atual").value, nova = document.getElementById("ms-nova").value;
     if (nova.length < 8) return abrirMinhaSenha("A nova senha precisa ter pelo menos 8 caracteres.");
     if (nova !== document.getElementById("ms-nova2").value) return abrirMinhaSenha("As senhas não são iguais.");
-    try { await api({ acao: "trocarSenha", atual, nova }); fecharDlg(); toast("Senha trocada."); } catch (err) { abrirMinhaSenha(textoErro(err)); }
+    try { await api({ acao: "trocarSenha", atual, nova }); fecharDlg(); toast("Senha trocada. As outras sessões foram encerradas."); } catch (err) { abrirMinhaSenha(textoErro(err)); }
     return;
   }
   if (a === "agendar-ok") return confirmarAgenda(b.dataset.id);
@@ -2646,7 +2816,7 @@ document.addEventListener("click", async e => {
 });
 document.addEventListener("keydown", e => {
   if (e.key !== "Enter" || e.target.tagName !== "INPUT") return;
-  const f = e.target.closest("#f-login, #f-primeiro"); if (!f) return;
+  const f = e.target.closest("#f-login, #f-cadastro, #f-org"); if (!f) return;
   e.preventDefault(); f.querySelector(".btn.primary")?.click();
 });
 
@@ -2700,7 +2870,7 @@ async function salvarMarca() {
     if (!/^https:\/\//i.test(logo)) { M.aviso = { tipo: "erro", texto: "O link do logo precisa começar com https://" }; return renderStatus(); }
     campos[f.Logo] = [{ url: logo }];
   }
-  const ok = await executar("salvarMarca", { id: M.marca ? M.marca.id : null, campos }, "Marca salva no Airtable.");
+  const ok = await executar("salvarMarca", { id: M.marca ? M.marca.id : null, campos }, "Marca salva.");
   if (ok) M.marcaSuja = false;
   renderStatus();
 }
@@ -2726,7 +2896,7 @@ function toggles(id, lista, marcados) {
 function renderStatus() {
   const el = document.getElementById("m-status"); if (!el) return;
   const cls = M.conexao === "ok" ? "on" : M.conexao === "carregando" ? "" : "off";
-  const txt = { ok: M.modo === "web" ? "Conectado ao Airtable pelo n8n" : "Conectado ao Airtable", carregando: "Conectando ao Airtable…", negado: "Sem acesso ao Airtable", indisponivel: "Airtable indisponível aqui", login: "Faça login" }[M.conexao] || "Airtable";
+  const txt = { ok: M.modo === "web" ? "Conectado à plataforma" : "Conectado ao Airtable", carregando: "Conectando ao Airtable…", negado: "Sem acesso ao Airtable", indisponivel: "Airtable indisponível aqui", login: "Faça login" }[M.conexao] || "Airtable";
   el.innerHTML = `<span class="actions"><span class="live ${cls}">${txt}</span></span>`;
   const av = document.getElementById("m-aviso");
   if (av) av.innerHTML = M.aviso ? `<div class="msg ${M.aviso.tipo}">${esc(M.aviso.texto)}</div>` : (M.marcaSuja ? `<div class="msg">Há alterações na marca que ainda não foram salvas.</div>` : "");
@@ -2772,7 +2942,7 @@ function formFonte(x) {
 }
 function renderMarca() {
   const el = document.getElementById("p-marca"); if (!el) return;
-  const head = `<div class="panel-head"><p>O que você salvar aqui vai direto para o Airtable.</p><div id="m-status"></div></div>`;
+  const head = `<div class="panel-head"><p>O que você salvar aqui vale para toda a equipe e é usado pela IA em todas as etapas.</p><div id="m-status"></div></div>`;
   if (M.conexao === "indisponivel") {
     el.innerHTML = head + `<div class="glass empty">Para editar a marca e as fontes, abra este painel no claude.ai com o conector do Airtable conectado à sua conta.</div>`;
     return renderStatus();
@@ -2785,7 +2955,7 @@ function renderMarca() {
     el.innerHTML = head + `<div class="msg erro"><span>${esc(textoErro(M.erro))}</span><button class="btn" data-m="tentar">Tentar de novo</button></div>`;
     return renderStatus();
   }
-  if (!M.marcaCarregada) { el.innerHTML = head + `<div class="glass empty">Carregando a marca e as fontes do Airtable…</div>`; return renderStatus(); }
+  if (!M.marcaCarregada) { el.innerHTML = head + `<div class="glass empty">Carregando a marca e as fontes…</div>`; return renderStatus(); }
   const m = M.marca || {};
   const pil = (m.Pilares || []).map(selNome), red = (m.Redes || []).map(selNome);
   const todosPilares = [...new Set([...OPC.Pilares, ...pil, ...M.pilaresExtra])];
@@ -2883,10 +3053,21 @@ document.addEventListener("click", async e => {
   const c = window.claude;
   M.mcp = c && typeof c.use === "function" ? await c.use("mcp").catch(() => null) : null;
   if (M.mcp) return conectar();
-  // Fora do claude.ai (ex.: GitHub Pages): login por usuário, pelo fluxo 07 do n8n.
+  // Fora do claude.ai (ex.: GitHub Pages): conta, organização e pauta pela API da plataforma.
   M.modo = "web";
+  if (U.convite) {
+    try { U.conviteInfo = (await chamar({ acao: "verConvite", convite: U.convite }, false)).convite; U.tela = U.conviteInfo.temConta ? "login" : "cadastro"; }
+    catch (e) { U.erro = textoErro(e); U.convite = null; try { history.replaceState(null, "", location.pathname); } catch (x) {} }
+  }
   const salva = sessao.ler();
-  if (salva && salva.token) { U.token = salva.token; U.usuario = salva.usuario || null; return iniciarWeb(); }
+  if (salva && salva.token) {
+    U.token = salva.token;
+    try {
+      guardarInfo(await chamar({ acao: "eu" }));
+      if (U.convite) return depoisDeEntrar({ token: U.token }, true);
+      return iniciarWeb();
+    } catch (e) { if (e.login) { sessao.apagar(); U.token = ""; } else { U.erro = textoErro(e); } }
+  }
   M.conexao = "login"; renderMarca(); renderAuth();
 })();
 

@@ -1,7 +1,7 @@
-// Gera index.html completo (com <html>, <head> e <body>) a partir de painel/index.html,
-// para publicar fora do claude.ai (ex.: GitHub Pages).
-// Uso: node painel/montar-site.js <pasta-de-saida> [fonte.html] [saida.html]
-// Ex.: node painel/montar-site.js repo index-api.html app.html (versão com a API do Railway)
+// Gera as páginas completas (com <html>, <head> e <body>) para publicar fora do claude.ai (GitHub Pages).
+// Uso: node painel/montar-site.js <pasta-de-saida>
+// index.html e app.html: versão com a API do Railway (painel/index-api.html).
+// antigo.html: versão com Airtable e n8n (painel/index.html), que fica só como reserva.
 
 const fs = require("fs");
 const path = require("path");
@@ -9,15 +9,15 @@ const path = require("path");
 const saida = process.argv[2];
 if (!saida) { console.error("Informe a pasta de saída."); process.exit(1); }
 
-const nomeFonte = process.argv[3] || "index.html", nomeSaida = process.argv[4] || "index.html";
-const fonte = fs.readFileSync(path.join(__dirname, nomeFonte), "utf8");
-const corte = fonte.indexOf('<div class="wrap">');
-if (corte < 0) throw new Error("Não encontrei o início do conteúdo.");
+const AVISO_ANTIGO = `<div style="position:sticky;top:0;z-index:999;background:#3a1d08;color:#ffd2a8;font:600 13px/1.4 Poppins,sans-serif;padding:8px 14px;text-align:center">Versão antiga (Airtable e n8n), só para consulta. A publicação automática está desligada. <a href="./" style="color:#fff">Ir para a versão atual</a></div>\n`;
 
-const cabeca = fonte.slice(0, corte).trim();
-const corpo = fonte.slice(corte).trim();
-
-const html = `<!doctype html>
+function gerar(nomeFonte, nomeSaida, aviso) {
+  const fonte = fs.readFileSync(path.join(__dirname, nomeFonte), "utf8");
+  const corte = fonte.indexOf('<div class="wrap">');
+  if (corte < 0) throw new Error("Não encontrei o início do conteúdo em " + nomeFonte);
+  const cabeca = fonte.slice(0, corte).trim();
+  const corpo = fonte.slice(corte).trim();
+  const html = `<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -26,11 +26,15 @@ const html = `<!doctype html>
 ${cabeca}
 </head>
 <body>
-${corpo}
+${aviso || ""}${corpo}
 </body>
 </html>
 `;
+  fs.mkdirSync(saida, { recursive: true });
+  fs.writeFileSync(path.join(saida, nomeSaida), html);
+  console.log(nomeSaida + " gerado em", saida, "(" + html.length + " caracteres)");
+}
 
-fs.mkdirSync(saida, { recursive: true });
-fs.writeFileSync(path.join(saida, nomeSaida), html);
-console.log(nomeSaida + " gerado em", saida, "(" + html.length + " caracteres)");
+gerar("index-api.html", "index.html");
+gerar("index-api.html", "app.html");
+gerar("index.html", "antigo.html", AVISO_ANTIGO);
