@@ -929,14 +929,14 @@ function seletorRedes(p) {
     const ligada = p.redes.includes(r);
     const semConta = redesOk && !redesOk.includes(r);
     const naoAceita = story && !["Instagram", "Facebook"].includes(r);
-    const motivo = naoAceita ? "Stories só vão para o Instagram e o Facebook" : semConta ? "Conecte esta rede no Zernio para publicar" : "";
+    const motivo = naoAceita ? "Stories só vão para o Instagram e o Facebook" : semConta ? "Conecte esta rede em Integrações › Redes conectadas" : "";
     return `<button type="button" class="rede-chip ${ligada ? "on" : ""}" data-act="rede" data-id="${p.id}" data-v="${r}" aria-pressed="${ligada}" ${naoAceita || (semConta && !ligada) ? "disabled" : ""} title="${esc(motivo || r)}"><i>${ICONE_REDE[r]}</i>${r}${semConta ? " · sem conta" : ""}</button>`;
   }).join("");
   const avisos = [];
   if (p.redes.includes("TikTok")) avisos.push("No TikTok, ao aprovar você confirma que revisou a prévia e concorda com a Confirmação de Uso de Música do TikTok.");
   if (p.redes.includes("X")) avisos.push("No X, a legenda é encurtada para 280 caracteres e vão até 4 imagens.");
   if (p.redes.includes("Threads")) avisos.push("No Threads, a legenda é encurtada para 500 caracteres.");
-  if (redesOk === null && M.modo === "web") avisos.push("Não consegui ver as contas do Zernio. Confira a chave em Integrações.");
+  if (redesOk === null && M.modo === "web") avisos.push("Não consegui ver as redes conectadas. Confira em Integrações › Redes conectadas.");
   return `<div class="redes-post"><span class="small">Publicar em${ajuda("redes")}</span><div class="redes-lista">${botoes}</div>${avisos.length ? `<p class="small" style="margin:0">${avisos.map(esc).join(" ")}</p>` : ""}</div>`;
 }
 async function mudarRede(p, r) {
@@ -1532,13 +1532,14 @@ const AJUDA = {
   diagramacao: ["Diagramação", "Escolha o modelo (foto de fundo, editorial ou imagem lateral), o fundo claro ou escuro, o texto e o logo. A prévia muda na hora.", "diagramacao"],
   textos: ["Editar textos", "Mude título e texto de cada slide, a legenda e as hashtags sem esperar a IA. Depois, gere as artes de novo.", "textos"],
   ajustes: ["Pedir ajuste", "Escolha o post inteiro ou um slide só, marque se quer imagem nova e diga o que mudar. A nova versão chega em 1 ou 2 minutos. Até 3 ajustes por post.", "ajustes"],
-  redes: ["Publicar em", "Escolha as redes conectadas no seu Zernio. Cada uma recebe o texto no tamanho dela (X 280, Threads 500 caracteres). Stories vão só para Instagram e Facebook; o TikTok aceita vídeo ou fotos.", "redes"],
+  redes: ["Publicar em", "Escolha entre as redes conectadas em Integrações. Cada uma recebe o texto no tamanho dela (X 280, Threads 500 caracteres). Stories vão só para Instagram e Facebook; o TikTok aceita vídeo ou fotos.", "redes"],
   agendados: ["Agendados", "Posts aprovados entram na fila e são publicados pelo Zernio na hora marcada. \"Publicar agora\" não espera o horário.", "agendados"],
-  integracoes: ["Integrações", "Cada organização usa as próprias chaves: Claude escreve, Magnific gera imagens e vídeos, Apify coleta as fontes e Zernio publica. Cole, salve e clique em Testar.", "integracoes"],
+  integracoes: ["Integrações", "Cada organização usa as próprias chaves: Claude escreve, Magnific gera imagens e vídeos e Apify coleta as fontes. Em Redes conectadas, conecte o Instagram e as outras redes onde os posts saem. Cole, salve e clique em Testar.", "integracoes"],
   anthropic: ["Chave do Claude", "No console.anthropic.com, entre em um workspace e crie a chave em API keys (começa com sk-ant-). A conta precisa ter créditos.", "claude"],
   magnific: ["Chave do Magnific", "Em magnific.com › Developers › API key, gere a chave. Fotos e vídeos consomem créditos da sua conta.", "magnific"],
   apify: ["Chave da Apify", "Em console.apify.com › Settings › API & Integrations, copie o Personal API token. Opcional: sem ela, as ideias saem só dos temas.", "apify"],
-  zernio: ["Chave do Zernio", "Crie a conta no zernio.com, conecte o Instagram (conta profissional) e gere a chave de API. É ela que publica os posts.", "zernio"],
+  zernio: ["Chave do Zernio (opcional)", "Só para quem já tem conta no zernio.com e quer publicar por ela. Sem esta chave, os posts saem nas redes conectadas aqui em Integrações.", "zernio"],
+  redesConectadas: ["Redes conectadas", "Clique em Conectar, entre na rede e autorize. A conta fica ligada só a esta organização, e os posts saem só nela. O Instagram precisa ser conta profissional (Comercial ou Criador de conteúdo).", "zernio"],
   airtable: ["Importar do Airtable", "Crie um token em airtable.com/create/tokens (leitura de registros e do esquema), dê acesso à base e cole com o ID da base (começa com app). Importe uma vez só.", "airtable"],
   equipe: ["Equipe", "Dono e admin convidam pessoas e cuidam das chaves; editor cuida da pauta. O convite vale 7 dias e precisa do mesmo e-mail.", "equipe"],
   plano: ["Plano", "Mostra o uso do mês e permite assinar ou trocar de plano pela Kiwify. Só contam posts criados pela IA.", "planos"],
@@ -2820,8 +2821,43 @@ function desenharPlano() {
 }
 async function abrirIntegracoes() {
   INT.erro = ""; INT.teste = {}; abrirDlg(`<h2>Integrações</h2><p class="hint">Carregando…</p>`);
-  try { INT.dados = await api({ acao: "listarIntegracoes" }); } catch (e) { INT.erro = textoErro(e); INT.dados = { integracoes: [], podeGerir: false }; }
+  const [d, r] = await Promise.all([api({ acao: "listarIntegracoes" }).catch(e => e), api({ acao: "contasRedes" }).catch(() => null)]);
+  if (d && d.integracoes) INT.dados = d; else { INT.erro = textoErro(d); INT.dados = { integracoes: [], podeGerir: false }; }
+  INT.redes = r;
   desenharIntegracoes();
+}
+// Redes conectadas pela plataforma: cada organização tem um profile próprio no Zernio da Content Post.
+function secaoRedes() {
+  const r = INT.redes;
+  if (!r || r.modo === "propria") return r && r.modo === "propria"
+    ? `<div class="glass box" style="gap:8px"><b>Redes conectadas${ajuda("redesConectadas")}</b><p class="hint" style="margin:0">Esta organização publica pela própria conta do Zernio (chave abaixo). Conecte as redes em zernio.com, ou remova a chave para conectar por aqui.</p>${listaContas(r.contas, false)}</div>` : "";
+  if (!r.modo) return `<div class="glass box" style="gap:8px"><b>Redes conectadas${ajuda("redesConectadas")}</b><p class="hint" style="margin:0">${esc(r.aviso || "A conexão de redes ainda não está disponível.")}</p></div>`;
+  const tem = new Set(r.contas.map(c => c.rede));
+  return `<div class="glass box" style="gap:10px">
+    <div><b>Redes conectadas${ajuda("redesConectadas")}</b><div class="small">Conecte as contas onde os posts serão publicados. Você autoriza na própria rede; não precisa criar conta em nenhum outro serviço.</div></div>
+    ${r.aviso ? `<div class="msg erro">${esc(r.aviso)}</div>` : ""}
+    ${listaContas(r.contas, r.podeGerir)}
+    ${r.podeGerir ? `<div class="redes-lista">${r.redes.map(n => `<button class="rede-chip ${tem.has(n) ? "on" : ""}" data-u="rede-conectar" data-id="${esc(n)}"><i>${ICONE_REDE[n] || ""}</i>${tem.has(n) ? "Conectar outra conta do " : "Conectar "}${esc(n)}</button>`).join("")}</div>`
+      : `<p class="hint" style="margin:0">Só donos e administradores podem conectar redes.</p>`}
+  </div>`;
+}
+function listaContas(contas, pode) {
+  if (!contas || !contas.length) return `<p class="hint" style="margin:0">Nenhuma rede conectada ainda.</p>`;
+  return `<div class="users">${contas.map(c => `<div class="urow"><div><div class="un">${esc(c.rede)} · ${esc(c.usuario ? "@" + c.usuario : c.nome || "conta")}</div>
+    <div class="ue">${c.reconectar ? "A rede pediu para conectar de novo" : c.ativa ? "Conectada" : "Inativa"}</div></div>
+    ${c.reconectar && pode ? `<button class="btn" data-u="rede-conectar" data-id="${esc(c.rede)}">Conectar de novo</button>` : ""}
+    ${pode ? `<button class="btn quiet" data-u="rede-desconectar" data-id="${esc(c.id)}">Desconectar</button>` : ""}</div>`).join("")}</div>`;
+}
+// O Zernio devolve a pessoa para app.html?redes=1&connected=instagram... (ou &error=...&error_message=...).
+async function voltouDaConexao() {
+  let q; try { q = new URLSearchParams(location.search); } catch (e) { return; }
+  if (!q.has("redes")) return;
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  const nome = { instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", twitter: "X", threads: "Threads" };
+  if (q.get("connected")) toast(`${nome[q.get("connected")] || "Rede"} conectado${q.get("username") ? " (@" + q.get("username") + ")" : ""}.`);
+  else if (q.get("error")) toast(`Não deu para conectar o ${nome[q.get("platform")] || "perfil"}: ${q.get("error_message") || q.get("error")}`);
+  redesCarregadas = false; carregarRedes();
+  return abrirIntegracoes();
 }
 function desenharIntegracoes() {
   const d = INT.dados;
@@ -2833,6 +2869,7 @@ function desenharIntegracoes() {
   abrirDlg(`<h2>Integrações · ${esc(U.organizacao.nome)}${ajuda("integracoes")}</h2>
     <p class="hint">Cada organização usa as próprias chaves. Elas ficam cifradas na plataforma e nunca voltam para a tela${d.podeGerir ? "" : ". Só donos e administradores podem cadastrar"}.</p>
     ${INT.erro ? `<div class="msg erro">${esc(INT.erro)}</div>` : ""}
+    ${secaoRedes()}
     <div class="users">${d.integracoes.map(i => `<div class="glass box" style="gap:10px">
       <div class="actions" style="justify-content:space-between"><div><b>${esc(i.nome)}</b>${ajuda(i.id)}<div class="small">${esc(i.uso)}</div></div>
         ${i.configurada ? `<span class="chip ok">Configurada ${esc(i.dica)}</span>` : `<span class="chip bad">Falta configurar</span>`}</div>
@@ -2929,6 +2966,18 @@ document.addEventListener("click", async e => {
   if (a === "int-salvar") {
     const v = (document.getElementById("int-" + id)?.value || "").trim(); if (!v) return;
     try { await api({ acao: "salvarIntegracao", provedor: id, valor: v }); INT.dados = await api({ acao: "listarIntegracoes" }); INT.teste[id] = await api({ acao: "testarIntegracao", provedor: id }).then(r => r.resultado); }
+    catch (err) { INT.erro = textoErro(err); }
+    return desenharIntegracoes();
+  }
+  if (a === "rede-conectar") {
+    b.disabled = true;
+    try { const r = await api({ acao: "conectarRede", rede: id, voltar: location.origin + location.pathname + "?redes=1" }); location.href = r.url; return; }
+    catch (err) { INT.erro = textoErro(err); b.disabled = false; }
+    return desenharIntegracoes();
+  }
+  if (a === "rede-desconectar") {
+    if (!confirm("Desconectar esta conta? Os posts param de sair nela até você conectar de novo.")) return;
+    try { await api({ acao: "desconectarRede", conta: id }); INT.redes = await api({ acao: "contasRedes" }); redesCarregadas = false; carregarRedes(); toast("Conta desconectada."); }
     catch (err) { INT.erro = textoErro(err); }
     return desenharIntegracoes();
   }
@@ -3207,7 +3256,8 @@ document.addEventListener("click", async e => {
     try {
       guardarInfo(await chamar({ acao: "eu" }));
       if (U.convite) return depoisDeEntrar({ token: U.token }, true);
-      return iniciarWeb();
+      await iniciarWeb();
+      return voltouDaConexao();
     } catch (e) { if (e.login) { sessao.apagar(); U.token = ""; } else { U.erro = textoErro(e); } }
   }
   M.conexao = "login"; renderMarca(); renderAuth();
