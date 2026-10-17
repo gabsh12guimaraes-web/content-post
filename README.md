@@ -1,5 +1,6 @@
 # Content Post
-n![Content Post](marca/content-post-logo.svg)
+
+![Content Post](marca/content-post-logo.svg)
 
 Plataforma de criação e publicação de posts: **Fontes → Ideias (você escolhe e agenda) → Calendário mensal → Criação (Claude + fotos e clipes do Magnific) → Artes e vídeo final com texto e logo, feitos no painel → Revisão no painel ou no Telegram → Publicação automática (Zernio)**.
 
