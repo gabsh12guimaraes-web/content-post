@@ -1493,16 +1493,9 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
     ctx.fillStyle = caixa; retArred(ctx, x, y, w, h, 2.4 * U); ctx.fill();
     ctx.fillStyle = tinta; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, W / 2, y + h / 2); ctx.textBaseline = "alphabetic";
   }
-  // rodapé: símbolo, nome, @ e "arraste"
+  // rodapé: só o "arraste" à direita
   ctx.textAlign = "left";
-  const yr = H - 10 * U, r = 3.2 * U;
-  ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.arc(6 * U + r, yr + r, r, 0, Math.PI * 2); ctx.fill();
-  const sim = logos && !logos.width ? (escuro ? (logos.simLight || logos.light) : (logos.simDark || logos.dark)) : null;
-  if (sim) { const k = Math.min((r * 1.4) / sim.width, (r * 1.4) / sim.height); ctx.drawImage(sim, 6 * U + r - sim.width * k / 2, yr + r - sim.height * k / 2, sim.width * k, sim.height * k); }
-  else { ctx.fillStyle = "#fff"; ctx.font = `800 ${3 * U}px Poppins, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(nome.slice(0, 1).toUpperCase(), 6 * U + r, yr + r); ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; }
-  const perfil = perfilMarca();
-  ctx.fillStyle = tinta; ctx.font = `700 ${3.2 * U}px Poppins, sans-serif`; ctx.fillText(nome, 15 * U, yr + (perfil ? 2.9 : 4.4) * U);
-  if (perfil) { ctx.fillStyle = suave; ctx.font = `500 ${2.6 * U}px Poppins, sans-serif`; ctx.fillText(perfil, 15 * U, yr + 6 * U); }
+  const yr = H - 10 * U;
   ctx.fillStyle = escuro ? "rgba(255,255,255,.5)" : "rgba(17,17,17,.45)"; ctx.font = `700 ${2.6 * U}px Poppins, sans-serif`; ctx.textAlign = "right";
   ctx.fillText(ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →", W - 6 * U, yr + 4.2 * U); ctx.textAlign = "left";
   return cv;
@@ -1770,7 +1763,7 @@ function slideEditorial(sl, i, total, img, video, nome, diag) {
     <div class="ed-topo lp-${pos}">${logo ? `<img src="${esc(logo)}" alt="">` : diag.logo === "nenhum" ? "" : `<b>${esc(nome.toUpperCase())}</b>`}</div>
     ${total > 1 ? `<span class="ed-cont ${pos === "td" ? "esq" : ""}">${i + 1}/${total}</span>` : ""}
     <div class="ed-corpo"><div class="titulo">${esc(sl.t)}</div>${sl.x ? `<div class="texto">${esc(sl.x)}</div>` : ""}${cta ? `<div class="ed-siga">Siga ${esc(perfil || "o perfil")}</div>` : ""}</div>
-    <div class="ed-rodape"><span class="ed-av">${sim ? `<img src="${esc(sim)}" alt="">` : esc(nome.slice(0, 1))}</span><span><b>${esc(nome)}</b>${perfil ? `<small>${esc(perfil)}</small>` : ""}</span><em>${ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →"}</em></div>
+    <div class="ed-rodape"><em>${ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →"}</em></div>
   </div>`;
 }
 function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo) {
