@@ -695,6 +695,29 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .kpi:hover { border-color: var(--line-strong); }
 .kpi b { font-size: 22px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
 .kpi small { font-size: 11px; color: var(--ink-faint); }
+.ad-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+.ad-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.ad-kpi .lbl { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
+.ad-bloco { padding: 16px; display: grid; gap: 10px; margin-bottom: 14px; min-width: 0; }
+.ad-bloco h3 { font-size: 14px; margin: 0; }
+.ad-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ad-duas { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.ad-duas .ad-bloco { margin-bottom: 0; } .ad-duas { margin-bottom: 14px; }
+.ad-legenda { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-body); }
+.ad-cor { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.ad-svg { width: 100%; height: auto; display: block; }
+.ad-svg .ad-grade { stroke: var(--line); stroke-width: 1; } .ad-svg .ad-base { stroke: var(--line-strong); stroke-width: 1; }
+.ad-svg .ad-eixo { fill: var(--ink-faint); font-size: 10px; font-family: var(--font-body); }
+.ad-svg .ad-col:hover rect[fill="transparent"] { fill: rgba(255,255,255,.05); }
+.ad-tab { overflow-x: auto; }
+.ad-tab table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 12.5px; }
+.ad-tab th { text-align: left; font-weight: 600; color: var(--ink-soft); font-size: 11px; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ad-tab td { padding: 7px 8px; border-bottom: 1px solid var(--line); color: var(--ink-body); vertical-align: top; }
+.ad-tab .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ad-tab .ad-total td { color: #fff; font-weight: 700; }
+.ad-tab td.uso { min-width: 260px; }
+.ad-tab td small { color: var(--ink-faint); }
+.ad-neg { color: var(--bad) !important; }
 .kpi[aria-current="true"] { border-color: var(--red); }
 .kpi[aria-current="true"] b { color: var(--red); }
 .panel { margin-top: 0; }
@@ -897,6 +920,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
       <section class="panel" id="p-rev" role="tabpanel" aria-labelledby="tab-rev" hidden></section>
       <section class="panel" id="p-agend" role="tabpanel" aria-labelledby="tab-agend" hidden></section>
       <section class="panel" id="p-banco" role="region" aria-label="Banco de imagens e vídeos" hidden></section>
+      <section class="panel" id="p-admin" role="region" aria-label="Painel admin" hidden></section>
     </div>
   </div>
 </div>
@@ -2724,8 +2748,10 @@ document.addEventListener("scroll", e => {
 /* ---------- geral ---------- */
 function render() {
   document.querySelectorAll(".track button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
-  ["marca", "ideias", "cal", "rev", "agend", "banco"].forEach(t => (document.getElementById("p-" + t).hidden = t !== tab));
+  if (tab === "admin" && !(U.usuario && U.usuario.admin)) tab = "ideias";
+  ["marca", "ideias", "cal", "rev", "agend", "banco", "admin"].forEach(t => (document.getElementById("p-" + t).hidden = t !== tab));
   if (tab === "banco") renderBancoPagina();
+  if (tab === "admin") renderAdmin();
   const n = x => pauta.carregada ? String(x).padStart(2, "0") : "–";
   document.getElementById("c-ideias").textContent = n(state.ideias.filter(i => i.status === "Sugerida").length);
   document.getElementById("c-cal").textContent = n(state.posts.filter(p => p.status !== "Publicado").length);
@@ -2736,7 +2762,7 @@ function render() {
   sincronizarCasca();
   requestAnimationFrame(() => pintarPrevias());
 }
-function ir(t) { if (t === "banco" && M.modo === "web") setTimeout(() => carregarBanco(true)); tab = t; try { localStorage.setItem(KEY + ":tab", t); } catch (e) {} document.body.classList.remove("menu-aberto"); const v = document.querySelector(".veu-menu"); if (v) v.hidden = true; render(); window.scrollTo({ top: 0 }); }
+function ir(t) { if (t === "banco" && M.modo === "web") setTimeout(() => carregarBanco(true)); if (t === "admin" && !AD.dados) setTimeout(() => carregarAdmin()); tab = t; try { localStorage.setItem(KEY + ":tab", t); } catch (e) {} document.body.classList.remove("menu-aberto"); const v = document.querySelector(".veu-menu"); if (v) v.hidden = true; render(); window.scrollTo({ top: 0 }); }
 const PAGINAS = {
   marca: ["Marca e fontes", "Perfil da marca e fontes que a IA usa em todas as etapas."],
   ideias: ["Ideias", "Sugestões da IA a partir das fontes. Escolha o que vai para o calendário."],
@@ -2744,6 +2770,7 @@ const PAGINAS = {
   rev: ["Revisão", "Posts prontos esperando seu olhar."],
   agend: ["Agendados", "Posts aprovados na fila de publicação e os já publicados."],
   banco: ["Banco de imagens e vídeos", "Suas fotos e vídeos e tudo que a IA já gerou nos posts, para reutilizar sem gastar créditos."],
+  admin: ["Painel admin", "Usuários, assinaturas, receita e o que cada serviço custa para a plataforma. Só você vê esta página."],
 };
 function sincronizarCasca() {
   const [t, sub] = PAGINAS[tab] || PAGINAS.ideias;
@@ -3259,7 +3286,7 @@ function renderAuth() {
       ${U.organizacoes.length ? `<label class="org-sel"><span class="lbl">Organização</span><select data-u-sel="org">${U.organizacoes.map(o => `<option value="${o.id}" ${U.organizacao && o.id === U.organizacao.id ? "selected" : ""}>${esc(o.nome)}</option>`).join("")}</select></label>` : ""}
       <button class="btn" data-u="nova-org">+ Nova organização</button>
       <div class="quem"><span class="av" aria-hidden="true">${esc(iniciais(U.usuario.nome))}</span><span>${esc(U.usuario.nome || U.usuario.email)}<small>${esc(PAPEIS[U.organizacao && U.organizacao.papel] || "")}</small></span></div>
-      <button class="btn" data-u="banco">Banco de imagens</button><button class="btn" data-u="equipe">Equipe</button><button class="btn" data-u="integracoes">Integrações</button><button class="btn" data-u="plano">Plano</button>
+      ${U.usuario.admin ? `<button class="btn" data-u="admin">Painel admin</button>` : ""}<button class="btn" data-u="banco">Banco de imagens</button><button class="btn" data-u="equipe">Equipe</button><button class="btn" data-u="integracoes">Integrações</button><button class="btn" data-u="plano">Plano</button>
       <a class="btn quiet" href="ajuda.html" target="_blank" rel="noopener">Como usar</a><button class="btn quiet" data-u="minha-senha">Minha senha</button><button class="btn quiet" data-u="sair">Sair</button>`
     : (web ? "" : `<span class="notice">Aprove ou peça ajustes na aba Revisão.</span>`);
   const aberto = web && U.tela !== "ok";
@@ -3512,6 +3539,7 @@ document.addEventListener("click", async e => {
   if (a === "sair") return sair();
   if (a === "fechar") return fecharDlg();
   if (a === "banco") return ir("banco");
+  if (a === "admin") return ir("admin");
   if (a === "equipe") return abrirEquipe();
   if (a === "eq-convidar") {
     const email = val("cv-email"); if (!email) return;
@@ -3857,6 +3885,107 @@ document.addEventListener("click", async e => {
     try { await api({ acao: "trocarFotoSlide", id: post.id, slide: Number(b.dataset.slide), imagem: b.dataset.v }); fecharDlg(); toast(`${video ? "Vídeo" : "Foto"} trocad${video ? "o" : "a"}. Gere ${ehVideoFmt(post) ? "o vídeo final" : "as artes"} de novo para aplicar.`); await carregarPauta(); }
     catch (err) { b.disabled = false; toast("Não deu para trocar: " + textoErro(err)); }
   }
+});
+
+/* ---------- painel admin da plataforma (só o e-mail admin; a API confere) ---------- */
+// Cores fixas por serviço (paleta validada no fundo escuro): a cor segue o serviço, nunca a posição.
+const SERVICOS = [
+  { k: "anthropic", nome: "Claude", cor: "#3987e5" },
+  { k: "magnific", nome: "Magnific", cor: "#d95926" },
+  { k: "apify", nome: "Apify", cor: "#199e70" },
+  { k: "zernio", nome: "Zernio", cor: "#c98500" },
+];
+const AD = { dados: null, erro: "", carregando: false, tabela: false };
+const usd = v => "US$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const brl = v => "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = v => Number(v || 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
+const curtoNum = v => { v = Number(v || 0); return v >= 1e6 ? (v / 1e6).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " mi" : v >= 1e3 ? (v / 1e3).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " mil" : num(v); };
+const diaCurto = d => d.slice(8, 10) + "/" + d.slice(5, 7);
+async function carregarAdmin() {
+  AD.carregando = true; AD.erro = ""; renderAdmin();
+  try { AD.dados = await api({ acao: "painelAdmin" }); }
+  catch (e) { AD.erro = textoErro(e); }
+  AD.carregando = false; renderAdmin();
+}
+// Barras empilhadas do gasto por dia (só a chave da plataforma), com dica ao passar o mouse.
+const larguraGrafico = () => { const el = document.getElementById("p-admin"); return Math.max(320, Math.min(760, ((el && el.clientWidth) || 760) - 34)); };
+function graficoGasto(serie) {
+  const W = larguraGrafico(), H = W < 500 ? 240 : 220, m = { e: 48, d: 8, t: 10, b: 26 }, iw = W - m.e - m.d, ih = H - m.t - m.b;
+  const totais = serie.map(s => SERVICOS.reduce((a, x) => a + (s[x.k] || 0), 0));
+  const max = Math.max(0.01, ...totais), passo = [0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100, 250, 500].find(p => max / p <= 4) || Math.ceil(max / 4);
+  const topo = Math.ceil(max / passo) * passo, y = v => m.t + ih - (v / topo) * ih, bw = iw / serie.length, larg = Math.max(2, bw - 4);
+  const grade = []; for (let v = 0; v <= topo + 1e-9; v += passo) grade.push(`<line x1="${m.e}" x2="${W - m.d}" y1="${y(v)}" y2="${y(v)}" class="ad-grade"/><text x="${m.e - 6}" y="${y(v) + 4}" class="ad-eixo" text-anchor="end">${v < 1 ? v.toFixed(2).replace(".", ",") : num(v)}</text>`);
+  const barras = serie.map((s, i) => {
+    const x = m.e + i * bw + (bw - larg) / 2; let base = m.t + ih; const partes = [];
+    SERVICOS.forEach(sv => { const v = s[sv.k] || 0; if (v <= 0) return; const h = Math.max(1, (v / topo) * ih); base -= h; partes.push(`<rect x="${x}" y="${base}" width="${larg}" height="${Math.max(0.5, h - 2)}" rx="2" fill="${sv.cor}"/>`); });
+    const dica = `${diaCurto(s.dia)}: ${usd(totais[i])}` + SERVICOS.filter(sv => s[sv.k] > 0).map(sv => ` · ${sv.nome} ${usd(s[sv.k])}`).join("");
+    return `<g class="ad-col"><rect x="${m.e + i * bw}" y="${m.t}" width="${bw}" height="${ih}" fill="transparent"><title>${esc(dica)}</title></rect>${partes.join("")}${(serie.length - 1 - i) % (W < 500 ? 7 : 5) === 0 ? `<text x="${x + larg / 2}" y="${H - 8}" class="ad-eixo" text-anchor="middle">${diaCurto(s.dia)}</text>` : ""}</g>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" class="ad-svg" role="img" aria-label="Gasto por dia nos últimos 30 dias, por serviço">${grade.join("")}${barras}<line x1="${m.e}" x2="${W - m.d}" y1="${m.t + ih}" y2="${m.t + ih}" class="ad-base"/></svg>`;
+}
+function graficoNovos(lista) {
+  const W = Math.min(larguraGrafico(), 520), H = 170, m = { e: 30, d: 8, t: 10, b: 24 }, iw = W - m.e - m.d, ih = H - m.t - m.b;
+  const max = Math.max(1, ...lista.map(x => x.n)), bw = iw / lista.length, larg = Math.max(2, bw - 4), y = v => m.t + ih - (v / max) * ih;
+  return `<svg viewBox="0 0 ${W} ${H}" class="ad-svg" role="img" aria-label="Novos usuários por dia nos últimos 30 dias">
+    <line x1="${m.e}" x2="${W - m.d}" y1="${y(max)}" y2="${y(max)}" class="ad-grade"/><text x="${m.e - 6}" y="${y(max) + 4}" class="ad-eixo" text-anchor="end">${max}</text>
+    ${lista.map((x, i) => `<g class="ad-col"><rect x="${m.e + i * bw}" y="${m.t}" width="${bw}" height="${ih}" fill="transparent"><title>${diaCurto(x.dia)}: ${x.n} novo${x.n === 1 ? "" : "s"}</title></rect>${x.n ? `<rect x="${m.e + i * bw + (bw - larg) / 2}" y="${y(x.n)}" width="${larg}" height="${m.t + ih - y(x.n)}" rx="2" fill="${SERVICOS[0].cor}"/>` : ""}${(lista.length - 1 - i) % 7 === 0 ? `<text x="${m.e + i * bw + bw / 2}" y="${H - 7}" class="ad-eixo" text-anchor="middle">${diaCurto(x.dia)}</text>` : ""}</g>`).join("")}
+    <line x1="${m.e}" x2="${W - m.d}" y1="${m.t + ih}" y2="${m.t + ih}" class="ad-base"/></svg>`;
+}
+function renderAdmin() {
+  const el = document.getElementById("p-admin"); if (!el) return;
+  if (!(U.usuario && U.usuario.admin)) { el.innerHTML = `<div class="glass empty">Esta área é só do administrador da plataforma.</div>`; return; }
+  const d = AD.dados;
+  if (!d) { el.innerHTML = AD.erro ? `<div class="msg erro">${esc(AD.erro)}</div><button class="btn" data-ad="atualizar">Tentar de novo</button>` : `<div class="esqueleto"><i></i></div>`; return; }
+  const P = d.custos.periodos, soma = (per, lado) => SERVICOS.reduce((a, s) => a + P[per][s.k][lado].usd, 0);
+  const sit = d.usuarios.porSituacao;
+  const tiles = [
+    ["Usuários", num(d.usuarios.total), `+${d.usuarios.novos7} em 7 dias · +${d.usuarios.novos30} em 30`],
+    ["Ativos", num(d.usuarios.ativos7), `entraram nos últimos 7 dias · ${num(d.usuarios.ativos30)} em 30`],
+    ["Organizações", num(d.usuarios.organizacoes), `${sit.assinante} assinantes · ${sit.teste} em teste`],
+    ["Receita por mês", brl(d.receita.mrrBrl), `líquida da Kiwify: ${brl(d.receita.liquidaMesBrl)}`],
+    ["Gasto no mês", brl(d.custos.custoMesBrl), `${usd(d.custos.custoMesUsd)} · inclui Railway estimado`],
+    ["Margem do mês", brl(d.custos.margemMesBrl), "receita líquida menos o gasto da plataforma"],
+  ].map(([t, v, s]) => `<div class="kpi ad-kpi"><span class="lbl">${t}</span><b>${v}</b><small>${esc(s)}</small></div>`).join("");
+  const linhaServ = s => {
+    const a = P.mes[s.k].plataforma, b = P.d30[s.k].plataforma, c = P.total[s.k].plataforma, pr = P.d30[s.k].propria;
+    const uso = s.k === "anthropic" ? `${num(b.chamadas)} chamadas · ${curtoNum(b.entrada)} tokens de entrada · ${curtoNum(b.saida)} de saída${b.cache ? " · " + curtoNum(b.cache) + " em cache" : ""}`
+      : s.k === "magnific" ? (() => { const t = k => (d.porTipo.find(x => x.provedor === "magnific" && x.tipo === k) || { quantidade: 0 }).quantidade; return `${num(t("foto"))} fotos · ${num(t("foto_pessoa"))} com pessoa real · ${num(t("clipe"))} s de vídeo`; })() : s.k === "apify" ? `${num(b.quantidade)} itens coletados` : `${num(b.quantidade)} publicações`;
+    return `<tr><td><i class="ad-cor" style="background:${s.cor}"></i>${s.nome}</td><td class="n">${usd(a.usd)}</td><td class="n">${usd(b.usd)}</td><td class="n">${usd(c.usd)}${c.usdEstimado ? `<small> (${usd(c.usdEstimado)} estimado)</small>` : ""}</td><td class="uso">${uso}</td><td class="n">${pr.usd ? usd(pr.usd) : "–"}</td></tr>`;
+  };
+  const magn = P.d30.magnific.plataforma;
+  const tarefas = { post: "Criação de post", ideias: "Busca de ideias", ajuste: "Ajuste", descrever_foto: "Descrever foto do banco", escolher_banco: "IA escolhe no banco", foto: "Fotos", foto_pessoa: "Fotos com pessoa real", clipe: "Vídeo (segundos)", coleta: "Coleta de referências", publicacao: "Publicação", outro: "Outros" };
+  const nomeServ = k => (SERVICOS.find(s => s.k === k) || { nome: k }).nome;
+  const SIT = { assinante: "Assinante", teste: "Teste grátis", teste_vencido: "Teste vencido", vencida: "Assinatura vencida", isenta: "Isenta" };
+  el.innerHTML = `
+    <div class="ad-topo"><span class="small">Atualizado ${new Date(d.geradoEm).toLocaleString("pt-BR")} · dólar a R$ ${String(d.dolar).replace(".", ",")}</span><button class="btn quiet" data-ad="atualizar" ${AD.carregando ? "disabled" : ""}>${AD.carregando ? "Atualizando…" : "Atualizar"}</button></div>
+    <div class="ad-kpis">${tiles}</div>
+    <div class="glass ad-bloco"><div class="ad-cab"><h3>Gasto da plataforma por dia (últimos 30 dias, US$)</h3><button class="btn quiet" data-ad="tabela">${AD.tabela ? "Ver gráfico" : "Ver tabela"}</button></div>
+      <div class="ad-legenda">${SERVICOS.map(s => `<span><i class="ad-cor" style="background:${s.cor}"></i>${s.nome} ${usd(P.d30[s.k].plataforma.usd)}</span>`).join("")}</div>
+      ${AD.tabela ? `<div class="ad-tab"><table><thead><tr><th>Dia</th>${SERVICOS.map(s => `<th class="n">${s.nome}</th>`).join("")}<th class="n">Total</th></tr></thead><tbody>${d.serie.slice().reverse().map(s => `<tr><td>${diaCurto(s.dia)}</td>${SERVICOS.map(x => `<td class="n">${usd(s[x.k])}</td>`).join("")}<td class="n">${usd(SERVICOS.reduce((a, x) => a + s[x.k], 0))}</td></tr>`).join("")}</tbody></table></div>` : graficoGasto(d.serie)}
+      <p class="small" style="margin:0">Só o que passa pela chave da plataforma. Organizações com chave própria pagam o próprio uso (coluna à direita na tabela abaixo). Passe o mouse numa barra para ver o dia.</p></div>
+    <div class="glass ad-bloco"><h3>Gasto por serviço</h3><div class="ad-tab"><table><thead><tr><th>Serviço</th><th class="n">Mês atual</th><th class="n">30 dias</th><th class="n">Total</th><th>Uso em 30 dias</th><th class="n">Chave própria (30 dias)</th></tr></thead><tbody>
+      ${SERVICOS.map(linhaServ).join("")}
+      <tr><td><i class="ad-cor" style="background:#d55181"></i>Railway (estimado)</td><td class="n">${usd(d.custos.railwayUsdMes)}</td><td class="n">${usd(d.custos.railwayUsdMes)}</td><td class="n">–</td><td class="uso">${d.custos.orgsAtivas} organizações ativas × R$ ${d.precos.railwayOrgMesBrl} por mês</td><td class="n">–</td></tr>
+      <tr class="ad-total"><td>Total</td><td class="n">${usd(soma("mes", "plataforma") + d.custos.railwayUsdMes)}</td><td class="n">${usd(soma("d30", "plataforma") + d.custos.railwayUsdMes)}</td><td class="n">${usd(soma("total", "plataforma"))}</td><td></td><td class="n">${usd(soma("d30", "propria"))}</td></tr>
+      <tr><td>Kiwify (taxas)</td><td class="n">${brl(d.receita.taxasKiwifyMesBrl)}</td><td colspan="4" class="small">8,99% + R$ 2,49 por cobrança, dividido pelos meses do ciclo de cada assinatura ativa</td></tr>
+    </tbody></table></div>
+    <p class="small" style="margin:0">Preços usados (editáveis em <code>content-post-api/src/custos.js</code>): Claude US$ ${d.precos.anthropic.entrada} / ${d.precos.anthropic.saida} por milhão de tokens de entrada / saída · Magnific US$ ${String(d.precos.magnific.foto).replace(".", ",")} por foto e US$ ${String(d.precos.magnific.clipe).replace(".", ",")} por segundo de vídeo · Apify US$ ${(d.precos.apify.coleta * 1000).toFixed(2).replace(".", ",")} por mil itens · Zernio US$ ${d.precos.zernio.publicacao.toFixed(2).replace(".", ",")} por publicação. Os valores "estimado" vêm de antes do registro de consumo (18/10/2026).</p></div>
+    <div class="ad-duas">
+      <div class="glass ad-bloco"><h3>Novos usuários por dia (30 dias)</h3>${graficoNovos(d.usuarios.novosPorDia)}</div>
+      <div class="glass ad-bloco"><h3>Organizações por situação</h3><div class="ad-tab"><table><tbody>${Object.entries(SIT).map(([k, t]) => `<tr><td>${t}</td><td class="n">${num(sit[k])}</td></tr>`).join("")}</tbody></table></div>
+        ${Object.keys(d.usuarios.porPlano).length ? `<h3 style="margin-top:10px">Assinantes por plano</h3><div class="ad-tab"><table><tbody>${Object.entries(d.usuarios.porPlano).sort((a, b) => b[1] - a[1]).map(([p, n]) => `<tr><td>${esc(p)}</td><td class="n">${n}</td></tr>`).join("")}</tbody></table></div>` : `<p class="small">Nenhuma assinatura paga ativa ainda.</p>`}</div>
+    </div>
+    <div class="glass ad-bloco"><h3>Gasto por tarefa (30 dias)</h3><div class="ad-tab"><table><thead><tr><th>Serviço</th><th>Tarefa</th><th class="n">Vezes</th><th class="n">Tokens (entrada / saída)</th><th class="n">Quantidade</th><th class="n">Custo</th></tr></thead><tbody>
+      ${d.porTipo.length ? d.porTipo.map(t => `<tr><td>${nomeServ(t.provedor)}</td><td>${esc(tarefas[t.tipo] || t.tipo)}</td><td class="n">${num(t.chamadas)}</td><td class="n">${t.provedor === "anthropic" ? `${curtoNum(t.entrada)} / ${curtoNum(t.saida)}` : "–"}</td><td class="n">${t.provedor === "anthropic" ? "–" : num(t.quantidade)}</td><td class="n">${usd(t.usd)}</td></tr>`).join("") : `<tr><td colspan="6" class="small">Nada nos últimos 30 dias.</td></tr>`}
+    </tbody></table></div><p class="small" style="margin:0">Inclui o uso com chave própria. Uso do mês nos posts: ${num(d.uso.posts30)} criados, ${num(d.uso.ideias30)} buscas de ideias, ${num(d.uso.publicados30)} publicados (30 dias).</p></div>
+    <div class="glass ad-bloco"><h3>Organizações: gasto e receita</h3><div class="ad-tab"><table><thead><tr><th>Organização</th><th>Situação</th><th>Plano</th><th class="n">Gasto 30 dias</th><th class="n">Receita por mês</th><th class="n">Margem</th></tr></thead><tbody>
+      ${d.topOrgs.length ? d.topOrgs.map(o => `<tr><td>${esc(o.nome)}</td><td>${esc(SIT[o.situacao] || o.situacao)}</td><td>${esc([o.plano, o.ciclo].filter(Boolean).join(" "))}</td><td class="n">${usd(o.custoUsd30)}</td><td class="n">${o.receitaMesBrl ? brl(o.receitaMesBrl) : "–"}</td><td class="n ${o.margemBrl < 0 ? "ad-neg" : ""}">${brl(o.margemBrl)}</td></tr>`).join("") : `<tr><td colspan="6" class="small">Nenhum gasto ainda.</td></tr>`}
+    </tbody></table></div><p class="small" style="margin:0">As 25 organizações que mais gastaram nos últimos 30 dias. Margem = receita do mês menos o gasto de IA em R$ (sem Railway e Kiwify).</p></div>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-ad]"); if (!b) return;
+  if (b.dataset.ad === "atualizar") return carregarAdmin();
+  if (b.dataset.ad === "tabela") { AD.tabela = !AD.tabela; return renderAdmin(); }
 });
 
 function renderMarca() {
