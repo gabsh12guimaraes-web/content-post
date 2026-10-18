@@ -52,8 +52,11 @@ header.topo { display: flex; justify-content: space-between; align-items: center
 /* VSL vertical (9:16, gravado no celular): alto o bastante para ver o rosto, sem empurrar o botão para longe */
 .vsl.vertical { aspect-ratio: 9 / 16; height: min(68vh, 620px); max-width: calc(100vw - 32px); width: auto; }
 .vsl.vertical video { object-fit: cover; background: #05060b; }
-/* Reel incorporado: o player do Instagram tem cabeçalho e rodapé além do vídeo 9:16 */
-.vsl.vertical.instagram { --lv: min(380px, calc(100vw - 32px)); aspect-ratio: auto; width: var(--lv); height: calc(var(--lv) * 16 / 9 + 150px); max-width: none; background: #fff; }
+/* Reel incorporado: o player do Instagram põe o vídeo 9:16 numa caixa 4:5 (faixas pretas dos lados), com cabeçalho (~55 px) e rodapé.
+   A moldura mostra só o vídeo: o iframe fica maior e deslocado, e o que sobra (perfil, faixas, curtidas) fica escondido. */
+.vsl.vertical.instagram { --wc: min(320px, calc(100vw - 32px), calc(62vh * 9 / 16)); --wi: calc(var(--wc) / 0.703125);
+  aspect-ratio: auto; width: calc(var(--wc) - 2px); height: calc(var(--wc) * 16 / 9 - 3px); max-width: none; background: #05060b; }
+.vsl.vertical.instagram iframe { inset: auto; top: -56px; left: calc(var(--wi) * -0.1484375 - 1px); width: var(--wi); height: calc(var(--wi) * 1.25 + 300px); }
 .vsl-play { position: absolute; inset: 0; border: 0; padding: 0; cursor: pointer; background: center / cover no-repeat; display: grid; place-items: center; font: inherit; color: #fff; }
 .vsl-play::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0) 55%, rgba(5,6,11,.75) 100%); }
 .vsl-play .bola { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); z-index: 1; width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #FF5F7A, #F8395A 55%, #C8102E); box-shadow: 0 0 0 10px rgba(248,57,90,.25), 0 18px 40px -10px rgba(248,57,90,.9); display: grid; place-items: center; animation: pulsar 1.8s ease-in-out infinite; }
