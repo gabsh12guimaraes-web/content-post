@@ -2119,6 +2119,13 @@ async function logosDaPrevia() {
   return (logosPrevia = o);
 }
 let pintando = false, pintarDeNovo = false;
+// Prévias já desenhadas (cópia em canvas), pela combinação de slide, diagramação, foto e marca. Guarda as 80 últimas.
+const cachePrevias = new Map();
+function guardarPrevia(chave, cv) {
+  const c = document.createElement("canvas"); c.width = cv.width; c.height = cv.height; c.getContext("2d").drawImage(cv, 0, 0);
+  cachePrevias.set(chave, c);
+  if (cachePrevias.size > 80) cachePrevias.delete(cachePrevias.keys().next().value);
+}
 async function pintarPrevias() {
   if (pintando) { pintarDeNovo = true; return; }
   pintando = true;
@@ -2132,14 +2139,24 @@ async function pintarPrevias() {
         const slides = post.slides.length ? post.slides : [{ n: 1, t: post.titulo, x: "" }];
         const i = Number(cv.dataset.i), sl = slides[i]; if (!sl) continue;
         const { mapa } = imagensDoPost(post);
+        // Desenha no tamanho em que a prévia aparece (não em 1080 px) e reaproveita a prévia já desenhada.
+        if (!cv.dataset.base) cv.dataset.base = cv.width + "x" + cv.height;
+        const [bw, bh] = cv.dataset.base.split("x").map(Number), largura = Math.min(bw, Math.max(360, Math.ceil((cv.clientWidth || 400) * (window.devicePixelRatio || 1))));
+        const w = largura, h = Math.round(largura * bh / bw);
+        const chave = JSON.stringify([post.id, i, w, h, cv.dataset.vertical || "", sl, post.diag, mapa[sl.n] || "", clipesDoPost(post)[sl.n] || "", chaveLogosPrevia, cores, nome, perfilMarca()]);
+        if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+        const pronta = cachePrevias.get(chave);
+        if (pronta) { cv.getContext("2d").drawImage(pronta, 0, 0); continue; }
         if (cv.dataset.vertical) {
           const clipe = clipesDoPost(post)[sl.n];
           const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : clipe ? await quadroCache(clipe) : null;
           desenharVertical(ehVideoFmt(post) ? { n: sl.n, t: sl.x || sl.t } : sl, foto, logos, cores, nome, cv, post.diag, 1000);
+          guardarPrevia(chave, cv);
           continue;
         }
         const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : null;
         desenharSlide(sl, i, slides.length, foto, logos, cores, nome, cv, post.diag);
+        guardarPrevia(chave, cv);
       }
     }
   } finally { pintando = false; if (pintarDeNovo) { pintarDeNovo = false; pintarPrevias(); } }
@@ -3862,7 +3879,7 @@ function desenharBanco() {
       <b>${esc(x.nome || "Sem nome")}</b>
       <span class="small">${x.descrevendo ? `<span class="chip warn">IA descrevendo…</span>` : esc(x.descricao || "Sem descrição. Clique em Editar para descrever.")}</span>
       ${(x.tags || []).length ? `<span class="bi-tags">${x.tags.map(t => `<i>${esc(t)}</i>`).join("")}</span>` : ""}
-      <div class="actions"><button type="button" class="btn quiet" data-bi="editar" data-id="${x.id}">Editar</button><a class="btn quiet" href="${esc(urlArq(x.arquivo))}" download="${esc((x.nome || "arquivo").replace(/[^\w\- ]+/g, "") + "." + String((x.arquivo && x.arquivo.type) || "image/jpeg").split("/")[1].replace("jpeg", "jpg"))}" target="_blank" rel="noopener">Baixar</a><button type="button" class="btn quiet" data-bi="remover" data-id="${x.id}">Remover</button></div>
+      <div class="actions"><button type="button" class="btn quiet" data-bi="editar" data-id="${x.id}">Editar</button><a class="btn quiet" href="${esc(urlCheia(x.arquivo))}" download="${esc((x.nome || "arquivo").replace(/[^\w\- ]+/g, "") + "." + String((x.arquivo && x.arquivo.type) || "image/jpeg").split("/")[1].replace("jpeg", "jpg"))}" target="_blank" rel="noopener">Baixar</a><button type="button" class="btn quiet" data-bi="remover" data-id="${x.id}">Remover</button></div>
     </div>`).join("");
 }
 document.addEventListener("click", async e => {
