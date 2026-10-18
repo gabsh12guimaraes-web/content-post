@@ -952,7 +952,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", redes: Array.isArray(r.Redes) && r.Redes.length ? r.Redes.slice() : [nomeSel(r.Rede)].filter(Boolean), links: r.Links || {}, briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
-    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } if (d.v !== 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -1757,8 +1757,8 @@ function capaEm(ctx, im, x, y, w, h, r) {
 }
 // Modelos editoriais (editorial e imagem lateral), no estilo dos carrosséis com cabeçalho, card de imagem e rodapé.
 function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
-  const W = ARTE_L, H = ARTE_A, U = CQ;
-  const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = W; cv.height = H; }
+  const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
+  const W = cv.width, H = cv.height, U = W / 100, extra = Math.max(0, H / U - 125); // extra: altura a mais no 9:16
   const ctx = cv.getContext("2d");
   const T = temaFundo(diag, cores), F = fonteTitulo(diag), E = escalaTexto(diag, sl.n), Em = Math.min(1, E);
   const lateral = diag.modelo === "lateral";
@@ -1771,11 +1771,12 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const xTexto = 6 * U;
   if (foto && !cta) {
     if (!T.claro && !lateral) {
-      capaEm(ctx, foto, 0, 0, W, 58 * U, 0);
-      const g = ctx.createLinearGradient(0, 30 * U, 0, 58.5 * U); g.addColorStop(0, hexRgba(T.bg, 0)); g.addColorStop(1, hexRgba(T.bg, 1));
-      ctx.fillStyle = g; ctx.fillRect(0, 30 * U, W, 28.6 * U); topoTexto = 60 * U;
-    } else if (lateral) { capaEm(ctx, foto, 52 * U, topo0, 42 * U, 96 * U, 3 * U); topoTexto = topo0 + 5 * U; largTexto = 41 * U; }
-    else { capaEm(ctx, foto, 6 * U, topo0, 88 * U, 47 * U, 3 * U); topoTexto = topo0 + 53 * U; }
+      const hf = (58 + extra * 0.5) * U;
+      capaEm(ctx, foto, 0, 0, W, hf, 0);
+      const g = ctx.createLinearGradient(0, hf - 28 * U, 0, hf + 0.5 * U); g.addColorStop(0, hexRgba(T.bg, 0)); g.addColorStop(1, hexRgba(T.bg, 1));
+      ctx.fillStyle = g; ctx.fillRect(0, hf - 28 * U, W, 28.6 * U); topoTexto = hf + 2 * U;
+    } else if (lateral) { capaEm(ctx, foto, 52 * U, topo0, 42 * U, (96 + extra) * U, 3 * U); topoTexto = topo0 + 5 * U; largTexto = 41 * U; }
+    else { capaEm(ctx, foto, 6 * U, topo0, 88 * U, (47 + extra * 0.5) * U, 3 * U); topoTexto = topo0 + (53 + extra * 0.5) * U; }
   } else if (logoEmBaixo && !cta) topoTexto = 14 * U;
   desenharLogo(ctx, W, H, U, logos, nome, diag, 4.5 * U, 4.5 * U, T.tinta);
   if (total > 1) {
@@ -1786,7 +1787,7 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
     ctx.fillStyle = T.tinta; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * U, y + h / 2); ctx.textBaseline = "alphabetic";
   }
   const al = cta ? "centro" : (diag.alinhar || "esquerda"), alC = canvasAl(al);
-  const limite = (logoEmBaixo ? 104 : 110) * U;
+  const limite = ((logoEmBaixo ? 104 : 110) + extra) * U;
   // texto de apoio na caixa; o título ocupa o resto do espaço
   const tX = (lateral ? 3.6 : 4) * U * E;
   ctx.font = `400 ${tX}px Poppins, sans-serif`;
@@ -1819,7 +1820,7 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   }
   // rodapé: só o "arraste" à direita (sai quando o logo vai para baixo)
   ctx.textAlign = "left";
-  if (!logoEmBaixo) {
+  if (!logoEmBaixo && total > 1) {
     ctx.fillStyle = T.claro ? "rgba(17,17,17,.45)" : "rgba(255,255,255,.5)"; ctx.font = `700 ${2.6 * U}px Poppins, sans-serif`; ctx.textAlign = "right";
     ctx.fillText(ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →", W - 6 * U, H - 5.8 * U); ctx.textAlign = "left";
   }
@@ -1967,8 +1968,8 @@ function logoDoModelo(diag, padrao) {
 // Escala do texto de cada slide ou cena (A− / A+ na revisão): 0,6 a 1,6; 1 é o tamanho do modelo.
 const escalaTexto = (diag, n) => { const v = Number(((diag && diag.escalas) || {})[n]); return v >= 0.6 && v <= 1.6 ? v : 1; };
 function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) {
-  const W = ARTE_L, H = ARTE_A, U = W / 100;
-  const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = W; cv.height = H; }
+  const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
+  const W = cv.width, H = cv.height, U = W / 100;
   const ctx = cv.getContext("2d");
   const F = fonteTitulo(diag), m = diag.modelo, E = escalaTexto(diag, sl.n), Em = Math.min(1, E), T = temaFundo(diag, cores);
   const fT = (peso, it) => tam => `${it ? "italic " : ""}${peso} ${tam}px ${F.css}, Poppins, sans-serif`;
@@ -2064,6 +2065,8 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
 // Prévia dos carrosséis e estáticos: o mesmo desenho da arte final, num canvas da prévia.
 const cacheImg = new Map();
 const imgCache = url => { if (!cacheImg.has(url)) cacheImg.set(url, carregarImg(url).catch(() => null)); return cacheImg.get(url); };
+// Primeiro quadro de um clipe, para a prévia de Reels e Stories com modelo.
+const quadroCache = url => { const k = "v:" + url; if (!cacheImg.has(k)) cacheImg.set(k, carregarVideoLocal(url).then(async v => { await irPara(v, Math.min(0.5, (v.duration || 1) / 2)); return v; }).catch(() => null)); return cacheImg.get(k); };
 let logosPrevia = null, chaveLogosPrevia = "";
 async function logosDaPrevia() {
   const urls = urlsLogos(true), chave = JSON.stringify(urls);
@@ -2087,6 +2090,12 @@ async function pintarPrevias() {
         const slides = post.slides.length ? post.slides : [{ n: 1, t: post.titulo, x: "" }];
         const i = Number(cv.dataset.i), sl = slides[i]; if (!sl) continue;
         const { mapa } = imagensDoPost(post);
+        if (cv.dataset.vertical) {
+          const clipe = clipesDoPost(post)[sl.n];
+          const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : clipe ? await quadroCache(clipe) : null;
+          desenharVertical(ehVideoFmt(post) ? { n: sl.n, t: sl.x || sl.t } : sl, foto, logos, cores, nome, cv, post.diag, 1000);
+          continue;
+        }
         const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : null;
         desenharSlide(sl, i, slides.length, foto, logos, cores, nome, cv, post.diag);
       }
@@ -2097,9 +2106,9 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
   if (MODELOS_NOVOS.includes(diag.modelo)) return desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag);
   if (MODELOS_ED.includes(diag.modelo)) return desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag);
-  const W = ARTE_L, H = ARTE_A, U = CQ;
   const cv = alvo || document.createElement("canvas");
-  if (!alvo) { cv.width = W; cv.height = H; }
+  if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
+  const W = cv.width, H = cv.height, U = W / 100;
   const ctx = cv.getContext("2d");
   const T = temaFundo(diag, cores, "foto"), F = fonteTitulo({ ...diag, modelo: "foto" }), E = escalaTexto(diag, sl.n), Em = Math.min(1, E);
   const ultimo = i === total - 1 && total > 1;
@@ -2115,7 +2124,7 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   }
   const pos = diag.posicao === "auto" || !diag.posicao ? (foto ? "base" : "topo") : diag.posicao;
   if (foto) {
-    capa(ctx, foto);
+    capa(ctx, foto, W, H);
     if (pos === "meio") { ctx.fillStyle = hexRgba(bg, 0.55); ctx.fillRect(0, 0, W, H); }
     else {
       const v = pos === "topo" ? ctx.createLinearGradient(0, H, 0, 0) : ctx.createLinearGradient(0, 0, 0, H);
@@ -2253,7 +2262,7 @@ async function gravarCanvas(cv, bps, tocarTudo) {
 const blobBase64 = b => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(b); });
 // Uma cena do Reels em 720 × 1280: clipe de fundo, véu, logo e o texto da cena.
 function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag, n) {
-  texto = semMarcas(texto);
+  texto = String(texto || "");
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
   const T = temaFundo(diag, cores, "video"), F = fonteTitulo({ ...diag, modelo: "video" });
   const pos = diag.posicao === "auto" || !diag.posicao ? "base" : diag.posicao;
@@ -2271,17 +2280,23 @@ function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag, n) {
   const a = Math.min(1, (t || 0) / 350); // o texto entra suave no começo da cena
   ctx.globalAlpha = a;
   const tam = 7.4 * U * escalaTexto(diag, n), lhT = tam * 1.1, esq = 7 * U;
-  ctx.font = fonteDe(F)(tam); ctx.textBaseline = "alphabetic";
-  const linhas = quebrar(ctx, F.upper ? texto.toUpperCase() : texto, W - 14 * U);
-  const alt = linhas.length * lhT;
+  const linhas = ajustarTitulo(ctx, texto, { largura: W - 14 * U, alturaMax: 1e9, tamanho: tam, minimo: tam, F, entrelinha: 1.1, maxLinhas: 99 }).linhas;
+  const alt = linhas * lhT;
   let y = pos === "topo" ? (L.baixo ? 12 : 22) * U : pos === "meio" ? (H - alt) / 2 : H - (L.baixo ? 24 : 16) * U - alt;
   const al = diag.alinhar, xT = al === "centro" ? W / 2 : al === "direita" ? W - esq : esq;
   const xB = al === "centro" ? W / 2 - 7 * U : al === "direita" ? W - esq - 14 * U : esq;
   ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.roundRect(xB, y - 4 * U, 14 * U, 1.6 * U, 0.8 * U); ctx.fill();
   ctx.textAlign = canvasAl(al);
   ctx.fillStyle = T.tinta; if (!T.claro) { ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = 2 * U; }
-  for (const l of linhas) { y += lhT; ctx.fillText(l, xT, y - lhT * 0.18); }
+  tituloRico(ctx, texto, { x: esq, y, largura: W - 14 * U, alturaMax: 1e9, tamanho: tam, minimo: tam, fonte: fonteDe(F), fonteDestaque: fonteDe(F), upper: F.upper, cor: T.tinta, corDestaque: cores.acc, alinhar: canvasAl(al), entrelinha: 1.1, maxLinhas: 99 });
   ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.textAlign = "left";
+}
+// Reels e Stories: o modelo "Vídeo" é o visual próprio das cenas; os outros modelos são os mesmos do carrossel, em 9:16.
+const ehModeloVideo = d => !d || !d.modelo || d.modelo === "video";
+function desenharVertical(sl, foto, logos, cores, nome, cv, diag, t) {
+  if (ehModeloVideo(diag)) return desenharCena(cv.getContext("2d"), cv.width, cv.height, foto, sl.t, logos, cores, nome, t, diag, sl.n);
+  // vídeo e story não têm contador nem "arraste": cada cena é desenhada como um slide único
+  return desenharSlide({ n: sl.n, t: sl.t || "", x: sl.x || "" }, 0, 1, foto, logos, cores, nome, cv, diag);
 }
 async function gerarVideoFinal(p, logo, cores, nome) {
   const clipes = clipesDoPost(p);
@@ -2302,7 +2317,7 @@ async function gerarVideoFinal(p, logo, cores, nome) {
         while (k < durs.length - 1 && t >= ini + durs[k]) { ini += durs[k]; k++; }
         const local = t - ini;
         await irPara(vids[k], local);
-        desenharCena(ctx, W, H, vids[k], cenas[k].x || cenas[k].t, logo, cores, nome, local * 1000, p.diag, cenas[k].n);
+        desenharVertical({ n: cenas[k].n, t: cenas[k].x || cenas[k].t }, vids[k], logo, cores, nome, cv, p.diag, local * 1000);
       } });
     if (blob.size > 24 * 1024 * 1024) throw new Error("o vídeo passou de 24 MB. Peça um ajuste com cenas mais curtas");
     return [{ tipo: "video/mp4", base64: await blobBase64(blob) }];
@@ -2312,11 +2327,11 @@ async function gerarVideoFinal(p, logo, cores, nome) {
   const bps = Math.max(1500000, Math.min(5000000, Math.floor(20e6 * 8 / total)));
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const ctx = cv.getContext("2d");
-  desenharCena(ctx, W, H, vids[0], cenas[0].x || cenas[0].t, logo, cores, nome, 0, p.diag, cenas[0].n);
+  desenharVertical({ n: cenas[0].n, t: cenas[0].x || cenas[0].t }, vids[0], logo, cores, nome, cv, p.diag, 0);
   const blob = await gravarCanvas(cv, bps, async () => {
     for (let k = 0; k < vids.length; k++) {
       toast(`Gravando a cena ${k + 1} de ${vids.length}. Deixe esta aba aberta.`);
-      await tocar(vids[k], t => desenharCena(ctx, W, H, vids[k], cenas[k].x || cenas[k].t, logo, cores, nome, t, p.diag, cenas[k].n), (vids[k].duration || 10) * 1000 + 150);
+      await tocar(vids[k], t => desenharVertical({ n: cenas[k].n, t: cenas[k].x || cenas[k].t }, vids[k], logo, cores, nome, cv, p.diag, t), (vids[k].duration || 10) * 1000 + 150);
     }
   });
   const b64 = await blobBase64(blob);
@@ -2454,9 +2469,9 @@ async function gerarArtes(p) {
     else if (ehStoryImagem(p)) {
       toast("Gerando a arte do story…");
       const sl = p.slides[0] || { n: 1, t: p.titulo, x: "" };
-      const fotos = fotosCheias(p), foto = fotos[sl.n] ? await carregarImg(fotos[sl.n]) : document.createElement("canvas");
+      const fotos = fotosCheias(p), foto = fotos[sl.n] ? await carregarImg(fotos[sl.n]) : ehModeloVideo(p.diag) ? document.createElement("canvas") : null;
       const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920;
-      desenharCena(cv.getContext("2d"), 1080, 1920, foto, [sl.t, sl.x].filter(Boolean).join(" · "), logo, cores, nome, 1000, p.diag, sl.n);
+      desenharVertical(ehModeloVideo(p.diag) ? { n: sl.n, t: [sl.t, sl.x].filter(Boolean).join(" · ") } : sl, foto, logo, cores, nome, cv, p.diag, 1000);
       artes = [{ tipo: "image/jpeg", base64: await paraBase64(cv) }];
     }
     else {
@@ -2532,7 +2547,8 @@ const MINI_MODELO = (() => {
     lateral: svg(`<rect width="40" height="50" rx="3" fill="#F4F4F6"/><rect x="15" y="3" width="10" height="2" rx="1" fill="#111"/><rect x="22" y="7" width="14" height="37" rx="2" fill="#9fb3c8"/><circle cx="29" cy="20" r="4" fill="#f3c76a"/>${linhas(4, 10, 15, "#111")}<rect x="4" y="22" width="15" height="13" rx="1.5" fill="#dcdce2"/>`),
   };
 })();
-MINI_MODELO.editorial = MINI_MODELO.claro; MINI_MODELO.editorialEscuro = MINI_MODELO.escuro;
+MINI_MODELO.editorial = MINI_MODELO.claro;
+MINI_MODELO.video = (() => { const svg = corpo => `<svg viewBox="0 0 40 50" aria-hidden="true">${corpo}</svg>`; return svg(`<defs><linearGradient id="mm-v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6f86a6"/><stop offset="1" stop-color="#141826"/></linearGradient></defs><rect x="8" width="24" height="50" rx="3" fill="url(#mm-v)"/><path d="M17 17l8 5-8 5z" fill="#fff" opacity=".85"/><rect x="11" y="36" width="5" height="1.4" rx=".7" fill="#F8395A"/><rect x="11" y="39" width="16" height="2.4" rx="1.2" fill="#fff"/><rect x="11" y="43" width="11" height="2.4" rx="1.2" fill="#fff"/>`); })(); MINI_MODELO.editorialEscuro = MINI_MODELO.escuro;
 {
   const svg = corpo => `<svg viewBox="0 0 40 50" aria-hidden="true">${corpo}</svg>`;
   MINI_MODELO.impacto = svg(`<defs><radialGradient id="mm-i" cx=".8" cy=".15" r=".9"><stop offset="0" stop-color="#F8395A" stop-opacity=".7"/><stop offset="1" stop-color="#12121c" stop-opacity="0"/></radialGradient></defs><rect width="40" height="50" rx="3" fill="#12121c"/><rect width="40" height="50" rx="3" fill="url(#mm-i)"/><rect x="0" y="27" width="40" height="23" fill="#7d4a63" opacity=".55"/><circle cx="5.5" cy="5" r="2" fill="#F8395A"/><rect x="9" y="4" width="9" height="2" rx="1" fill="#fff"/><rect x="4" y="11" width="32" height="5" fill="#f6efe4"/><rect x="4" y="17" width="28" height="5" fill="#f6efe4"/><rect x="4" y="23" width="18" height="5" fill="#F8395A"/>`);
@@ -2542,7 +2558,7 @@ MINI_MODELO.editorial = MINI_MODELO.claro; MINI_MODELO.editorialEscuro = MINI_MO
 }
 function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo, postId) {
   const d = diag || { modelo: "foto", logo: "auto", logoPos: "te" };
-  if (!prontas && !semModelo && postId) return `<div class="ig-slide previa-canvas"><canvas data-previa="${esc(postId)}" data-i="${i}" width="${ARTE_L}" height="${ARTE_A}" aria-label="Prévia do slide ${i + 1}"></canvas>${video ? `<span class="tag-video">tem vídeo: a prévia mostra a foto</span>` : ""}</div>`;
+  if (!prontas && postId && (!semModelo || !ehModeloVideo(d))) return `<div class="ig-slide previa-canvas"><canvas data-previa="${esc(postId)}" data-i="${i}" ${semModelo ? `data-vertical="1" width="1080" height="1920"` : `width="${ARTE_L}" height="${ARTE_A}"`} aria-label="Prévia ${semModelo ? "da cena" : "do slide"} ${i + 1}"></canvas>${video ? `<span class="tag-video">${semModelo ? "prévia: primeiro quadro do clipe" : "tem vídeo: a prévia mostra a foto"}</span>` : ""}</div>`;
   if (!prontas && !semModelo && MODELOS_ED.includes(d.modelo)) return slideEditorial(sl, i, total, img, video, nome, d);
   const ultimo = i === total - 1 && total > 1;
   const temFundo = !!(img || video);
@@ -2595,7 +2611,7 @@ function cardRev(p) {
     prontas = !!final;
     html = final
       ? slidePost({ n: 1, t: "", x: "" }, 0, 1, final.thumbnails && final.thumbnails.large ? final.thumbnails.large.url : "", true, logo, nome, final.url, p.diag, true)
-      : slides.map((sl, i) => slidePost({ n: sl.n, t: sl.x || sl.t, x: "" }, i, slides.length, "", false, logo, nome, clipes[sl.n], p.diag, true)).join("");
+      : slides.map((sl, i) => slidePost({ n: sl.n, t: sl.x || sl.t, x: "" }, i, slides.length, "", false, logo, nome, clipes[sl.n], p.diag, true, p.id)).join("");
     if (final) slides = [slides[0] || { n: 1 }];
   } else {
     const videosProntos = {};
@@ -2637,23 +2653,24 @@ function cardRev(p) {
   const segP = [["auto", "Automática"], ["topo", "Topo"], ["meio", "Meio"], ["base", "Base"]].map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="posicao" data-v="${v}" aria-pressed="${p.diag.posicao === v}">${t}</button>`).join("");
   const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
   const versoes = urlsLogos(false);
-  const T = temaFundo(p.diag, cores, ehVideo || p.formato === "Stories" ? "video" : p.diag.modelo), fundoEscuro = !T.claro;
-  const segM = ehVideo || p.formato === "Stories" ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]].map(([v, t]) =>
-      `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" || MODELOS_NOVOS.includes(v) ? MINI_MODELO[v] : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
+  const vertical = ehVideo || p.formato === "Stories";
+  const T = temaFundo(p.diag, cores, ehModeloVideo(p.diag) ? "video" : p.diag.modelo), fundoEscuro = !T.claro;
+  const segM = `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${(vertical ? [["video", "Vídeo"]] : []).concat([["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]]).map(([v, t]) =>
+      `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" || v === "video" || MODELOS_NOVOS.includes(v) ? MINI_MODELO[v] : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
 `;
   // Fundo e fonte valem para todos os modelos (e para Reels e Stories); "Do modelo" usa o padrão de cada um.
-  const modeloAtual = ehVideo || p.formato === "Stories" ? "video" : p.diag.modelo;
+  const modeloAtual = ehModeloVideo(p.diag) ? "video" : p.diag.modelo;
   const fundoModelo = { claro: "claro", escuro: "escuro", marca: "da marca" }[FUNDO_DO_MODELO[modeloAtual] || "marca"];
   const segF = `<span class="small">Fundo</span><div class="seg fundos" role="group" aria-label="Fundo">${[["auto", "Do modelo (" + fundoModelo + ")", temaFundo({ ...p.diag, fundo: "auto" }, cores, modeloAtual).bg], ["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", "#0E0F14"], ["marca", "Cor da marca", cores.bg]].map(([v, t, c]) =>
       `<button data-act="diag" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "auto") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>`;
   const fonteModelo = FONTES_TITULO[FONTE_DO_MODELO[modeloAtual] || "poppins"].nome;
   const segFT = `<span class="small">Fonte do título</span><div class="seg fontes-titulo" role="group" aria-label="Fonte do título">${[["auto", "Do modelo (" + fonteModelo + ")", FONTES_TITULO[FONTE_DO_MODELO[modeloAtual] || "poppins"].css]].concat(Object.entries(FONTES_TITULO).map(([k, f]) => [k, f.nome, f.css])).map(([v, t, css]) =>
         `<button data-act="diag" data-id="${p.id}" data-k="fonte" data-v="${v}" aria-pressed="${(p.diag.fonte || "auto") === v}" style="font-family:${css.replace(/"/g, "'")}, sans-serif">${t}</button>`).join("")}</div>
-        ${ehVideo || p.formato === "Stories" ? "" : `<p class="small" style="margin:0">Dica: na aba Textos, coloque uma palavra do título entre *asteriscos* para destacar na cor da marca.</p>`}`;
+        ${ehModeloVideo(p.diag) ? "" : `<p class="small" style="margin:0">Dica: na aba Textos, coloque uma palavra do título entre *asteriscos* para destacar na cor da marca.</p>`}`;
   const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
   const posicoes = [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
   // A posição do texto vale nos modelos de foto inteira; nos outros o texto fica no lugar do layout.
-  const textoLivre = ehVideo || p.formato === "Stories" || ["foto", "cinema"].includes(p.diag.modelo);
+  const textoLivre = ehModeloVideo(p.diag) || ["foto", "cinema"].includes(p.diag.modelo);
   const padraoLogo = { impacto: "o cabeçalho de perfil (símbolo, nome e @)", minimal: "o cabeçalho de perfil (símbolo, nome e @)", manchete: "o logo no canto de baixo", cinema: "o logo no topo esquerdo" }[p.diag.modelo];
   const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}${!ehVideo && padraoLogo ? `<p class="small" style="margin:0">Neste modelo, Automático + Topo esquerda usa ${padraoLogo}. Escolha outra versão ou posição para trocar.</p>` : ""}`;
   const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação${ajuda("diagramacao")}</span>${segM}${segF}${segFT}<span class="small">Texto</span>
