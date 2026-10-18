@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /app.html
+Disallow: /antigo.html
+Disallow: /painel/
+Disallow: /base/
+Disallow: /fluxos/
+Disallow: /prompts/
+
+Sitemap: https://easycontentpost.com.br/sitemap.xml
