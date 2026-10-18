@@ -301,10 +301,10 @@ button { cursor: pointer; }
 .ig-sub { font-size: 11px; color: var(--ink-faint); }
 .ig-trilho { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
 .ig-trilho::-webkit-scrollbar { display: none; }
-.ig-slide { position: relative; flex: 0 0 100%; aspect-ratio: 4 / 5; scroll-snap-align: start; container-type: inline-size; overflow: hidden; color: #fff;
+.ig-slide { position: relative; flex: 0 0 100%; aspect-ratio: 4 / 5; scroll-snap-align: start; container-type: inline-size; overflow: hidden; color: var(--tinta, #fff);
   background: radial-gradient(120% 80% at 85% 0%, color-mix(in srgb, var(--b-acc) 28%, transparent), transparent 60%), var(--b-bg); }
 .ig-slide .foto { position: absolute; inset: 0; background-size: cover; background-position: center; }
-.ig-slide .veu { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,12,21,.10) 0%, rgba(10,12,21,.25) 40%, rgba(10,12,21,.94) 100%); }
+.ig-slide .veu { position: absolute; inset: 0; background: linear-gradient(180deg, color-mix(in srgb, var(--veu, #0A0C15) 10%, transparent) 0%, color-mix(in srgb, var(--veu, #0A0C15) 25%, transparent) 40%, color-mix(in srgb, var(--veu, #0A0C15) 94%, transparent) 100%); }
 .ig-slide.sem-foto .veu { display: none; }
 .ig-slide.cta { background: var(--b-acc); }
 .ig-slide.arte .veu, .ig-slide.arte .conteudo, .ig-slide.arte .marca-agua { display: none; }
@@ -315,9 +315,9 @@ button { cursor: pointer; }
 .ig-slide.sem-foto .conteudo { top: 22cqw; bottom: auto; }
 .ig-slide .barra { width: 12cqw; height: 1.4cqw; border-radius: 99px; background: var(--b-acc); }
 .ig-slide.cta .barra { background: #fff; }
-.ig-slide .titulo { font-family: var(--font-body); font-weight: 700; font-size: calc(8.6cqw * var(--esc, 1)); line-height: 1.05; letter-spacing: -.01em; text-wrap: balance; }
+.ig-slide .titulo { font-family: var(--fonte-tit, var(--font-body)), Poppins, sans-serif; font-weight: var(--peso-tit, 700); text-transform: var(--caixa-tit, none); font-size: calc(8.6cqw * var(--esc, 1)); line-height: 1.05; letter-spacing: -.01em; text-wrap: balance; }
 .ig-slide.sem-foto .titulo { font-size: calc(10cqw * var(--esc, 1)); }
-.ig-slide .texto { font-size: calc(4.4cqw * var(--esc, 1)); line-height: 1.35; color: rgba(255,255,255,.88); max-width: 92%; }
+.ig-slide .texto { font-size: calc(4.4cqw * var(--esc, 1)); line-height: 1.35; color: color-mix(in srgb, var(--tinta, #fff) 88%, transparent); max-width: 92%; }
 .ig-slide .seta { position: absolute; right: 6cqw; bottom: 6cqw; font-size: 3.2cqw; font-weight: 600; opacity: .8; }
 .ig-pontos { display: flex; justify-content: center; gap: 5px; padding: 10px 0 2px; background: #0b0b0d; }
 .ig-pontos i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.3); }
@@ -952,7 +952,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", redes: Array.isArray(r.Redes) && r.Redes.length ? r.Redes.slice() : [nomeSel(r.Rede)].filter(Boolean), links: r.Links || {}, briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
-    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "claro", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } if (d.v !== 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -1755,59 +1755,57 @@ function capaEm(ctx, im, x, y, w, h, r) {
   ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
   ctx.restore();
 }
-// Modelos editoriais (claro, escuro, imagem lateral), no estilo dos carrosséis com cabeçalho, card de imagem e rodapé.
+// Modelos editoriais (editorial e imagem lateral), no estilo dos carrosséis com cabeçalho, card de imagem e rodapé.
 function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const W = ARTE_L, H = ARTE_A, U = CQ;
   const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = W; cv.height = H; }
   const ctx = cv.getContext("2d");
-  const escuro = diag.fundo === "escuro", lateral = diag.modelo === "lateral";
+  const T = temaFundo(diag, cores), F = fonteTitulo(diag), E = escalaTexto(diag, sl.n), Em = Math.min(1, E);
+  const lateral = diag.modelo === "lateral";
   const ultimo = i === total - 1 && total > 1, cta = ultimo && !foto;
-  const fundo = escuro ? cores.bg : "#F4F4F6", tinta = escuro ? "#FFFFFF" : "#111111", suave = escuro ? "rgba(255,255,255,.72)" : "#55565E", caixa = escuro ? "rgba(255,255,255,.08)" : "#E7E7EC";
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = fundo; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
+  const L = posLogo(diag), logoEmBaixo = L.baixo;
+  const topo0 = logoEmBaixo ? 6 * U : 13 * U;
   let topoTexto = 26 * U, largTexto = 88 * U;
   const xTexto = 6 * U;
   if (foto && !cta) {
-    if (escuro && !lateral) {
+    if (!T.claro && !lateral) {
       capaEm(ctx, foto, 0, 0, W, 58 * U, 0);
-      const g = ctx.createLinearGradient(0, 30 * U, 0, 58.5 * U); g.addColorStop(0, hexRgba(cores.bg, 0)); g.addColorStop(1, hexRgba(cores.bg, 1));
+      const g = ctx.createLinearGradient(0, 30 * U, 0, 58.5 * U); g.addColorStop(0, hexRgba(T.bg, 0)); g.addColorStop(1, hexRgba(T.bg, 1));
       ctx.fillStyle = g; ctx.fillRect(0, 30 * U, W, 28.6 * U); topoTexto = 60 * U;
-    } else if (lateral) { capaEm(ctx, foto, 52 * U, 13 * U, 42 * U, 96 * U, 3 * U); topoTexto = 18 * U; largTexto = 41 * U; }
-    else { capaEm(ctx, foto, 6 * U, 13 * U, 88 * U, 47 * U, 3 * U); topoTexto = 66 * U; }
-  }
-  const posLogo = String(diag.logoPos || "tc")[0] === "b" ? "tc" : (diag.logoPos || "tc");
-  desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: posLogo }, 4.5 * U, 4.5 * U, tinta);
+    } else if (lateral) { capaEm(ctx, foto, 52 * U, topo0, 42 * U, 96 * U, 3 * U); topoTexto = topo0 + 5 * U; largTexto = 41 * U; }
+    else { capaEm(ctx, foto, 6 * U, topo0, 88 * U, 47 * U, 3 * U); topoTexto = topo0 + 53 * U; }
+  } else if (logoEmBaixo && !cta) topoTexto = 14 * U;
+  desenharLogo(ctx, W, H, U, logos, nome, diag, 4.5 * U, 4.5 * U, T.tinta);
   if (total > 1) {
     const txt = `${i + 1}/${total}`;
     ctx.font = `600 ${3 * U}px Poppins, sans-serif`;
-    const w = ctx.measureText(txt).width + 5.2 * U, h = 5.6 * U, x = posLogo === "td" ? 6 * U : W - 6 * U - w, y = 3.8 * U;
-    ctx.fillStyle = escuro ? "rgba(255,255,255,.14)" : "rgba(0,0,0,.08)"; retArred(ctx, x, y, w, h, h / 2); ctx.fill();
-    ctx.fillStyle = tinta; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * U, y + h / 2); ctx.textBaseline = "alphabetic";
+    const w = ctx.measureText(txt).width + 5.2 * U, h = 5.6 * U, x = L.pos === "td" ? 6 * U : W - 6 * U - w, y = 3.8 * U;
+    ctx.fillStyle = T.claro ? "rgba(0,0,0,.08)" : "rgba(255,255,255,.14)"; retArred(ctx, x, y, w, h, h / 2); ctx.fill();
+    ctx.fillStyle = T.tinta; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * U, y + h / 2); ctx.textBaseline = "alphabetic";
   }
-  const al = cta ? "centro" : (diag.alinhar || "esquerda");
-  const xAl = al === "centro" ? xTexto + largTexto / 2 : al === "direita" ? xTexto + largTexto : xTexto;
-  const limite = 110 * U;
-  const E = escalaTexto(diag, sl.n);
-  let tT = (foto && !cta ? (lateral ? 7 : 8.4) : 10.5) * U * E, tX = (lateral ? 3.6 : 4) * U * E, linT = [], linX = [], alt = 0;
-  for (let k = 0; k < 8; k++) {
-    ctx.font = `800 ${tT}px Poppins, sans-serif`; linT = quebrar(ctx, sl.t, largTexto);
-    ctx.font = `400 ${tX}px Poppins, sans-serif`; linX = quebrar(ctx, sl.x, largTexto - 6.8 * U);
-    alt = linT.length * tT * 1.05 + (linX.length ? 3 * U + linX.length * tX * 1.35 + 6.8 * U : 0) + (cta ? 15 * U : 0);
-    if ((cta ? 30 * U : topoTexto) + alt <= limite) break;
-    tT *= 0.9; tX *= 0.93;
-  }
+  const al = cta ? "centro" : (diag.alinhar || "esquerda"), alC = canvasAl(al);
+  const limite = (logoEmBaixo ? 104 : 110) * U;
+  // texto de apoio na caixa; o título ocupa o resto do espaço
+  const tX = (lateral ? 3.6 : 4) * U * E;
+  ctx.font = `400 ${tX}px Poppins, sans-serif`;
+  const linX = quebrar(ctx, semMarcas(sl.x), largTexto - 6.8 * U).slice(0, 8);
+  const hCaixa = linX.length ? linX.length * tX * 1.35 + 6.8 * U : 0;
+  const yTit = cta ? 30 * U : topoTexto;
+  const tam0 = (foto && !cta ? (lateral ? 7 : 8.4) : 10.5) * U * E;
+  const tit = ajustarTitulo(ctx, sl.t, { largura: largTexto, alturaMax: Math.max(8 * U, limite - yTit - (hCaixa ? hCaixa + 3 * U : 0) - (cta ? 15 * U : 0)), tamanho: tam0, minimo: 4.5 * U * Em, F });
+  const alt = tit.linhas * tit.tam * 1.05 + (hCaixa ? 3 * U + hCaixa : 0) + (cta ? 15 * U : 0);
   let y = cta ? Math.max(28 * U, (H - alt) / 2 - 6 * U) : topoTexto;
-  ctx.textAlign = al === "centro" ? "center" : al === "direita" ? "right" : "left";
-  ctx.fillStyle = tinta; ctx.font = `800 ${tT}px Poppins, sans-serif`;
-  for (const l of linT) { y += tT * 1.05; ctx.fillText(l, xAl, y - tT * 0.2); }
+  y = tituloRico(ctx, sl.t, { x: xTexto, y, largura: largTexto, alturaMax: 1e9, tamanho: tit.tam, minimo: tit.tam, fonte: fonteDe(F), fonteDestaque: fonteDe(F), upper: F.upper, cor: T.tinta, corDestaque: T.acc, alinhar: alC, entrelinha: 1.05 }).fim;
   if (linX.length) {
     y += 3 * U;
-    const hCaixa = linX.length * tX * 1.35 + 6.8 * U;
-    ctx.fillStyle = caixa; retArred(ctx, xTexto, y, largTexto, hCaixa, 2.4 * U); ctx.fill();
-    ctx.fillStyle = suave; ctx.font = `400 ${tX}px Poppins, sans-serif`;
+    ctx.fillStyle = T.caixa; retArred(ctx, xTexto, y, largTexto, hCaixa, 2.4 * U); ctx.fill();
+    ctx.fillStyle = T.suave; ctx.font = `400 ${tX}px Poppins, sans-serif`; ctx.textAlign = alC;
     const xc = al === "centro" ? xTexto + largTexto / 2 : al === "direita" ? xTexto + largTexto - 3.4 * U : xTexto + 3.4 * U;
     let yc = y + 3.4 * U;
     for (const l of linX) { yc += tX * 1.35; ctx.fillText(l, xc, yc - tX * 0.3); }
+    ctx.textAlign = "left";
     y += hCaixa;
   }
   if (cta) {
@@ -1816,14 +1814,15 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
     ctx.font = `600 ${4.2 * U}px Poppins, sans-serif`;
     const w = ctx.measureText(txt).width + 10 * U, h = 9 * U, x = (W - w) / 2;
     y += 6 * U;
-    ctx.fillStyle = caixa; retArred(ctx, x, y, w, h, 2.4 * U); ctx.fill();
-    ctx.fillStyle = tinta; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, W / 2, y + h / 2); ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = T.caixa; retArred(ctx, x, y, w, h, 2.4 * U); ctx.fill();
+    ctx.fillStyle = T.tinta; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, W / 2, y + h / 2); ctx.textBaseline = "alphabetic";
   }
-  // rodapé: só o "arraste" à direita
+  // rodapé: só o "arraste" à direita (sai quando o logo vai para baixo)
   ctx.textAlign = "left";
-  const yr = H - 10 * U;
-  ctx.fillStyle = escuro ? "rgba(255,255,255,.5)" : "rgba(17,17,17,.45)"; ctx.font = `700 ${2.6 * U}px Poppins, sans-serif`; ctx.textAlign = "right";
-  ctx.fillText(ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →", W - 6 * U, yr + 4.2 * U); ctx.textAlign = "left";
+  if (!logoEmBaixo) {
+    ctx.fillStyle = T.claro ? "rgba(17,17,17,.45)" : "rgba(255,255,255,.5)"; ctx.font = `700 ${2.6 * U}px Poppins, sans-serif`; ctx.textAlign = "right";
+    ctx.fillText(ultimo ? "SALVE O POST" : "ARRASTE PRO LADO →", W - 6 * U, H - 5.8 * U); ctx.textAlign = "left";
+  }
   return cv;
 }
 /* ===== Modelos novos: Impacto, Minimal, Manchete e Cinema ===== */
@@ -1837,7 +1836,32 @@ const FONTES_TITULO = {
   playfair: { nome: "Playfair", css: "'Playfair Display'", peso: 800, upper: false },
   dmserif: { nome: "DM Serif", css: "'DM Serif Display'", peso: 400, upper: false },
 };
-const FONTE_DO_MODELO = { impacto: "anton", minimal: "poppins", manchete: "anton", cinema: "dmserif" };
+const FONTE_DO_MODELO = { foto: "poppins", editorial: "poppins", lateral: "poppins", impacto: "anton", minimal: "poppins", manchete: "anton", cinema: "dmserif", video: "poppins" };
+// Fundo de cada modelo quando a escolha é "Do modelo". Claro, escuro e cor da marca valem para todos.
+const FUNDO_DO_MODELO = { foto: "marca", editorial: "claro", lateral: "claro", impacto: "marca", minimal: "claro", manchete: "claro", cinema: "escuro", video: "marca" };
+const CLARO_DO_MODELO = { minimal: "#F5F4F0", manchete: "#FFFFFF" };
+function temaFundo(diag, cores, modelo) {
+  const m = modelo || (diag && diag.modelo) || "foto";
+  const f = diag && diag.fundo && diag.fundo !== "auto" ? diag.fundo : FUNDO_DO_MODELO[m] || "marca";
+  const bg = f === "claro" ? (CLARO_DO_MODELO[m] || "#F4F4F6") : f === "escuro" ? "#0E0F14" : cores.bg;
+  const claro = luminanciaHex(bg) > 0.45;
+  return { tipo: f, bg, claro, tinta: claro ? "#111111" : "#FFFFFF", suave: claro ? "rgba(17,17,17,.62)" : "rgba(255,255,255,.85)", caixa: claro ? "rgba(17,17,17,.07)" : "rgba(255,255,255,.09)", acc: cores.acc };
+}
+const fonteDe = (F, italico) => tam => `${italico ? "italic " : ""}${F.peso} ${tam}px ${F.css}, Poppins, sans-serif`;
+const canvasAl = al => (al === "centro" ? "center" : al === "direita" ? "right" : "left");
+// Posição do logo escolhida (as 6 valem em todos os modelos).
+const posLogo = diag => { const pos = (diag && diag.logoPos) || "te"; return { pos, baixo: pos[0] === "b" && (diag && diag.logo) !== "nenhum" }; };
+// Acha o tamanho do título que cabe na caixa (sem desenhar).
+function ajustarTitulo(ctx, texto, { largura, alturaMax, tamanho, minimo, F, entrelinha = 1.05, maxLinhas = 6, italico }) {
+  const partes = partesTexto(F.upper ? String(texto || "").toUpperCase() : texto);
+  let tam = tamanho, n = 0;
+  for (let k = 0; k < 16; k++) {
+    n = linhasRicas(ctx, partes, largura, fonteDe(F)(tam), fonteDe(F, italico)(tam)).linhas.length;
+    if ((n * tam * entrelinha <= alturaMax && n <= maxLinhas) || tam <= minimo) break;
+    tam = Math.max(minimo, tam * 0.92);
+  }
+  return { tam, linhas: n };
+}
 const fonteTitulo = diag => FONTES_TITULO[diag && diag.fonte && diag.fonte !== "auto" ? diag.fonte : FONTE_DO_MODELO[diag && diag.modelo] || "poppins"] || FONTES_TITULO.poppins;
 // *palavra* no título = destaque (cor de destaque da marca; itálico nos modelos com serifa).
 const semMarcas = t => String(t || "").replace(/\*/g, "");
@@ -1935,10 +1959,10 @@ function rodapeChamada(ctx, U, W, H, i, total, cor, alinhar) {
 // Logo nos modelos novos: "Automático" + "Topo esquerda" usa o lugar padrão do modelo (cabeçalho de perfil no
 // Impacto e no Minimal, canto de baixo na Manchete); qualquer outra escolha desenha a versão e a posição pedidas.
 function logoDoModelo(diag, padrao) {
-  const versao = diag.logo || "auto", pos = ["te", "tc", "td"].includes(diag.logoPos) ? diag.logoPos : "te";
-  if (versao === "nenhum") return { tipo: "nenhum", pos };
-  if (versao === "auto" && pos === "te") return { tipo: padrao, pos };
-  return { tipo: "logo", pos };
+  const versao = diag.logo || "auto", pos = diag.logoPos || "te";
+  if (versao === "nenhum") return { tipo: "nenhum", pos, baixo: false };
+  if (versao === "auto" && pos === "te") return { tipo: padrao, pos, baixo: padrao === "base" };
+  return { tipo: "logo", pos, baixo: pos[0] === "b" };
 }
 // Escala do texto de cada slide ou cena (A− / A+ na revisão): 0,6 a 1,6; 1 é o tamanho do modelo.
 const escalaTexto = (diag, n) => { const v = Number(((diag && diag.escalas) || {})[n]); return v >= 0.6 && v <= 1.6 ? v : 1; };
@@ -1946,86 +1970,98 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
   const W = ARTE_L, H = ARTE_A, U = W / 100;
   const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = W; cv.height = H; }
   const ctx = cv.getContext("2d");
-  const F = fonteTitulo(diag), m = diag.modelo, E = escalaTexto(diag, sl.n), Em = Math.min(1, E);
+  const F = fonteTitulo(diag), m = diag.modelo, E = escalaTexto(diag, sl.n), Em = Math.min(1, E), T = temaFundo(diag, cores);
   const fT = (peso, it) => tam => `${it ? "italic " : ""}${peso} ${tam}px ${F.css}, Poppins, sans-serif`;
   const serifItalico = tam => `italic 500 ${tam}px 'Playfair Display', Georgia, serif`;
   const titulo = sl.t || "", texto = sl.x || "";
-  const al = diag.alinhar === "centro" ? "center" : diag.alinhar === "direita" ? "right" : "left";
+  const al = canvasAl(diag.alinhar);
   ctx.clearRect(0, 0, W, H); ctx.globalAlpha = 1;
   if (m === "impacto") {
-    ctx.fillStyle = cores.bg; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
     if (foto) {
       cobrir(ctx, foto, 0, H * 0.3, W, H * 0.7);
-      const g = ctx.createLinearGradient(0, H * 0.3, 0, H * 0.62); g.addColorStop(0, hexRgba(cores.bg, 1)); g.addColorStop(1, hexRgba(cores.bg, 0)); ctx.fillStyle = g; ctx.fillRect(0, H * 0.3, W, H * 0.33);
+      const g = ctx.createLinearGradient(0, H * 0.3, 0, H * 0.62); g.addColorStop(0, hexRgba(T.bg, 1)); g.addColorStop(1, hexRgba(T.bg, 0)); ctx.fillStyle = g; ctx.fillRect(0, H * 0.3, W, H * 0.33);
     }
     const brilho = ctx.createRadialGradient(W * 0.75, H * 0.18, 0, W * 0.75, H * 0.18, W * 0.9);
-    brilho.addColorStop(0, hexRgba(cores.acc, 0.55)); brilho.addColorStop(1, hexRgba(cores.acc, 0)); ctx.fillStyle = brilho; ctx.fillRect(0, 0, W, H);
-    const v = ctx.createLinearGradient(0, H * 0.8, 0, H); v.addColorStop(0, hexRgba(cores.bg, 0)); v.addColorStop(1, hexRgba(cores.bg, 0.55)); ctx.fillStyle = v; ctx.fillRect(0, H * 0.8, W, H * 0.2);
+    brilho.addColorStop(0, hexRgba(cores.acc, T.claro ? 0.25 : 0.55)); brilho.addColorStop(1, hexRgba(cores.acc, 0)); ctx.fillStyle = brilho; ctx.fillRect(0, 0, W, H);
+    const v = ctx.createLinearGradient(0, H * 0.8, 0, H); v.addColorStop(0, hexRgba(T.bg, 0)); v.addColorStop(1, hexRgba(T.bg, 0.55)); ctx.fillStyle = v; ctx.fillRect(0, H * 0.8, W, H * 0.2);
     const L = logoDoModelo(diag, "perfil");
-    if (L.tipo === "perfil") cabecalhoAutor(ctx, U, 9 * U, 6 * U, logos, cores, nome, true);
-    else if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 7 * U, 6 * U, "#fff", 9 * U);
+    if (L.tipo === "perfil") cabecalhoAutor(ctx, U, 9 * U, 6 * U, logos, cores, nome, !T.claro);
+    else if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 7 * U, 6 * U, T.tinta, 9 * U);
     contador(ctx, U, W, i, total, true, L.tipo === "logo" && L.pos === "td");
     let y = 17 * U;
     if (texto) {
       const partes = partesTexto(texto); const fN = `500 ${3.9 * U * E}px Poppins, sans-serif`, fD = `600 ${3.9 * U * E}px Poppins, sans-serif`;
       const r = linhasRicas(ctx, partes, 82 * U, fN, fD);
-      for (const l of r.linhas.slice(0, 2)) { y += 5 * U * E; let xx = 9 * U; for (const it of l.itens) { if (it.colado && it !== l.itens[0]) xx -= r.espaco; ctx.font = it.dest ? fD : fN; ctx.fillStyle = it.dest ? cores.acc : "rgba(255,255,255,.88)"; ctx.fillText(it.w, xx, y); xx += it.largura + r.espaco; } }
+      for (const l of r.linhas.slice(0, 2)) {
+        y += 5 * U * E;
+        let xx = al === "center" ? 9 * U + (82 * U - l.larg) / 2 : al === "right" ? 91 * U - l.larg : 9 * U;
+        for (const it of l.itens) { if (it.colado && it !== l.itens[0]) xx -= r.espaco; ctx.font = it.dest ? fD : fN; ctx.fillStyle = it.dest ? cores.acc : T.suave; ctx.fillText(it.w, xx, y); xx += it.largura + r.espaco; }
+      }
       y += 5.5 * U; // espaço para acentos de caixa alta (Ê, Ó) não encostarem no texto de cima
     }
-    tituloRico(ctx, titulo, { x: 9 * U, y, largura: 82 * U, alturaMax: (foto ? 40 : 62) * U, tamanho: 17 * U * E, minimo: 8 * U * Em, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#F6EFE4", corDestaque: cores.acc, alinhar: al, entrelinha: F.upper ? 0.98 : 1.04 });
-    rodapeChamada(ctx, U, W, H, i, total, "rgba(255,255,255,.92)");
+    tituloRico(ctx, titulo, { x: 9 * U, y, largura: 82 * U, alturaMax: (foto ? 40 : 62) * U, tamanho: 17 * U * E, minimo: 8 * U * Em, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: T.claro ? "#111111" : "#F6EFE4", corDestaque: cores.acc, alinhar: al, entrelinha: F.upper ? 0.98 : 1.04 });
+    if (!L.baixo) rodapeChamada(ctx, U, W, H, i, total, T.claro ? "rgba(17,17,17,.7)" : "rgba(255,255,255,.92)");
   } else if (m === "minimal") {
-    ctx.fillStyle = "#F5F4F0"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
     if (foto) {
       cobrir(ctx, foto, 0, H * 0.46, W, H * 0.54);
-      const g = ctx.createLinearGradient(0, H * 0.46, 0, H * 0.6); g.addColorStop(0, "rgba(245,244,240,1)"); g.addColorStop(1, "rgba(245,244,240,0)"); ctx.fillStyle = g; ctx.fillRect(0, H * 0.46, W, H * 0.15);
+      const g = ctx.createLinearGradient(0, H * 0.46, 0, H * 0.6); g.addColorStop(0, hexRgba(T.bg, 1)); g.addColorStop(1, hexRgba(T.bg, 0)); ctx.fillStyle = g; ctx.fillRect(0, H * 0.46, W, H * 0.15);
     }
     const L = logoDoModelo(diag, "perfil");
-    if (L.tipo === "perfil") cabecalhoAutor(ctx, U, 9 * U, 8 * U, logos, cores, nome, false);
-    else if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 6.5 * U, 7.5 * U, "#111", 9 * U);
+    if (L.tipo === "perfil") cabecalhoAutor(ctx, U, 9 * U, 8 * U, logos, cores, nome, !T.claro);
+    else if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 6.5 * U, 7.5 * U, foto && L.baixo ? "#fff" : T.tinta, 9 * U);
     contador(ctx, U, W, i, total, false, L.tipo === "logo" && L.pos === "td");
-    const fim = tituloRico(ctx, titulo, { x: 10 * U, y: (foto ? 17 : 34) * U, largura: 80 * U, alturaMax: (foto ? 24 : 40) * U, tamanho: 10.5 * U * E, minimo: 6 * U * Em, fonte: fT(F.peso), fonteDestaque: diag.fonte && diag.fonte !== "auto" ? fT(F.peso, true) : serifItalico, upper: F.upper, cor: "#111111", corDestaque: cores.acc, alinhar: al === "left" ? "center" : al, entrelinha: 0.98 });
-    if (texto) textoSimples(ctx, texto, { x: 14 * U, y: fim.fim + 1.5 * U, largura: 72 * U, tam: 3.6 * U * E, fonte: `400 ${3.6 * U * E}px Poppins, sans-serif`, cor: "rgba(17,17,17,.62)", alinhar: "center", maxLinhas: 3 });
-    ctx.font = `500 ${2.5 * U}px Poppins, sans-serif`; ctx.fillStyle = foto ? "rgba(255,255,255,.85)" : "rgba(17,17,17,.45)";
-    ctx.fillText(String(nome).toUpperCase(), 9 * U, H - 5 * U);
-    if (perfilMarca()) { ctx.textAlign = "right"; ctx.fillText(perfilMarca().toUpperCase(), W - 9 * U, H - 5 * U); ctx.textAlign = "left"; }
+    const fim = tituloRico(ctx, titulo, { x: 10 * U, y: (foto ? 17 : 34) * U, largura: 80 * U, alturaMax: (foto ? 24 : 40) * U, tamanho: 10.5 * U * E, minimo: 6 * U * Em, fonte: fT(F.peso), fonteDestaque: diag.fonte && diag.fonte !== "auto" ? fT(F.peso, true) : serifItalico, upper: F.upper, cor: T.tinta, corDestaque: cores.acc, alinhar: al, entrelinha: 1.06 });
+    if (texto) textoSimples(ctx, texto, { x: al === "center" ? 14 * U : 10 * U, y: fim.fim + 1.5 * U, largura: al === "center" ? 72 * U : 80 * U, tam: 3.6 * U * E, fonte: `400 ${3.6 * U * E}px Poppins, sans-serif`, cor: T.suave, alinhar: al, maxLinhas: 3 });
+    if (!L.baixo) {
+      ctx.font = `500 ${2.5 * U}px Poppins, sans-serif`; ctx.fillStyle = foto ? "rgba(255,255,255,.85)" : T.suave;
+      ctx.fillText(String(nome).toUpperCase(), 9 * U, H - 5 * U);
+      if (perfilMarca()) { ctx.textAlign = "right"; ctx.fillText(perfilMarca().toUpperCase(), W - 9 * U, H - 5 * U); ctx.textAlign = "left"; }
+    }
   } else if (m === "manchete") {
-    ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
     const L = logoDoModelo(diag, "base");
-    if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 5.5 * U, 4.5 * U, "#111", 5 * U);
+    if (L.tipo === "logo" && !L.baixo) desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 5.5 * U, 4.5 * U, T.tinta, 5 * U);
     contador(ctx, U, W, i, total, false, L.tipo === "logo" && L.pos === "td");
-    const topoT = L.tipo === "logo" || total > 1 ? 12 * U : 4 * U;
-    const t = tituloRico(ctx, titulo, { x: 5 * U, y: topoT, largura: foto ? 76 * U : 86 * U, alturaMax: (foto ? 44 : 70) * U - (topoT - 4 * U), tamanho: 13.5 * U * E, minimo: 7 * U * Em, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#0B0B0D", corDestaque: cores.acc, alinhar: "left", entrelinha: 0.96 });
-    // ponto na cor de destaque, ao lado da última linha
-    const raio = 5.6 * U; ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.arc(W - 5 * U - raio, t.fim - raio * 1.1, raio, 0, Math.PI * 2); ctx.fill();
+    const topoT = (L.tipo === "logo" && !L.baixo) || total > 1 ? 12 * U : 4 * U;
+    const t = tituloRico(ctx, titulo, { x: 5 * U, y: topoT, largura: foto ? 76 * U : 86 * U, alturaMax: (foto ? 44 : 70) * U - (topoT - 4 * U), tamanho: 13.5 * U * E, minimo: 7 * U * Em, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: T.claro ? "#0B0B0D" : "#FFFFFF", corDestaque: cores.acc, alinhar: al, entrelinha: 0.96 });
+    // ponto na cor de destaque, ao lado da última linha (só com o título à esquerda)
+    if (al === "left") { const raio = 5.6 * U; ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.arc(W - 5 * U - raio, t.fim - raio * 1.1, raio, 0, Math.PI * 2); ctx.fill(); }
     let y = t.fim + 2 * U;
-    if (texto) y = textoSimples(ctx, texto, { x: 5 * U, y, largura: 88 * U, tam: 3.7 * U * E, fonte: `400 ${3.7 * U * E}px Poppins, sans-serif`, cor: "#1A1A1D", maxLinhas: 3 }) + 2 * U;
+    if (texto) y = textoSimples(ctx, texto, { x: 5 * U, y, largura: 88 * U, tam: 3.7 * U * E, fonte: `400 ${3.7 * U * E}px Poppins, sans-serif`, cor: T.claro ? "#1A1A1D" : "rgba(255,255,255,.85)", alinhar: al, maxLinhas: 3 }) + 2 * U;
     if (foto) { const y0 = Math.min(y + 1 * U, H * 0.62); ctx.save(); retArred(ctx, 5 * U, y0, 90 * U, H - y0 - 4 * U, 3.4 * U); ctx.clip(); cobrir(ctx, foto, 5 * U, y0, 90 * U, H - y0 - 4 * U); ctx.restore(); }
-    else rodapeChamada(ctx, U, W, H, i, total, "rgba(11,11,13,.6)", "left");
-    if (L.tipo === "base") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "bd" }, 5 * U, foto ? 8 * U : 5 * U, "#111", foto ? 9 * U : 6 * U);
+    else if (!L.baixo) rodapeChamada(ctx, U, W, H, i, total, T.claro ? "rgba(11,11,13,.6)" : "rgba(255,255,255,.7)", "left");
+    if (L.tipo === "base") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "bd" }, 5 * U, foto ? 8 * U : 5 * U, T.tinta, foto ? 9 * U : 6 * U);
+    else if (L.tipo === "logo" && L.baixo) desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 5 * U, foto ? 8 * U : 5 * U, foto ? "#fff" : T.tinta, foto ? 9 * U : 6 * U);
   } else {
-    // cinema
-    ctx.fillStyle = cores.bg; ctx.fillRect(0, 0, W, H);
+    // cinema: foto inteira, véu na cor do fundo e o texto na posição escolhida (base, meio ou topo)
+    ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
     if (foto) cobrir(ctx, foto, 0, 0, W, H);
-    const g = ctx.createLinearGradient(0, H * 0.4, 0, H); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.82)"); ctx.fillStyle = g; ctx.fillRect(0, H * 0.4, W, H * 0.6);
-    const topo = ctx.createLinearGradient(0, 0, 0, H * 0.18); topo.addColorStop(0, "rgba(0,0,0,.35)"); topo.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = topo; ctx.fillRect(0, 0, W, H * 0.18);
     const L = logoDoModelo(diag, "logo");
-    if (L.tipo !== "nenhum") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 7 * U, 6 * U, "#fff");
+    const pos = diag.posicao && diag.posicao !== "auto" ? diag.posicao : "base";
+    if (pos === "meio") { ctx.fillStyle = hexRgba(T.bg, foto ? 0.5 : 1); ctx.fillRect(0, 0, W, H); }
+    else {
+      const g = pos === "topo" ? ctx.createLinearGradient(0, H * 0.6, 0, 0) : ctx.createLinearGradient(0, H * 0.4, 0, H);
+      g.addColorStop(0, hexRgba(T.bg, 0)); g.addColorStop(1, hexRgba(T.bg, 0.86)); ctx.fillStyle = g; pos === "topo" ? ctx.fillRect(0, 0, W, H * 0.6) : ctx.fillRect(0, H * 0.4, W, H * 0.6);
+    }
+    const sombra = ctx.createLinearGradient(0, L.baixo ? H : 0, 0, L.baixo ? H * 0.82 : H * 0.18); sombra.addColorStop(0, hexRgba(T.bg, 0.35)); sombra.addColorStop(1, hexRgba(T.bg, 0)); ctx.fillStyle = sombra; L.baixo ? ctx.fillRect(0, H * 0.82, W, H * 0.18) : ctx.fillRect(0, 0, W, H * 0.18);
+    if (L.tipo !== "nenhum") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 7 * U, 6 * U, T.tinta);
     contador(ctx, U, W, i, total, true, L.tipo !== "nenhum" && L.pos === "td");
-    // mede a altura do bloco para encostar na base
+    // mede a altura do bloco para posicionar
     const fN = fT(F.peso), fD = fT(F.peso, true);
     const largura = 84 * U; let tam = 8.6 * U * E, linhas;
     for (let k = 0; k < 10; k++) { linhas = linhasRicas(ctx, partesTexto(F.upper ? titulo.toUpperCase() : titulo), largura, fN(tam), fD(tam)).linhas.length; if (linhas <= 4) break; tam *= 0.92; }
     ctx.font = `400 ${3.5 * U * E}px Poppins, sans-serif`;
     const linhasTexto = texto ? Math.min(3, quebrar(ctx, semMarcas(texto), 74 * U).length) : 0;
     const altura = linhas * tam * 1.04 + (linhasTexto ? 2 * U + linhasTexto * 3.5 * U * E * 1.35 : 0);
-    const y0 = H - 9 * U - altura;
-    const t = tituloRico(ctx, titulo, { x: 8 * U, y: y0, largura, alturaMax: 60 * U, tamanho: tam, minimo: tam, fonte: fN, fonteDestaque: fD, upper: F.upper, cor: "#FFFFFF", corDestaque: "#FFFFFF", alinhar: al === "left" ? "center" : al, entrelinha: 1.04 });
-    if (texto) textoSimples(ctx, texto, { x: 13 * U, y: t.fim + 1.2 * U, largura: 74 * U, tam: 3.5 * U * E, fonte: `400 ${3.5 * U * E}px Poppins, sans-serif`, cor: "rgba(255,255,255,.88)", alinhar: "center", maxLinhas: 3 });
+    const y0 = pos === "topo" ? (L.baixo ? 9 * U : 17 * U) : pos === "meio" ? (H - altura) / 2 : H - (L.baixo ? 19 : 9) * U - altura;
+    const t = tituloRico(ctx, titulo, { x: 8 * U, y: y0, largura, alturaMax: 60 * U, tamanho: tam, minimo: tam, fonte: fN, fonteDestaque: fD, upper: F.upper, cor: T.tinta, corDestaque: T.tinta, alinhar: al, entrelinha: 1.04 });
+    if (texto) textoSimples(ctx, texto, { x: al === "center" ? 13 * U : 8 * U, y: t.fim + 1.2 * U, largura: al === "center" ? 74 * U : 84 * U, tam: 3.5 * U * E, fonte: `400 ${3.5 * U * E}px Poppins, sans-serif`, cor: T.suave, alinhar: al, maxLinhas: 3 });
   }
   return cv;
 }
-// Prévia dos modelos novos: o mesmo desenho da arte final, num canvas da prévia.
+// Prévia dos carrosséis e estáticos: o mesmo desenho da arte final, num canvas da prévia.
 const cacheImg = new Map();
 const imgCache = url => { if (!cacheImg.has(url)) cacheImg.set(url, carregarImg(url).catch(() => null)); return cacheImg.get(url); };
 let logosPrevia = null, chaveLogosPrevia = "";
@@ -2052,7 +2088,7 @@ async function pintarPrevias() {
         const i = Number(cv.dataset.i), sl = slides[i]; if (!sl) continue;
         const { mapa } = imagensDoPost(post);
         const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : null;
-        desenharModeloNovo(sl, i, slides.length, foto, logos, cores, nome, cv, post.diag);
+        desenharSlide(sl, i, slides.length, foto, logos, cores, nome, cv, post.diag);
       }
     }
   } finally { pintando = false; if (pintarDeNovo) { pintarDeNovo = false; pintarPrevias(); } }
@@ -2060,71 +2096,69 @@ async function pintarPrevias() {
 function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
   if (MODELOS_NOVOS.includes(diag.modelo)) return desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag);
-  sl = { ...sl, t: semMarcas(sl.t), x: semMarcas(sl.x) };
   if (MODELOS_ED.includes(diag.modelo)) return desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag);
+  const W = ARTE_L, H = ARTE_A, U = CQ;
   const cv = alvo || document.createElement("canvas");
-  if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
+  if (!alvo) { cv.width = W; cv.height = H; }
   const ctx = cv.getContext("2d");
+  const T = temaFundo(diag, cores, "foto"), F = fonteTitulo({ ...diag, modelo: "foto" }), E = escalaTexto(diag, sl.n), Em = Math.min(1, E);
   const ultimo = i === total - 1 && total > 1;
   const cta = ultimo && !foto;
+  const bg = cta ? cores.acc : T.bg, claro = luminanciaHex(bg) > 0.45;
+  const tinta = claro ? "#111111" : "#FFFFFF", suave = claro ? "rgba(17,17,17,.72)" : "rgba(255,255,255,.88)";
   // fundo
-  ctx.fillStyle = cta ? cores.acc : cores.bg;
-  ctx.fillRect(0, 0, ARTE_L, ARTE_A);
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
   if (!cta) {
-    const g = ctx.createRadialGradient(ARTE_L * 0.85, 0, 0, ARTE_L * 0.85, 0, ARTE_L * 1.0);
-    g.addColorStop(0, hexRgba(cores.acc, 0.28)); g.addColorStop(1, hexRgba(cores.acc, 0));
-    ctx.fillStyle = g; ctx.fillRect(0, 0, ARTE_L, ARTE_A);
+    const g = ctx.createRadialGradient(W * 0.85, 0, 0, W * 0.85, 0, W * 1.0);
+    g.addColorStop(0, hexRgba(cores.acc, claro ? 0.16 : 0.28)); g.addColorStop(1, hexRgba(cores.acc, 0));
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
-  const pos = diag.posicao === "auto" ? (foto ? "base" : "topo") : diag.posicao;
+  const pos = diag.posicao === "auto" || !diag.posicao ? (foto ? "base" : "topo") : diag.posicao;
   if (foto) {
     capa(ctx, foto);
-    if (pos === "meio") { ctx.fillStyle = hexRgba(cores.bg, 0.55); ctx.fillRect(0, 0, ARTE_L, ARTE_A); }
+    if (pos === "meio") { ctx.fillStyle = hexRgba(bg, 0.55); ctx.fillRect(0, 0, W, H); }
     else {
-      const v = pos === "topo" ? ctx.createLinearGradient(0, ARTE_A, 0, 0) : ctx.createLinearGradient(0, 0, 0, ARTE_A);
-      v.addColorStop(0, hexRgba(cores.bg, 0.10)); v.addColorStop(0.4, hexRgba(cores.bg, 0.25)); v.addColorStop(1, hexRgba(cores.bg, 0.94));
-      ctx.fillStyle = v; ctx.fillRect(0, 0, ARTE_L, ARTE_A);
+      const v = pos === "topo" ? ctx.createLinearGradient(0, H, 0, 0) : ctx.createLinearGradient(0, 0, 0, H);
+      v.addColorStop(0, hexRgba(bg, 0.10)); v.addColorStop(0.4, hexRgba(bg, 0.25)); v.addColorStop(1, hexRgba(bg, 0.94));
+      ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
     }
   }
   // logo (versão clara ou escura conforme o fundo) ou nome da marca
-  desenharLogo(ctx, ARTE_L, ARTE_A, CQ, logos, nome, diag, 6.5 * CQ, 5 * CQ, "#fff");
+  desenharLogo(ctx, W, H, U, logos, nome, diag, 6.5 * U, 5 * U, tinta);
+  const L = posLogo(diag);
   // contador
   if (total > 1) {
     const txt = `${i + 1}/${total}`;
-    ctx.font = `600 ${3 * CQ}px Poppins, sans-serif`;
-    const w = ctx.measureText(txt).width + 5.2 * CQ, h = 5.6 * CQ, x = diag.logoPos === "td" ? 6 * CQ : ARTE_L - 6 * CQ - w, y = 5 * CQ;
+    ctx.font = `600 ${3 * U}px Poppins, sans-serif`;
+    const w = ctx.measureText(txt).width + 5.2 * U, h = 5.6 * U, x = L.pos === "td" ? 6 * U : W - 6 * U - w, y = 5 * U;
     ctx.fillStyle = "rgba(0,0,0,.45)";
     ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * CQ, y + h / 2);
+    ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(txt, x + 2.6 * U, y + h / 2); ctx.textBaseline = "alphabetic";
   }
   // texto
-  const esq = 6 * CQ, largTit = ARTE_L - 12 * CQ;
-  const E = escalaTexto(diag, sl.n), tamTit = (foto ? 8.6 : 10) * CQ * E, tamTxt = 4.4 * CQ * E;
-  ctx.textBaseline = "alphabetic";
-  ctx.font = `700 ${tamTit}px Poppins, sans-serif`;
-  const linhasTit = quebrar(ctx, sl.t, largTit);
+  const esq = 6 * U, largTit = W - 12 * U, al = diag.alinhar, alC = canvasAl(al);
+  const tamTxt = 4.4 * U * E;
   ctx.font = `400 ${tamTxt}px Poppins, sans-serif`;
-  const linhasTxt = quebrar(ctx, sl.x, largTit * 0.92);
-  const altBarra = 1.4 * CQ, gap = 3 * CQ, lhTit = tamTit * 1.05, lhTxt = tamTxt * 1.35;
-  const altura = altBarra + gap + linhasTit.length * lhTit + (linhasTxt.length ? gap + linhasTxt.length * lhTxt : 0);
-  const logoEmBaixo = String(diag.logoPos || "")[0] === "b" && diag.logo !== "nenhum";
-  let y = pos === "base" ? ARTE_A - 10 * CQ - altura - (logoEmBaixo ? 8 * CQ : 0) : pos === "meio" ? (ARTE_A - altura) / 2 : (foto ? 16 : 22) * CQ;
-  const al = diag.alinhar, xTxt = al === "centro" ? ARTE_L / 2 : al === "direita" ? ARTE_L - 6 * CQ : esq;
-  const xBarra = al === "centro" ? ARTE_L / 2 - 6 * CQ : al === "direita" ? ARTE_L - 18 * CQ : esq;
-  ctx.fillStyle = cta ? "#fff" : cores.acc;
-  ctx.beginPath(); ctx.roundRect(xBarra, y, 12 * CQ, altBarra, altBarra / 2); ctx.fill();
+  const linhasTxt = quebrar(ctx, semMarcas(sl.x), largTit * 0.92).slice(0, 6);
+  const altBarra = 1.4 * U, gap = 3 * U, lhTxt = tamTxt * 1.35;
+  const tit = ajustarTitulo(ctx, sl.t, { largura: largTit, alturaMax: 50 * U, tamanho: (foto ? 8.6 : 10) * U * E, minimo: 5 * U * Em, F });
+  const altura = altBarra + gap + tit.linhas * tit.tam * 1.05 + (linhasTxt.length ? gap + linhasTxt.length * lhTxt : 0);
+  let y = pos === "base" ? H - 10 * U - altura - (L.baixo ? 8 * U : 0) : pos === "meio" ? (H - altura) / 2 : (foto ? 16 : 22) * U + (L.baixo ? -6 * U : 0);
+  const xTxt = al === "centro" ? W / 2 : al === "direita" ? W - 6 * U : esq;
+  const xBarra = al === "centro" ? W / 2 - 6 * U : al === "direita" ? W - 18 * U : esq;
+  ctx.fillStyle = cta ? tinta : cores.acc;
+  ctx.beginPath(); ctx.roundRect(xBarra, y, 12 * U, altBarra, altBarra / 2); ctx.fill();
   y += altBarra + gap;
-  ctx.textAlign = al === "centro" ? "center" : al === "direita" ? "right" : "left";
-  ctx.fillStyle = "#fff"; ctx.font = `700 ${tamTit}px Poppins, sans-serif`;
-  for (const l of linhasTit) { y += lhTit; ctx.fillText(l, xTxt, y - lhTit * 0.18); }
+  y = tituloRico(ctx, sl.t, { x: esq, y, largura: largTit, alturaMax: 1e9, tamanho: tit.tam, minimo: tit.tam, fonte: fonteDe(F), fonteDestaque: fonteDe(F), upper: F.upper, cor: tinta, corDestaque: cta ? tinta : cores.acc, alinhar: alC, entrelinha: 1.05 }).fim;
   if (linhasTxt.length) {
     y += gap;
-    ctx.fillStyle = "rgba(255,255,255,.88)"; ctx.font = `400 ${tamTxt}px Poppins, sans-serif`;
+    ctx.fillStyle = suave; ctx.font = `400 ${tamTxt}px Poppins, sans-serif`; ctx.textAlign = alC;
     for (const l of linhasTxt) { y += lhTxt; ctx.fillText(l, xTxt, y - lhTxt * 0.22); }
   }
   ctx.textAlign = "left";
-  if (total > 1 && !ultimo && !logoEmBaixo) {
-    ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.font = `600 ${3.2 * CQ}px Poppins, sans-serif`; ctx.textAlign = "right";
-    ctx.fillText("arraste →", ARTE_L - 6 * CQ, ARTE_A - 6 * CQ); ctx.textAlign = "left";
+  if (total > 1 && !ultimo && !L.baixo) {
+    ctx.fillStyle = claro ? "rgba(17,17,17,.7)" : "rgba(255,255,255,.8)"; ctx.font = `600 ${3.2 * U}px Poppins, sans-serif`; ctx.textAlign = "right";
+    ctx.fillText("arraste →", W - 6 * U, H - 6 * U); ctx.textAlign = "left";
   }
   return cv;
 }
@@ -2221,30 +2255,31 @@ const blobBase64 = b => new Promise((ok, falha) => { const r = new FileReader();
 function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag, n) {
   texto = semMarcas(texto);
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
-  const pos = diag.posicao === "auto" ? "base" : diag.posicao;
-  const U = W / 100;
-  ctx.fillStyle = cores.bg; ctx.fillRect(0, 0, W, H);
+  const T = temaFundo(diag, cores, "video"), F = fonteTitulo({ ...diag, modelo: "video" });
+  const pos = diag.posicao === "auto" || !diag.posicao ? "base" : diag.posicao;
+  const U = W / 100, L = posLogo(diag);
+  ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
   capa(ctx, v, W, H);
-  if (pos === "meio") { ctx.fillStyle = hexRgba(cores.bg, 0.45); ctx.fillRect(0, 0, W, H); }
+  if (pos === "meio") { ctx.fillStyle = hexRgba(T.bg, 0.45); ctx.fillRect(0, 0, W, H); }
   else {
     const g = pos === "topo" ? ctx.createLinearGradient(0, H * 0.55, 0, 0) : ctx.createLinearGradient(0, H * 0.45, 0, H);
-    g.addColorStop(0, hexRgba(cores.bg, 0)); g.addColorStop(1, hexRgba(cores.bg, 0.9));
+    g.addColorStop(0, hexRgba(T.bg, 0)); g.addColorStop(1, hexRgba(T.bg, 0.9));
     ctx.fillStyle = g; pos === "topo" ? ctx.fillRect(0, 0, W, H * 0.55) : ctx.fillRect(0, H * 0.45, W, H * 0.55);
   }
-  desenharLogo(ctx, W, H, U, logos, nome, diag, 7 * U, 6 * U, "#fff");
+  desenharLogo(ctx, W, H, U, logos, nome, diag, 7 * U, 6 * U, T.tinta);
   if (!texto) return;
   const a = Math.min(1, (t || 0) / 350); // o texto entra suave no começo da cena
   ctx.globalAlpha = a;
   const tam = 7.4 * U * escalaTexto(diag, n), lhT = tam * 1.1, esq = 7 * U;
-  ctx.font = `800 ${tam}px Poppins, sans-serif`; ctx.textBaseline = "alphabetic";
-  const linhas = quebrar(ctx, texto, W - 14 * U);
+  ctx.font = fonteDe(F)(tam); ctx.textBaseline = "alphabetic";
+  const linhas = quebrar(ctx, F.upper ? texto.toUpperCase() : texto, W - 14 * U);
   const alt = linhas.length * lhT;
-  let y = pos === "topo" ? 22 * U : pos === "meio" ? (H - alt) / 2 : H - 16 * U - alt;
+  let y = pos === "topo" ? (L.baixo ? 12 : 22) * U : pos === "meio" ? (H - alt) / 2 : H - (L.baixo ? 24 : 16) * U - alt;
   const al = diag.alinhar, xT = al === "centro" ? W / 2 : al === "direita" ? W - esq : esq;
   const xB = al === "centro" ? W / 2 - 7 * U : al === "direita" ? W - esq - 14 * U : esq;
   ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.roundRect(xB, y - 4 * U, 14 * U, 1.6 * U, 0.8 * U); ctx.fill();
-  ctx.textAlign = al === "centro" ? "center" : al === "direita" ? "right" : "left";
-  ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = 2 * U;
+  ctx.textAlign = canvasAl(al);
+  ctx.fillStyle = T.tinta; if (!T.claro) { ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = 2 * U; }
   for (const l of linhas) { y += lhT; ctx.fillText(l, xT, y - lhT * 0.18); }
   ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.textAlign = "left";
 }
@@ -2507,7 +2542,7 @@ MINI_MODELO.editorial = MINI_MODELO.claro; MINI_MODELO.editorialEscuro = MINI_MO
 }
 function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo, postId) {
   const d = diag || { modelo: "foto", logo: "auto", logoPos: "te" };
-  if (!prontas && !semModelo && postId && MODELOS_NOVOS.includes(d.modelo)) return `<div class="ig-slide previa-canvas"><canvas data-previa="${esc(postId)}" data-i="${i}" width="${ARTE_L}" height="${ARTE_A}" aria-label="Prévia do slide ${i + 1}"></canvas>${video ? `<span class="tag-video">tem vídeo: a prévia mostra a foto</span>` : ""}</div>`;
+  if (!prontas && !semModelo && postId) return `<div class="ig-slide previa-canvas"><canvas data-previa="${esc(postId)}" data-i="${i}" width="${ARTE_L}" height="${ARTE_A}" aria-label="Prévia do slide ${i + 1}"></canvas>${video ? `<span class="tag-video">tem vídeo: a prévia mostra a foto</span>` : ""}</div>`;
   if (!prontas && !semModelo && MODELOS_ED.includes(d.modelo)) return slideEditorial(sl, i, total, img, video, nome, d);
   const ultimo = i === total - 1 && total > 1;
   const temFundo = !!(img || video);
@@ -2516,7 +2551,8 @@ function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModel
   else if (d.logo && d.logo !== "auto" && urlsLogos(false)[d.logo]) logo = urlsLogos(false)[d.logo];
   else if (!temFundo) logo = escolherLogo(urlsLogos(false), luminanciaHex(ultimo ? c.acc : c.bg) > 0.45, false) || logo;
   const classes = ["ig-slide", temFundo ? "" : "sem-foto", prontas && temFundo ? "arte" : "", ultimo && !temFundo ? "cta" : "", "lp-" + (d.logoPos || "te")].join(" ");
-  return `<div class="${classes}" style="--esc:${escalaTexto(d, sl.n)}">
+  const T = temaFundo(d, c, "video"), F = fonteTitulo({ ...d, modelo: "video" });
+  return `<div class="${classes}" style="--esc:${escalaTexto(d, sl.n)};--b-bg:${T.bg};--veu:${T.bg};--tinta:${T.tinta};--fonte-tit:${esc(F.css).replace(/&#39;/g, "'")};--peso-tit:${F.peso};--caixa-tit:${F.upper ? "uppercase" : "none"}">
     ${video ? `<video class="foto" src="${esc(video)}" ${img ? `poster="${esc(img)}"` : ""} muted loop autoplay playsinline ${prontas ? "controls" : ""}></video>`
       : img ? `<div class="foto" style="background-image:${cssUrl(img)}"></div>` : ""}
     ${video && !prontas ? `<span class="tag-video">clipe do Magnific</span>` : ""}
@@ -2601,22 +2637,28 @@ function cardRev(p) {
   const segP = [["auto", "Automática"], ["topo", "Topo"], ["meio", "Meio"], ["base", "Base"]].map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="posicao" data-v="${v}" aria-pressed="${p.diag.posicao === v}">${t}</button>`).join("");
   const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
   const versoes = urlsLogos(false);
-  const fundoEscuro = p.diag.fundo === "escuro";
+  const T = temaFundo(p.diag, cores, ehVideo || p.formato === "Stories" ? "video" : p.diag.modelo), fundoEscuro = !T.claro;
   const segM = ehVideo || p.formato === "Stories" ? "" : `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${[["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]].map(([v, t]) =>
       `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" || MODELOS_NOVOS.includes(v) ? MINI_MODELO[v] : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
-      ${!ehVideo && MODELOS_NOVOS.includes(p.diag.modelo) ? `<span class="small">Fonte do título</span><div class="seg fontes-titulo" role="group" aria-label="Fonte do título">${[["auto", "Do modelo", "Poppins"]].concat(Object.entries(FONTES_TITULO).map(([k, f]) => [k, f.nome, f.css])).map(([v, t, css]) =>
+`;
+  // Fundo e fonte valem para todos os modelos (e para Reels e Stories); "Do modelo" usa o padrão de cada um.
+  const modeloAtual = ehVideo || p.formato === "Stories" ? "video" : p.diag.modelo;
+  const fundoModelo = { claro: "claro", escuro: "escuro", marca: "da marca" }[FUNDO_DO_MODELO[modeloAtual] || "marca"];
+  const segF = `<span class="small">Fundo</span><div class="seg fundos" role="group" aria-label="Fundo">${[["auto", "Do modelo (" + fundoModelo + ")", temaFundo({ ...p.diag, fundo: "auto" }, cores, modeloAtual).bg], ["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", "#0E0F14"], ["marca", "Cor da marca", cores.bg]].map(([v, t, c]) =>
+      `<button data-act="diag" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "auto") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>`;
+  const fonteModelo = FONTES_TITULO[FONTE_DO_MODELO[modeloAtual] || "poppins"].nome;
+  const segFT = `<span class="small">Fonte do título</span><div class="seg fontes-titulo" role="group" aria-label="Fonte do título">${[["auto", "Do modelo (" + fonteModelo + ")", FONTES_TITULO[FONTE_DO_MODELO[modeloAtual] || "poppins"].css]].concat(Object.entries(FONTES_TITULO).map(([k, f]) => [k, f.nome, f.css])).map(([v, t, css]) =>
         `<button data-act="diag" data-id="${p.id}" data-k="fonte" data-v="${v}" aria-pressed="${(p.diag.fonte || "auto") === v}" style="font-family:${css.replace(/"/g, "'")}, sans-serif">${t}</button>`).join("")}</div>
-        <p class="small" style="margin:0">Dica: na aba Textos, coloque uma palavra do título entre *asteriscos* para destacar.</p>` : ""}
-      ${MODELOS_ED.includes(p.diag.modelo) ? `<span class="small">Fundo</span><div class="seg fundos" role="group" aria-label="Fundo">${[["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", cores.bg]].map(([v, t, c]) =>
-        `<button data-act="diag" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "claro") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>` : ""}`;
+        ${ehVideo || p.formato === "Stories" ? "" : `<p class="small" style="margin:0">Dica: na aba Textos, coloque uma palavra do título entre *asteriscos* para destacar na cor da marca.</p>`}`;
   const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
-  const editorial = !ehVideo && (MODELOS_ED.includes(p.diag.modelo) || MODELOS_NOVOS.includes(p.diag.modelo));
-  const posicoes = editorial ? [["te", "Topo esquerda"], ["tc", "Topo centro"], ["td", "Topo direita"]] : [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
+  const posicoes = [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
+  // A posição do texto vale nos modelos de foto inteira; nos outros o texto fica no lugar do layout.
+  const textoLivre = ehVideo || p.formato === "Stories" || ["foto", "cinema"].includes(p.diag.modelo);
   const padraoLogo = { impacto: "o cabeçalho de perfil (símbolo, nome e @)", minimal: "o cabeçalho de perfil (símbolo, nome e @)", manchete: "o logo no canto de baixo", cinema: "o logo no topo esquerdo" }[p.diag.modelo];
   const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}${!ehVideo && padraoLogo ? `<p class="small" style="margin:0">Neste modelo, Automático + Topo esquerda usa ${padraoLogo}. Escolha outra versão ou posição para trocar.</p>` : ""}`;
-  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação${ajuda("diagramacao")}</span>${segM}<span class="small">Texto</span>
+  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação${ajuda("diagramacao")}</span>${segM}${segF}${segFT}<span class="small">Texto</span>
       <div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
-      ${editorial || MODELOS_NOVOS.includes(p.diag.modelo) ? "" : `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>`}
+      ${textoLivre ? `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>` : `<p class="small" style="margin:0">Neste modelo o texto fica no lugar do layout; a posição (topo, meio, base) vale nos modelos Foto de fundo e Cinema.</p>`}
       ${segL}${segLP}
       <p class="small" style="margin:0">A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.</p></div>`;
   const podeEditar = !ehVideo && p.status !== "Ajustes";
