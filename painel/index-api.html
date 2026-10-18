@@ -309,9 +309,9 @@ button { cursor: pointer; }
 .ig-slide.sem-foto .conteudo { top: 22cqw; bottom: auto; }
 .ig-slide .barra { width: 12cqw; height: 1.4cqw; border-radius: 99px; background: var(--b-acc); }
 .ig-slide.cta .barra { background: #fff; }
-.ig-slide .titulo { font-family: var(--font-body); font-weight: 700; font-size: 8.6cqw; line-height: 1.05; letter-spacing: -.01em; text-wrap: balance; }
-.ig-slide.sem-foto .titulo { font-size: 10cqw; }
-.ig-slide .texto { font-size: 4.4cqw; line-height: 1.35; color: rgba(255,255,255,.88); max-width: 92%; }
+.ig-slide .titulo { font-family: var(--font-body); font-weight: 700; font-size: calc(8.6cqw * var(--esc, 1)); line-height: 1.05; letter-spacing: -.01em; text-wrap: balance; }
+.ig-slide.sem-foto .titulo { font-size: calc(10cqw * var(--esc, 1)); }
+.ig-slide .texto { font-size: calc(4.4cqw * var(--esc, 1)); line-height: 1.35; color: rgba(255,255,255,.88); max-width: 92%; }
 .ig-slide .seta { position: absolute; right: 6cqw; bottom: 6cqw; font-size: 3.2cqw; font-weight: 600; opacity: .8; }
 .ig-pontos { display: flex; justify-content: center; gap: 5px; padding: 10px 0 2px; background: #0b0b0d; }
 .ig-pontos i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.3); }
@@ -322,7 +322,7 @@ button { cursor: pointer; }
 .ig-slide video.foto { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ig.vertical { max-width: 340px; }
 .ig.vertical .ig-slide { aspect-ratio: 9 / 16; }
-.ig.vertical .ig-slide .titulo { font-size: 9cqw; }
+.ig.vertical .ig-slide .titulo { font-size: calc(9cqw * var(--esc, 1)); }
 .ig-slide .tag-video { position: absolute; left: 6cqw; bottom: 3cqw; font-size: 2.8cqw; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
 .ig[data-al="centro"] .conteudo { text-align: center; justify-items: center; }
 .ig[data-al="direita"] .conteudo { text-align: right; justify-items: end; }
@@ -355,9 +355,9 @@ button { cursor: pointer; }
 .ed.escuro .ed-cont { background: rgba(255,255,255,.14); } .ed .ed-cont.esq { right: auto; left: 6cqw; }
 .ed .ed-corpo { position: absolute; left: 6cqw; right: 6cqw; top: 26cqw; display: grid; gap: 3cqw; z-index: 2; justify-items: start; }
 .ed.com-img .ed-corpo { top: 66cqw; } .ed.editorial.escuro.com-img .ed-corpo { top: 60cqw; } .ed.lateral.com-img .ed-corpo { top: 18cqw; right: 53cqw; }
-.ed .titulo { font-weight: 800; font-size: 8.4cqw; line-height: 1.04; letter-spacing: -.02em; text-wrap: balance; }
-.ed:not(.com-img) .titulo { font-size: 10.5cqw; } .ed.lateral.com-img .titulo { font-size: 7cqw; }
-.ed .texto { font-size: 4cqw; line-height: 1.35; color: #55565E; background: #E7E7EC; border-radius: 2.4cqw; padding: 3.4cqw; max-width: none; justify-self: stretch; }
+.ed .titulo { font-weight: 800; font-size: calc(8.4cqw * var(--esc, 1)); line-height: 1.04; letter-spacing: -.02em; text-wrap: balance; }
+.ed:not(.com-img) .titulo { font-size: calc(10.5cqw * var(--esc, 1)); } .ed.lateral.com-img .titulo { font-size: calc(7cqw * var(--esc, 1)); }
+.ed .texto { font-size: calc(4cqw * var(--esc, 1)); line-height: 1.35; color: #55565E; background: #E7E7EC; border-radius: 2.4cqw; padding: 3.4cqw; max-width: none; justify-self: stretch; }
 .ed.escuro .texto { color: rgba(255,255,255,.72); background: rgba(255,255,255,.08); }
 .ed.ed-cta .ed-corpo { top: 50%; transform: translateY(-60%); justify-items: center; text-align: center; }
 .ed .ed-siga { font-size: 4.2cqw; font-weight: 600; background: #E7E7EC; border-radius: 2.4cqw; padding: 2.4cqw 5cqw; }
@@ -563,6 +563,8 @@ body.travado .wrap { visibility: hidden; }
 .rev-midia .th img, .rev-midia .th video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .rev-midia .th i { position: absolute; left: 4px; top: 4px; font: 700 10px/1 Poppins, sans-serif; font-style: normal; background: rgba(0,0,0,.6); color: #fff; border-radius: 99px; padding: 3px 6px; }
 .rev-midia .btn { padding: 5px 6px; font-size: 11px; justify-content: center; }
+.rev-fonte { display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; gap: 2px; font-size: 11px; text-align: center; color: var(--ink-soft); }
+.rev-fonte .btn { padding: 4px 0; font-weight: 700; }
 .bi-contagem { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .bi-contagem .bi-ia { padding: 6px 12px; font-size: 13px; } .bi-motivo { margin: 6px 0 0; opacity: .8; }
 button.link { background: none; border: 0; padding: 0; color: var(--red, #F8395A); font: inherit; text-decoration: underline; cursor: pointer; }
@@ -1777,7 +1779,8 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const al = cta ? "centro" : (diag.alinhar || "esquerda");
   const xAl = al === "centro" ? xTexto + largTexto / 2 : al === "direita" ? xTexto + largTexto : xTexto;
   const limite = 110 * U;
-  let tT = (foto && !cta ? (lateral ? 7 : 8.4) : 10.5) * U, tX = (lateral ? 3.6 : 4) * U, linT = [], linX = [], alt = 0;
+  const E = escalaTexto(diag, sl.n);
+  let tT = (foto && !cta ? (lateral ? 7 : 8.4) : 10.5) * U * E, tX = (lateral ? 3.6 : 4) * U * E, linT = [], linX = [], alt = 0;
   for (let k = 0; k < 8; k++) {
     ctx.font = `800 ${tT}px Poppins, sans-serif`; linT = quebrar(ctx, sl.t, largTexto);
     ctx.font = `400 ${tX}px Poppins, sans-serif`; linX = quebrar(ctx, sl.x, largTexto - 6.8 * U);
@@ -1929,11 +1932,13 @@ function logoDoModelo(diag, padrao) {
   if (versao === "auto" && pos === "te") return { tipo: padrao, pos };
   return { tipo: "logo", pos };
 }
+// Escala do texto de cada slide ou cena (A− / A+ na revisão): 0,6 a 1,6; 1 é o tamanho do modelo.
+const escalaTexto = (diag, n) => { const v = Number(((diag && diag.escalas) || {})[n]); return v >= 0.6 && v <= 1.6 ? v : 1; };
 function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const W = ARTE_L, H = ARTE_A, U = W / 100;
   const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = W; cv.height = H; }
   const ctx = cv.getContext("2d");
-  const F = fonteTitulo(diag), m = diag.modelo;
+  const F = fonteTitulo(diag), m = diag.modelo, E = escalaTexto(diag, sl.n), Em = Math.min(1, E);
   const fT = (peso, it) => tam => `${it ? "italic " : ""}${peso} ${tam}px ${F.css}, Poppins, sans-serif`;
   const serifItalico = tam => `italic 500 ${tam}px 'Playfair Display', Georgia, serif`;
   const titulo = sl.t || "", texto = sl.x || "";
@@ -1954,12 +1959,12 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
     contador(ctx, U, W, i, total, true, L.tipo === "logo" && L.pos === "td");
     let y = 17 * U;
     if (texto) {
-      const partes = partesTexto(texto); const fN = `500 ${3.9 * U}px Poppins, sans-serif`, fD = `600 ${3.9 * U}px Poppins, sans-serif`;
+      const partes = partesTexto(texto); const fN = `500 ${3.9 * U * E}px Poppins, sans-serif`, fD = `600 ${3.9 * U * E}px Poppins, sans-serif`;
       const r = linhasRicas(ctx, partes, 82 * U, fN, fD);
-      for (const l of r.linhas.slice(0, 2)) { y += 5 * U; let xx = 9 * U; for (const it of l.itens) { if (it.colado && it !== l.itens[0]) xx -= r.espaco; ctx.font = it.dest ? fD : fN; ctx.fillStyle = it.dest ? cores.acc : "rgba(255,255,255,.88)"; ctx.fillText(it.w, xx, y); xx += it.largura + r.espaco; } }
+      for (const l of r.linhas.slice(0, 2)) { y += 5 * U * E; let xx = 9 * U; for (const it of l.itens) { if (it.colado && it !== l.itens[0]) xx -= r.espaco; ctx.font = it.dest ? fD : fN; ctx.fillStyle = it.dest ? cores.acc : "rgba(255,255,255,.88)"; ctx.fillText(it.w, xx, y); xx += it.largura + r.espaco; } }
       y += 5.5 * U; // espaço para acentos de caixa alta (Ê, Ó) não encostarem no texto de cima
     }
-    tituloRico(ctx, titulo, { x: 9 * U, y, largura: 82 * U, alturaMax: (foto ? 40 : 62) * U, tamanho: 17 * U, minimo: 8 * U, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#F6EFE4", corDestaque: cores.acc, alinhar: al, entrelinha: F.upper ? 0.98 : 1.04 });
+    tituloRico(ctx, titulo, { x: 9 * U, y, largura: 82 * U, alturaMax: (foto ? 40 : 62) * U, tamanho: 17 * U * E, minimo: 8 * U * Em, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#F6EFE4", corDestaque: cores.acc, alinhar: al, entrelinha: F.upper ? 0.98 : 1.04 });
     rodapeChamada(ctx, U, W, H, i, total, "rgba(255,255,255,.92)");
   } else if (m === "minimal") {
     ctx.fillStyle = "#F5F4F0"; ctx.fillRect(0, 0, W, H);
@@ -1971,8 +1976,8 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
     if (L.tipo === "perfil") cabecalhoAutor(ctx, U, 9 * U, 8 * U, logos, cores, nome, false);
     else if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 6.5 * U, 7.5 * U, "#111", 9 * U);
     contador(ctx, U, W, i, total, false, L.tipo === "logo" && L.pos === "td");
-    const fim = tituloRico(ctx, titulo, { x: 10 * U, y: (foto ? 17 : 34) * U, largura: 80 * U, alturaMax: (foto ? 24 : 40) * U, tamanho: 10.5 * U, minimo: 6 * U, fonte: fT(F.peso), fonteDestaque: diag.fonte && diag.fonte !== "auto" ? fT(F.peso, true) : serifItalico, upper: F.upper, cor: "#111111", corDestaque: cores.acc, alinhar: al === "left" ? "center" : al, entrelinha: 0.98 });
-    if (texto) textoSimples(ctx, texto, { x: 14 * U, y: fim.fim + 1.5 * U, largura: 72 * U, tam: 3.6 * U, fonte: `400 ${3.6 * U}px Poppins, sans-serif`, cor: "rgba(17,17,17,.62)", alinhar: "center", maxLinhas: 3 });
+    const fim = tituloRico(ctx, titulo, { x: 10 * U, y: (foto ? 17 : 34) * U, largura: 80 * U, alturaMax: (foto ? 24 : 40) * U, tamanho: 10.5 * U * E, minimo: 6 * U * Em, fonte: fT(F.peso), fonteDestaque: diag.fonte && diag.fonte !== "auto" ? fT(F.peso, true) : serifItalico, upper: F.upper, cor: "#111111", corDestaque: cores.acc, alinhar: al === "left" ? "center" : al, entrelinha: 0.98 });
+    if (texto) textoSimples(ctx, texto, { x: 14 * U, y: fim.fim + 1.5 * U, largura: 72 * U, tam: 3.6 * U * E, fonte: `400 ${3.6 * U * E}px Poppins, sans-serif`, cor: "rgba(17,17,17,.62)", alinhar: "center", maxLinhas: 3 });
     ctx.font = `500 ${2.5 * U}px Poppins, sans-serif`; ctx.fillStyle = foto ? "rgba(255,255,255,.85)" : "rgba(17,17,17,.45)";
     ctx.fillText(String(nome).toUpperCase(), 9 * U, H - 5 * U);
     if (perfilMarca()) { ctx.textAlign = "right"; ctx.fillText(perfilMarca().toUpperCase(), W - 9 * U, H - 5 * U); ctx.textAlign = "left"; }
@@ -1982,11 +1987,11 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
     if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 5.5 * U, 4.5 * U, "#111", 5 * U);
     contador(ctx, U, W, i, total, false, L.tipo === "logo" && L.pos === "td");
     const topoT = L.tipo === "logo" || total > 1 ? 12 * U : 4 * U;
-    const t = tituloRico(ctx, titulo, { x: 5 * U, y: topoT, largura: foto ? 76 * U : 86 * U, alturaMax: (foto ? 44 : 70) * U - (topoT - 4 * U), tamanho: 13.5 * U, minimo: 7 * U, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#0B0B0D", corDestaque: cores.acc, alinhar: "left", entrelinha: 0.96 });
+    const t = tituloRico(ctx, titulo, { x: 5 * U, y: topoT, largura: foto ? 76 * U : 86 * U, alturaMax: (foto ? 44 : 70) * U - (topoT - 4 * U), tamanho: 13.5 * U * E, minimo: 7 * U * Em, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#0B0B0D", corDestaque: cores.acc, alinhar: "left", entrelinha: 0.96 });
     // ponto na cor de destaque, ao lado da última linha
     const raio = 5.6 * U; ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.arc(W - 5 * U - raio, t.fim - raio * 1.1, raio, 0, Math.PI * 2); ctx.fill();
     let y = t.fim + 2 * U;
-    if (texto) y = textoSimples(ctx, texto, { x: 5 * U, y, largura: 88 * U, tam: 3.7 * U, fonte: `400 ${3.7 * U}px Poppins, sans-serif`, cor: "#1A1A1D", maxLinhas: 3 }) + 2 * U;
+    if (texto) y = textoSimples(ctx, texto, { x: 5 * U, y, largura: 88 * U, tam: 3.7 * U * E, fonte: `400 ${3.7 * U * E}px Poppins, sans-serif`, cor: "#1A1A1D", maxLinhas: 3 }) + 2 * U;
     if (foto) { const y0 = Math.min(y + 1 * U, H * 0.62); ctx.save(); retArred(ctx, 5 * U, y0, 90 * U, H - y0 - 4 * U, 3.4 * U); ctx.clip(); cobrir(ctx, foto, 5 * U, y0, 90 * U, H - y0 - 4 * U); ctx.restore(); }
     else rodapeChamada(ctx, U, W, H, i, total, "rgba(11,11,13,.6)", "left");
     if (L.tipo === "base") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "bd" }, 5 * U, foto ? 8 * U : 5 * U, "#111", foto ? 9 * U : 6 * U);
@@ -2001,14 +2006,14 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
     contador(ctx, U, W, i, total, true, L.tipo !== "nenhum" && L.pos === "td");
     // mede a altura do bloco para encostar na base
     const fN = fT(F.peso), fD = fT(F.peso, true);
-    const largura = 84 * U; let tam = 8.6 * U, linhas;
+    const largura = 84 * U; let tam = 8.6 * U * E, linhas;
     for (let k = 0; k < 10; k++) { linhas = linhasRicas(ctx, partesTexto(F.upper ? titulo.toUpperCase() : titulo), largura, fN(tam), fD(tam)).linhas.length; if (linhas <= 4) break; tam *= 0.92; }
-    ctx.font = `400 ${3.5 * U}px Poppins, sans-serif`;
+    ctx.font = `400 ${3.5 * U * E}px Poppins, sans-serif`;
     const linhasTexto = texto ? Math.min(3, quebrar(ctx, semMarcas(texto), 74 * U).length) : 0;
-    const altura = linhas * tam * 1.04 + (linhasTexto ? 2 * U + linhasTexto * 3.5 * U * 1.35 : 0);
+    const altura = linhas * tam * 1.04 + (linhasTexto ? 2 * U + linhasTexto * 3.5 * U * E * 1.35 : 0);
     const y0 = H - 9 * U - altura;
     const t = tituloRico(ctx, titulo, { x: 8 * U, y: y0, largura, alturaMax: 60 * U, tamanho: tam, minimo: tam, fonte: fN, fonteDestaque: fD, upper: F.upper, cor: "#FFFFFF", corDestaque: "#FFFFFF", alinhar: al === "left" ? "center" : al, entrelinha: 1.04 });
-    if (texto) textoSimples(ctx, texto, { x: 13 * U, y: t.fim + 1.2 * U, largura: 74 * U, tam: 3.5 * U, fonte: `400 ${3.5 * U}px Poppins, sans-serif`, cor: "rgba(255,255,255,.88)", alinhar: "center", maxLinhas: 3 });
+    if (texto) textoSimples(ctx, texto, { x: 13 * U, y: t.fim + 1.2 * U, largura: 74 * U, tam: 3.5 * U * E, fonte: `400 ${3.5 * U * E}px Poppins, sans-serif`, cor: "rgba(255,255,255,.88)", alinhar: "center", maxLinhas: 3 });
   }
   return cv;
 }
@@ -2085,7 +2090,7 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   }
   // texto
   const esq = 6 * CQ, largTit = ARTE_L - 12 * CQ;
-  const tamTit = (foto ? 8.6 : 10) * CQ, tamTxt = 4.4 * CQ;
+  const E = escalaTexto(diag, sl.n), tamTit = (foto ? 8.6 : 10) * CQ * E, tamTxt = 4.4 * CQ * E;
   ctx.textBaseline = "alphabetic";
   ctx.font = `700 ${tamTit}px Poppins, sans-serif`;
   const linhasTit = quebrar(ctx, sl.t, largTit);
@@ -2205,7 +2210,7 @@ async function gravarCanvas(cv, bps, tocarTudo) {
 }
 const blobBase64 = b => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(b); });
 // Uma cena do Reels em 720 × 1280: clipe de fundo, véu, logo e o texto da cena.
-function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag) {
+function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag, n) {
   texto = semMarcas(texto);
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
   const pos = diag.posicao === "auto" ? "base" : diag.posicao;
@@ -2222,7 +2227,7 @@ function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag) {
   if (!texto) return;
   const a = Math.min(1, (t || 0) / 350); // o texto entra suave no começo da cena
   ctx.globalAlpha = a;
-  const tam = 7.4 * U, lhT = tam * 1.1, esq = 7 * U;
+  const tam = 7.4 * U * escalaTexto(diag, n), lhT = tam * 1.1, esq = 7 * U;
   ctx.font = `800 ${tam}px Poppins, sans-serif`; ctx.textBaseline = "alphabetic";
   const linhas = quebrar(ctx, texto, W - 14 * U);
   const alt = linhas.length * lhT;
@@ -2254,7 +2259,7 @@ async function gerarVideoFinal(p, logo, cores, nome) {
         while (k < durs.length - 1 && t >= ini + durs[k]) { ini += durs[k]; k++; }
         const local = t - ini;
         await irPara(vids[k], local);
-        desenharCena(ctx, W, H, vids[k], cenas[k].x || cenas[k].t, logo, cores, nome, local * 1000, p.diag);
+        desenharCena(ctx, W, H, vids[k], cenas[k].x || cenas[k].t, logo, cores, nome, local * 1000, p.diag, cenas[k].n);
       } });
     if (blob.size > 24 * 1024 * 1024) throw new Error("o vídeo passou de 24 MB. Peça um ajuste com cenas mais curtas");
     return [{ tipo: "video/mp4", base64: await blobBase64(blob) }];
@@ -2264,11 +2269,11 @@ async function gerarVideoFinal(p, logo, cores, nome) {
   const bps = Math.max(1500000, Math.min(5000000, Math.floor(20e6 * 8 / total)));
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const ctx = cv.getContext("2d");
-  desenharCena(ctx, W, H, vids[0], cenas[0].x || cenas[0].t, logo, cores, nome, 0, p.diag);
+  desenharCena(ctx, W, H, vids[0], cenas[0].x || cenas[0].t, logo, cores, nome, 0, p.diag, cenas[0].n);
   const blob = await gravarCanvas(cv, bps, async () => {
     for (let k = 0; k < vids.length; k++) {
       toast(`Gravando a cena ${k + 1} de ${vids.length}. Deixe esta aba aberta.`);
-      await tocar(vids[k], t => desenharCena(ctx, W, H, vids[k], cenas[k].x || cenas[k].t, logo, cores, nome, t, p.diag), (vids[k].duration || 10) * 1000 + 150);
+      await tocar(vids[k], t => desenharCena(ctx, W, H, vids[k], cenas[k].x || cenas[k].t, logo, cores, nome, t, p.diag, cenas[k].n), (vids[k].duration || 10) * 1000 + 150);
     }
   });
   const b64 = await blobBase64(blob);
@@ -2408,7 +2413,7 @@ async function gerarArtes(p) {
       const sl = p.slides[0] || { n: 1, t: p.titulo, x: "" };
       const fotos = fotosCheias(p), foto = fotos[sl.n] ? await carregarImg(fotos[sl.n]) : document.createElement("canvas");
       const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920;
-      desenharCena(cv.getContext("2d"), 1080, 1920, foto, [sl.t, sl.x].filter(Boolean).join(" · "), logo, cores, nome, 1000, p.diag);
+      desenharCena(cv.getContext("2d"), 1080, 1920, foto, [sl.t, sl.x].filter(Boolean).join(" · "), logo, cores, nome, 1000, p.diag, sl.n);
       artes = [{ tipo: "image/jpeg", base64: await paraBase64(cv) }];
     }
     else {
@@ -2464,7 +2469,7 @@ function slideEditorial(sl, i, total, img, video, nome, diag) {
   const logo = logoEscolhido(diag, !escuro), sim = escolherLogo(urlsLogos(false), !escuro, true);
   const pos = String(diag.logoPos || "tc")[0] === "b" ? "tc" : (diag.logoPos || "tc");
   const perfil = perfilMarca();
-  return `<div class="ig-slide ed ${esc(diag.modelo)} ${escuro ? "escuro" : "claro"} ${cta ? "ed-cta" : ""} ${temFundo && !cta ? "com-img" : ""}">
+  return `<div class="ig-slide ed ${esc(diag.modelo)} ${escuro ? "escuro" : "claro"} ${cta ? "ed-cta" : ""} ${temFundo && !cta ? "com-img" : ""}" style="--esc:${escalaTexto(diag, sl.n)}">
     ${temFundo && !cta ? (video ? `<video class="ed-img" src="${esc(video)}" muted loop autoplay playsinline></video>` : `<div class="ed-img" style="background-image:${cssUrl(img)}"></div>`) : ""}
     <div class="ed-topo lp-${pos}">${logo ? `<img src="${esc(logo)}" alt="">` : diag.logo === "nenhum" ? "" : `<b>${esc(nome.toUpperCase())}</b>`}</div>
     ${total > 1 ? `<span class="ed-cont ${pos === "td" ? "esq" : ""}">${i + 1}/${total}</span>` : ""}
@@ -2503,7 +2508,7 @@ function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModel
   else if (d.logo && d.logo !== "auto" && urlsLogos(false)[d.logo]) logo = urlsLogos(false)[d.logo];
   else if (!temFundo) logo = escolherLogo(urlsLogos(false), luminanciaHex(ultimo ? c.acc : c.bg) > 0.45, false) || logo;
   const classes = ["ig-slide", temFundo ? "" : "sem-foto", prontas && temFundo ? "arte" : "", ultimo && !temFundo ? "cta" : "", "lp-" + (d.logoPos || "te")].join(" ");
-  return `<div class="${classes}">
+  return `<div class="${classes}" style="--esc:${escalaTexto(d, sl.n)}">
     ${video ? `<video class="foto" src="${esc(video)}" ${img ? `poster="${esc(img)}"` : ""} muted loop autoplay playsinline ${prontas ? "controls" : ""}></video>`
       : img ? `<div class="foto" style="background-image:${cssUrl(img)}"></div>` : ""}
     ${video && !prontas ? `<span class="tag-video">clipe do Magnific</span>` : ""}
@@ -2529,8 +2534,9 @@ function midiasRev(p) {
     <div class="lista">${slides.map((sl, i) => { const c = clipes[sl.n], f = fotos[sl.n];
       return `<div class="rev-midia"><div class="th">${c ? `<video src="${esc(c)}#t=0.1" muted playsinline preload="metadata"></video><i>▶</i>` : f ? `<img src="${esc(f)}" alt="" loading="lazy">` : "Só texto"}</div>
         <span class="small">${nomeItem}${slides.length > 1 ? " " + (i + 1) : ""}</span>
-        <button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">Trocar pelo banco</button></div>`; }).join("")}</div>
-    <p class="small" style="margin:0">Use uma foto ou vídeo seu, ou um que a IA já gerou. Troca na hora e não gasta créditos.</p></div>`;
+        <button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">Trocar pelo banco</button>
+        <div class="rev-fonte" role="group" aria-label="Tamanho do texto: ${esc(nomeItem.toLowerCase())} ${i + 1}"><button type="button" class="btn quiet" data-act="fonte" data-id="${p.id}" data-v="${sl.n}" data-d="-1" title="Diminuir o texto" ${escalaTexto(p.diag, sl.n) <= 0.6 ? "disabled" : ""}>A−</button><span title="Tamanho do texto">${Math.round(escalaTexto(p.diag, sl.n) * 100)}%</span><button type="button" class="btn quiet" data-act="fonte" data-id="${p.id}" data-v="${sl.n}" data-d="1" title="Aumentar o texto" ${escalaTexto(p.diag, sl.n) >= 1.6 ? "disabled" : ""}>A+</button></div></div>`; }).join("")}</div>
+    <p class="small" style="margin:0">Use uma foto ou vídeo seu, ou um que a IA já gerou. Troca na hora e não gasta créditos. Em A− e A+, diminua ou aumente o texto de cada ${slides.length > 1 ? esc(nomeItem.toLowerCase()) : "imagem"}.</p></div>`;
 }
 function cardRev(p) {
   const cores = coresMarca(), logo = logoMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
@@ -2752,6 +2758,12 @@ document.addEventListener("click", e => {
   if (act === "ir-marca") return ir("marca");
   if (act === "gerar-artes" && post) return gerarArtes(post);
   if (act === "diag" && post) return mudarDiagramacao(post, b.dataset.k, b.dataset.v);
+  if (act === "fonte" && post) {
+    const n = b.dataset.v, nova = Math.round(Math.min(1.6, Math.max(0.6, escalaTexto(post.diag, n) + Number(b.dataset.d) * 0.1)) * 10) / 10;
+    const escalas = { ...(post.diag.escalas || {}) };
+    if (nova === 1) delete escalas[n]; else escalas[n] = nova;
+    return mudarDiagramacao(post, "escalas", escalas);
+  }
   if (act === "rede" && post) return mudarRede(post, b.dataset.v);
   if (act === "baixar-arte" && post) return baixarArte(post, Number(b.dataset.v));
   if (act === "baixar-tudo" && post) return baixarTudo(post);
