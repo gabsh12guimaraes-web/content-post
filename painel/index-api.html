@@ -692,6 +692,15 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .kpi:hover { border-color: var(--line-strong); }
 .kpi b { font-size: 22px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
 .kpi small { font-size: 11px; color: var(--ink-faint); }
+.modelos .mini-perfil { width: 40px; height: 50px; object-fit: cover; border-radius: 3px; display: block; }
+.modelos-perfil { display: grid; gap: 12px; }
+.mp-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.mp-card { border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; gap: 8px; background: var(--card-soft); }
+.mp-card.padrao { border-color: var(--red); }
+.mp-card canvas { width: 100%; aspect-ratio: 4 / 5; border-radius: 6px; display: block; background: #000; }
+.mp-ex { display: flex; gap: 4px; } .mp-ex img { width: 34px; height: 42px; object-fit: cover; border-radius: 4px; }
+.mp-card .actions { gap: 6px; flex-wrap: wrap; } .mp-card .btn { padding: 6px 10px; font-size: 12px; }
+.mp-novo { display: grid; gap: 10px; border: 1px dashed var(--line-strong); border-radius: 10px; padding: 14px; }
 .ad-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
 .ad-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
 .ad-kpi .lbl { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
@@ -984,7 +993,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", redes: Array.isArray(r.Redes) && r.Redes.length ? r.Redes.slice() : [nomeSel(r.Rede)].filter(Boolean), links: r.Links || {}, briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
-    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } if (!/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao && (M.modelos || []).some(x => x.id === M.modeloPadrao && x.status === "pronto")) { d.modelo = "proprio"; d.proprio = M.modeloPadrao; d.v = 3; const sp = M.modelos.find(x => x.id === M.modeloPadrao).spec; d.alinhar = sp.alinhar; d.posicao = sp.posicao; d.logoPos = sp.logo === "nenhum" ? "te" : sp.logo; if (sp.logo === "nenhum") d.logo = "nenhum"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -1877,6 +1886,8 @@ const FUNDO_DO_MODELO = { foto: "marca", editorial: "claro", lateral: "claro", i
 const CLARO_DO_MODELO = { minimal: "#F5F4F0", manchete: "#FFFFFF" };
 function temaFundo(diag, cores, modelo) {
   const m = modelo || (diag && diag.modelo) || "foto";
+  const sp = diag && diag._proprio;
+  if (sp && diag.fundo === "proprio") { const claro = luminanciaHex(sp.fundo) > 0.45; return { tipo: "proprio", bg: sp.fundo, claro, tinta: sp.tinta, suave: sp.apoio || (claro ? "rgba(17,17,17,.62)" : "rgba(255,255,255,.85)"), caixa: claro ? "rgba(17,17,17,.07)" : "rgba(255,255,255,.09)", acc: sp.destaque }; }
   const f = diag && diag.fundo && diag.fundo !== "auto" ? diag.fundo : FUNDO_DO_MODELO[m] || "marca";
   const bg = f === "claro" ? (CLARO_DO_MODELO[m] || "#F4F4F6") : f === "escuro" ? "#0E0F14" : cores.bg;
   const claro = luminanciaHex(bg) > 0.45;
@@ -1897,7 +1908,29 @@ function ajustarTitulo(ctx, texto, { largura, alturaMax, tamanho, minimo, F, ent
   }
   return { tam, linhas: n };
 }
-const fonteTitulo = diag => FONTES_TITULO[diag && diag.fonte && diag.fonte !== "auto" ? diag.fonte : FONTE_DO_MODELO[diag && diag.modelo] || "poppins"] || FONTES_TITULO.poppins;
+const fonteTitulo = diag => {
+  const F = FONTES_TITULO[diag && diag.fonte && diag.fonte !== "auto" ? diag.fonte : FONTE_DO_MODELO[diag && diag.modelo] || "poppins"] || FONTES_TITULO.poppins;
+  // no modelo do perfil, a caixa alta vem dos posts da marca
+  return diag && diag._proprio && diag.fonte === diag._proprio.fonte ? { ...F, upper: !!diag._proprio.caixa_alta } : F;
+};
+const modeloDoPerfil = id => (M.modelos || []).find(x => x.id === id && x.status === "pronto" && x.spec);
+// Transforma "proprio" no modelo base com as escolhas do perfil; o que a pessoa mudar na diagramação continua valendo.
+function diagDoPerfil(diag) {
+  const m = modeloDoPerfil(diag.proprio); if (!m) return { ...diag, modelo: "foto" };
+  const sp = m.spec;
+  return { ...diag, modelo: sp.base, fonte: diag.fonte && diag.fonte !== "auto" ? diag.fonte : sp.fonte, fundo: diag.fundo && diag.fundo !== "auto" ? diag.fundo : "proprio", _proprio: sp };
+}
+// Moldura do modelo do perfil (borda inteira ou só os cantos), por cima de tudo.
+function desenharMoldura(cv, sp) {
+  const mo = sp && sp.moldura; if (!mo || mo.tipo === "nenhuma") return;
+  const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, lw = Math.max(W * 0.006, W * (mo.espessura || 1) / 100);
+  ctx.save(); ctx.strokeStyle = mo.cor || "#fff"; ctx.lineWidth = lw; ctx.globalAlpha = 1;
+  if (mo.tipo === "borda") ctx.strokeRect(lw / 2, lw / 2, W - lw, H - lw);
+  else { const m = W * 0.04, L = W * 0.12; ctx.lineCap = "square"; ctx.beginPath();
+    [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]].forEach(([x, y, dx, dy]) => { ctx.moveTo(x + dx * L, y); ctx.lineTo(x, y); ctx.lineTo(x, y + dy * L); });
+    ctx.stroke(); }
+  ctx.restore();
+}
 // *palavra* no título = destaque (cor de destaque da marca; itálico nos modelos com serifa).
 const semMarcas = t => String(t || "").replace(/\*/g, "");
 const destacarHtml = t => esc(t).replace(/\*([^*]+)\*/g, '<em class="dest">$1</em>');
@@ -2155,6 +2188,12 @@ async function pintarPrevias() {
 }
 function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   diag = diag || { alinhar: "esquerda", posicao: "auto" };
+  if (diag.modelo === "proprio") {
+    const d2 = diagDoPerfil(diag), sp = d2._proprio;
+    const cv = desenharSlide(sl, i, total, foto, logos, sp ? { ...cores, acc: sp.destaque, bg: sp.fundo } : cores, nome, alvo, d2);
+    if (sp) desenharMoldura(cv, sp);
+    return cv;
+  }
   if (MODELOS_NOVOS.includes(diag.modelo)) return desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag);
   if (MODELOS_ED.includes(diag.modelo)) return desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag);
   const cv = alvo || document.createElement("canvas");
@@ -2165,7 +2204,7 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const ultimo = i === total - 1 && total > 1;
   const cta = ultimo && !foto;
   const bg = cta ? cores.acc : T.bg, claro = luminanciaHex(bg) > 0.45;
-  const tinta = claro ? "#111111" : "#FFFFFF", suave = claro ? "rgba(17,17,17,.72)" : "rgba(255,255,255,.88)";
+  const tinta = T.tipo === "proprio" && !cta ? T.tinta : claro ? "#111111" : "#FFFFFF", suave = T.tipo === "proprio" && !cta ? T.suave : claro ? "rgba(17,17,17,.72)" : "rgba(255,255,255,.88)";
   // fundo
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
   if (!cta) {
@@ -2706,22 +2745,24 @@ function cardRev(p) {
   const versoes = urlsLogos(false);
   const vertical = ehVideo || p.formato === "Stories";
   const T = temaFundo(p.diag, cores, ehModeloVideo(p.diag) ? "video" : p.diag.modelo), fundoEscuro = !T.claro;
-  const segM = `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${(vertical ? [["video", "Vídeo"]] : []).concat([["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]]).map(([v, t]) =>
+  const doPerfil = (M.modelos || []).filter(x => x.status === "pronto" && x.spec).map(x => `<button data-act="diag-perfil" data-id="${p.id}" data-v="${x.id}" aria-pressed="${p.diag.modelo === "proprio" && p.diag.proprio === x.id}" title="${esc(x.nome)}">${x.exemplos[0] ? `<img class="mini-perfil" src="${esc(urlArq(x.exemplos[0]))}" alt="">` : MINI_MODELO.foto}<span>${esc(x.nome || "Do meu perfil")}</span></button>`).join("");
+  const segM = `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${doPerfil}${(vertical ? [["video", "Vídeo"]] : []).concat([["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]]).map(([v, t]) =>
       `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" || v === "video" || MODELOS_NOVOS.includes(v) ? MINI_MODELO[v] : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
 `;
   // Fundo e fonte valem para todos os modelos (e para Reels e Stories); "Do modelo" usa o padrão de cada um.
-  const modeloAtual = ehModeloVideo(p.diag) ? "video" : p.diag.modelo;
-  const fundoModelo = { claro: "claro", escuro: "escuro", marca: "da marca" }[FUNDO_DO_MODELO[modeloAtual] || "marca"];
-  const segF = `<span class="small">Fundo</span><div class="seg fundos" role="group" aria-label="Fundo">${[["auto", "Do modelo (" + fundoModelo + ")", temaFundo({ ...p.diag, fundo: "auto" }, cores, modeloAtual).bg], ["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", "#0E0F14"], ["marca", "Cor da marca", cores.bg]].map(([v, t, c]) =>
+  const perfilAtual = p.diag.modelo === "proprio" ? modeloDoPerfil(p.diag.proprio) : null;
+  const modeloAtual = ehModeloVideo(p.diag) ? "video" : perfilAtual ? perfilAtual.spec.base : p.diag.modelo;
+  const fundoModelo = perfilAtual ? "do seu perfil" : { claro: "claro", escuro: "escuro", marca: "da marca" }[FUNDO_DO_MODELO[modeloAtual] || "marca"];
+  const segF = `<span class="small">Fundo</span><div class="seg fundos" role="group" aria-label="Fundo">${[["auto", "Do modelo (" + fundoModelo + ")", perfilAtual ? perfilAtual.spec.fundo : temaFundo({ ...p.diag, fundo: "auto" }, cores, modeloAtual).bg], ["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", "#0E0F14"], ["marca", "Cor da marca", cores.bg]].map(([v, t, c]) =>
       `<button data-act="diag" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "auto") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>`;
-  const fonteModelo = FONTES_TITULO[FONTE_DO_MODELO[modeloAtual] || "poppins"].nome;
+  const fonteModelo = FONTES_TITULO[perfilAtual ? perfilAtual.spec.fonte : FONTE_DO_MODELO[modeloAtual] || "poppins"].nome;
   const segFT = `<span class="small">Fonte do título</span><div class="seg fontes-titulo" role="group" aria-label="Fonte do título">${[["auto", "Do modelo (" + fonteModelo + ")", FONTES_TITULO[FONTE_DO_MODELO[modeloAtual] || "poppins"].css]].concat(Object.entries(FONTES_TITULO).map(([k, f]) => [k, f.nome, f.css])).map(([v, t, css]) =>
         `<button data-act="diag" data-id="${p.id}" data-k="fonte" data-v="${v}" aria-pressed="${(p.diag.fonte || "auto") === v}" style="font-family:${css.replace(/"/g, "'")}, sans-serif">${t}</button>`).join("")}</div>
         ${ehModeloVideo(p.diag) ? "" : `<p class="small" style="margin:0">Dica: na aba Textos, coloque uma palavra do título entre *asteriscos* para destacar na cor da marca.</p>`}`;
   const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
   const posicoes = [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
   // A posição do texto vale nos modelos de foto inteira; nos outros o texto fica no lugar do layout.
-  const textoLivre = ehModeloVideo(p.diag) || ["foto", "cinema"].includes(p.diag.modelo);
+  const textoLivre = ehModeloVideo(p.diag) || ["foto", "cinema"].includes(modeloAtual);
   const padraoLogo = { impacto: "o cabeçalho de perfil (símbolo, nome e @)", minimal: "o cabeçalho de perfil (símbolo, nome e @)", manchete: "o logo no canto de baixo", cinema: "o logo no topo esquerdo" }[p.diag.modelo];
   const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}${!ehVideo && padraoLogo ? `<p class="small" style="margin:0">Neste modelo, Automático + Topo esquerda usa ${padraoLogo}. Escolha outra versão ou posição para trocar.</p>` : ""}`;
   const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação${ajuda("diagramacao")}</span>${segM}${segF}${segFT}<span class="small">Texto</span>
@@ -2883,6 +2924,14 @@ document.addEventListener("click", e => {
   if (act === "ir-marca") return ir("marca");
   if (act === "gerar-artes" && post) return gerarArtes(post);
   if (act === "diag" && post) return mudarDiagramacao(post, b.dataset.k, b.dataset.v);
+  if (act === "diag-perfil" && post) {
+    const m = modeloDoPerfil(b.dataset.v); if (!m) return;
+    const sp = m.spec;
+    // escolher o modelo do perfil traz junto as posições que a IA tirou dos posts; dá para mudar depois
+    Object.assign(post.diag, { proprio: m.id, fonte: "auto", fundo: "auto", alinhar: sp.alinhar, posicao: sp.posicao, logoPos: sp.logo === "nenhum" ? post.diag.logoPos : sp.logo, logo: sp.logo === "nenhum" ? "nenhum" : (post.diag.logo === "nenhum" ? "auto" : post.diag.logo) });
+    post.diag.modelo = "";
+    return mudarDiagramacao(post, "modelo", "proprio");
+  }
   if (act === "fonte" && post) {
     const n = b.dataset.v, nova = Math.round(Math.min(1.6, Math.max(0.6, escalaTexto(post.diag, n) + Number(b.dataset.d) * 0.1)) * 10) / 10;
     const escalas = { ...(post.diag.escalas || {}) };
@@ -3238,7 +3287,7 @@ function guardarInfo(r) {
 }
 async function carregarWeb() {
   const j = await api({ acao: "listar" });
-  M.marca = j.marca || null; M.fontes = j.fontes || [];
+  M.marca = j.marca || null; M.fontes = j.fontes || []; M.modelos = j.modelos || []; M.modeloPadrao = j.modeloPadrao || null;
   M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
 }
 function limparDados() {
@@ -4118,9 +4167,79 @@ function renderMarca() {
     <div><h2>Banco de imagens e vídeos${ajuda("banco")}</h2>
     <p class="hint" style="margin:0">Suas fotos e vídeos e tudo que a IA já gerou nos posts. Também fica no menu do perfil.</p></div>
     <button class="btn" type="button" data-tab="banco">Abrir o banco →</button>
-  </section>`;
-  renderFontes(); renderStatus();
+  </section>
+  ${M.modo === "web" ? `<section class="glass box modelos-perfil" style="margin-top:14px"><div><h2>Modelos do seu perfil</h2>
+    <p class="hint" style="margin:0">Já posta no Instagram? Mostre alguns posts seus e a IA cria um modelo com as suas cores, fonte, posição do texto e moldura. Ele aparece na Diagramação junto com os outros modelos.</p></div>
+    <div id="m-modelos"></div></section>` : ""}`;
+  renderFontes(); renderStatus(); renderModelosPerfil();
 }
+const MP = { enviando: false, timer: null };
+function renderModelosPerfil() {
+  const el = document.getElementById("m-modelos"); if (!el) return;
+  const lista = M.modelos || [], perfil = String((M.marca && M.marca.Perfil) || "").trim();
+  el.innerHTML = `${lista.length ? `<div class="mp-lista">${lista.map(x => `<div class="mp-card ${M.modeloPadrao === x.id ? "padrao" : ""}">
+      ${x.status === "pronto" ? `<canvas data-modelo-previa="${x.id}" width="540" height="675" aria-label="Prévia do modelo ${esc(x.nome)}"></canvas>` : x.status === "gerando" ? `<div class="working"><span class="dot"></span>A IA está estudando os seus posts…</div>` : `<div class="msg erro">Não deu para criar: ${esc(x.erro || "erro desconhecido")}</div>`}
+      <b>${esc(x.nome || "Modelo do perfil")}</b>${x.spec && x.spec.descricao ? `<span class="small">${esc(x.spec.descricao)}</span>` : ""}
+      ${x.exemplos.length ? `<div class="mp-ex">${x.exemplos.slice(0, 6).map(a => `<img src="${esc(urlArq(a))}" alt="" loading="lazy">`).join("")}</div>` : ""}
+      <div class="actions">${x.status === "pronto" ? (M.modeloPadrao === x.id ? `<button class="btn" data-mp="padrao" data-v="">Padrão dos posts novos ✓</button>` : `<button class="btn" data-mp="padrao" data-v="${x.id}">Usar como padrão</button>`) : ""}<button class="btn quiet" data-mp="remover" data-v="${x.id}">Remover</button></div>
+    </div>`).join("")}</div>` : ""}
+    <div class="mp-novo"><b>Criar um modelo novo</b>
+      <label class="field"><span>Nome (opcional)</span><input id="mp-nome" maxlength="40" placeholder="Ex.: Feed de promoções"></label>
+      <label class="field"><span>Envie de 2 a 8 posts seus (prints ou as imagens dos posts)</span><input id="mp-arquivos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+      <div class="actions"><button class="btn primary" data-mp="criar" ${MP.enviando ? "disabled" : ""}>${MP.enviando ? "Enviando…" : "Criar com estes posts"}</button>
+        <button class="btn" data-mp="instagram" ${MP.enviando ? "disabled" : ""}>${perfil ? `Buscar os últimos posts de @${esc(perfil.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@+/, ""))}` : "Buscar do meu Instagram"}</button></div>
+      <p class="hint" style="margin:0">${perfil ? "A busca pega os 8 posts mais recentes do perfil (precisa ser público)." : "Para buscar do Instagram, preencha o campo Perfil nas redes (@), acima, e salve a marca."} Leva cerca de 1 minuto.</p></div>`;
+  pintarModelosPerfil();
+  clearTimeout(MP.timer);
+  if (lista.some(x => x.status === "gerando")) MP.timer = setTimeout(recarregarModelos, 5000);
+}
+async function recarregarModelos() {
+  try { const j = await api({ acao: "listarModelos" }); M.modelos = j.modelos || []; M.modeloPadrao = j.modeloPadrao || null; } catch (e) { return; }
+  renderModelosPerfil();
+  if (tab === "rev") render();
+}
+async function pintarModelosPerfil() {
+  const logos = await logosDaPrevia(), cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
+  for (const cv of document.querySelectorAll("canvas[data-modelo-previa]")) {
+    const m = modeloDoPerfil(cv.dataset.modeloPrevia); if (!m) continue;
+    const foto = null; // os exemplos já têm o texto da marca; a prévia mostra só as cores, a fonte e a moldura
+    const sp = m.spec;
+    desenharSlide({ n: 1, t: "Seu título com *destaque*", x: "O texto de apoio aparece assim" }, 0, 3, foto, logos, cores, nome, cv,
+      { modelo: "proprio", proprio: m.id, fonte: "auto", fundo: "auto", alinhar: sp.alinhar, posicao: sp.posicao, logo: sp.logo === "nenhum" ? "nenhum" : "auto", logoPos: sp.logo === "nenhum" ? "te" : sp.logo });
+  }
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-mp]"); if (!b) return;
+  const a = b.dataset.mp;
+  if (a === "padrao") {
+    try { await api({ acao: "modeloPadrao", id: b.dataset.v || null }); M.modeloPadrao = b.dataset.v || null; toast(b.dataset.v ? "Pronto: os posts novos já saem com este modelo." : "Os posts novos voltam a usar o modelo Foto de fundo."); renderModelosPerfil(); }
+    catch (err) { toast("Não deu para salvar: " + textoErro(err)); }
+    return;
+  }
+  if (a === "remover") {
+    if (b.dataset.confirma !== "1") { b.dataset.confirma = "1"; b.textContent = "Remover mesmo?"; setTimeout(() => { b.dataset.confirma = ""; b.textContent = "Remover"; }, 3000); return; }
+    try { await api({ acao: "removerModelo", id: b.dataset.v }); toast("Modelo removido. Os posts que usavam ele voltam para Foto de fundo."); recarregarModelos(); }
+    catch (err) { toast("Não deu para remover: " + textoErro(err)); }
+    return;
+  }
+  if (a === "criar" || a === "instagram") {
+    const nome = (document.getElementById("mp-nome")?.value || "").trim();
+    let pedido = { acao: "criarModelo", nome };
+    if (a === "criar") {
+      const arquivos = [...(document.getElementById("mp-arquivos")?.files || [])].filter(f => /^image\//.test(f.type)).slice(0, 8);
+      if (arquivos.length < 2) return toast("Escolha pelo menos 2 imagens de posts seus.");
+      MP.enviando = true; renderModelosPerfil();
+      try { pedido.imagens = []; for (const f of arquivos) { const x = await prepararFoto(f); pedido.imagens.push({ tipo: x.tipo, base64: x.base64 }); } }
+      catch (err) { MP.enviando = false; renderModelosPerfil(); return toast("Não consegui ler as imagens: " + textoErro(err)); }
+    } else {
+      if (!String((M.marca && M.marca.Perfil) || "").trim()) return toast("Preencha o campo Perfil nas redes (@) e salve a marca.");
+      pedido.instagram = true; MP.enviando = true; renderModelosPerfil();
+    }
+    try { await api(pedido); toast("A IA está estudando os seus posts. O modelo aparece aqui em cerca de 1 minuto."); }
+    catch (err) { toast("Não deu para criar: " + textoErro(err)); }
+    MP.enviando = false; recarregarModelos();
+  }
+});
 // Página do banco (menu do perfil › Banco de imagens). A estrutura é montada uma vez; a lista se redesenha sozinha.
 function renderBancoPagina() {
   const el = document.getElementById("p-banco"); if (!el) return;
