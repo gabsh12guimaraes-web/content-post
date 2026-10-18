@@ -40,6 +40,9 @@ h2 { font-size: clamp(24px, 4vw, 34px); letter-spacing: -.02em; text-align: cent
 .plano.dest { border-color: var(--red); box-shadow: 0 0 0 1px var(--red), 0 20px 60px -30px var(--red); }
 .plano .selo { position: absolute; top: -12px; left: 24px; background: var(--red); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
 .plano h3 { font-size: 20px; }
+.de { font-size: 14px; color: var(--faint); margin-bottom: -8px; } .de s { color: var(--soft); }
+.desconto { display: inline-block; margin-left: 8px; background: rgba(248,57,90,.16); color: var(--red); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; vertical-align: middle; }
+.promo { text-align: center; color: var(--faint); font-size: 13px; margin-top: 12px; }
 .preco { font-size: 40px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
 .preco small { font-size: 15px; font-weight: 500; color: var(--faint); letter-spacing: 0; }
 .cobranca { font-size: 13px; color: var(--faint); min-height: 20px; }
@@ -76,10 +79,11 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px
   <p class="sub">A IA já está incluída. Sem chave de API, sem conta extra.</p>
   <div class="ciclos" role="group" aria-label="Ciclo de cobrança">
     <button data-ciclo="mensal">Mensal</button>
-    <button data-ciclo="semestral">Semestral <small>-8%</small></button>
-    <button data-ciclo="anual">Anual <small>-17%</small></button>
+    <button data-ciclo="semestral">Semestral</button>
+    <button data-ciclo="anual">Anual</button>
   </div>
   <div class="grade" id="grade"></div>
+  <p class="promo">* Promoção por tempo limitado.</p>
   <p class="teste">Quer testar antes? Crie sua conta e ganhe <b>7 dias com 3 posts grátis</b>. <a href="app.html">Começar agora</a></p>
 
   <section class="afiliado" id="afiliados">
@@ -105,9 +109,9 @@ const CHECKOUT = {
 };
 const AFILIADOS = "afiliados.html";
 const PLANOS = [
-  { id: "essencial", nome: "Essencial", posts: 12, ideias: 8, precos: { mensal: 177, semestral: 169, anual: 164 }, extra: ["Para quem posta 3 vezes por semana"] },
-  { id: "profissional", nome: "Profissional", posts: 30, ideias: 20, precos: { mensal: 417, semestral: 407, anual: 399 }, extra: ["Um post por dia"], destaque: true },
-  { id: "agencia", nome: "Agência", posts: 80, ideias: 50, precos: { mensal: 1097, semestral: 1067, anual: 1049 }, extra: ["Para agências e várias marcas"] },
+  { id: "essencial", nome: "Essencial", posts: 12, ideias: 8, de: { mensal: 369, semestral: 339, anual: 307 }, precos: { mensal: 177, semestral: 169, anual: 164 }, extra: ["Para quem posta 3 vezes por semana"] },
+  { id: "profissional", nome: "Profissional", posts: 30, ideias: 20, de: { mensal: 877, semestral: 807, anual: 729 }, precos: { mensal: 417, semestral: 407, anual: 399 }, extra: ["Um post por dia"], destaque: true },
+  { id: "agencia", nome: "Agência", posts: 80, ideias: 50, de: { mensal: 2307, semestral: 2117, anual: 1919 }, precos: { mensal: 1097, semestral: 1067, anual: 1049 }, extra: ["Para agências e várias marcas"] },
 ];
 const MESES = { mensal: 1, semestral: 6, anual: 12 };
 const reais = v => "R$ " + v.toLocaleString("pt-BR");
@@ -127,10 +131,11 @@ try { if (MESES[daUrl.get("ciclo")]) ciclo = daUrl.get("ciclo"); } catch (e) {}
 function desenhar() {
   document.querySelectorAll("[data-ciclo]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ciclo === ciclo)));
   document.getElementById("grade").innerHTML = PLANOS.map(p => {
-    const porMes = p.precos[ciclo], m = MESES[ciclo], link = comOrigem(CHECKOUT[p.id + ":" + ciclo]);
+    const porMes = p.precos[ciclo], dePorMes = p.de[ciclo], m = MESES[ciclo], link = comOrigem(CHECKOUT[p.id + ":" + ciclo]);
     return `<div class="plano ${p.destaque ? "dest" : ""}">${p.destaque ? `<span class="selo">Mais escolhido</span>` : ""}
       <h3>${esc(p.nome)}</h3>
-      <div class="preco">${reais(porMes)}<small>/mês</small></div>
+      <div class="de">de <s>${reais(dePorMes)}</s> por<span class="desconto">-${Math.round((1 - porMes / dePorMes) * 100)}%</span></div>
+      <div class="preco">${reais(porMes)}<small>/mês*</small></div>
       <div class="cobranca">${m > 1 ? `${reais(porMes * m)} a cada ${m} meses` : "cobrado todo mês"}</div>
       <ul><li>${p.posts} posts por mês criados pela IA</li><li>${p.ideias} buscas de ideias por mês</li><li>Fotos e vídeos com IA (Magnific)</li><li>Calendário e publicação automática</li><li>Equipe sem limite de pessoas</li>${p.extra.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
       ${link ? `<a class="btn ${p.destaque ? "primary" : ""}" href="${esc(link)}">Assinar ${esc(p.nome)}</a>` : `<a class="btn" href="app.html">Começar o teste grátis</a>`}

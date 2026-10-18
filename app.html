@@ -417,6 +417,7 @@ body.travado .wrap { visibility: hidden; }
 .plano-card > .btn, .plano-card > .chip, .plano-card > .small { justify-self: stretch; }
 @media (max-width: 520px) { .plano-card { grid-template-columns: minmax(0, 1fr) auto; } .plano-card > .btn, .plano-card > .chip, .plano-card > .small { grid-column: 1 / -1; } }
 .plano-card.dest { border-color: var(--red, #F8395A); }
+.plano-card .de { font-size: 12px; opacity: .7; }
 .plano-card .preco { font-size: 22px; font-weight: 800; } .plano-card .preco small { font-size: 12px; font-weight: 500; opacity: .7; }
 .plano-card .btn { justify-content: center; text-align: center; }
 .urow .ue { font-size: 12px; color: var(--ink-faint); overflow-wrap: anywhere; }
@@ -3244,7 +3245,7 @@ function desenharPlano() {
     const meu = s.plano === p.id && s.ciclo === c.ciclo && s.ativo;
     return `<div class="plano-card ${p.id === "profissional" ? "dest" : ""}">
       <div class="pc-info"><b>${esc(p.nome)}${p.id === "profissional" ? ` <span class="chip acc">Mais escolhido</span>` : ""}</b><span>${p.posts} posts por mês com IA<br>${p.ideias} buscas de ideias</span></div>
-      <div class="pc-preco"><span class="preco">${reais(c.porMes)}<small>/mês</small></span><span class="small">${c.meses > 1 ? "cobrado " + reais(c.total) + " a cada " + c.meses + " meses" : "cobrado todo mês"}</span></div>
+      <div class="pc-preco">${c.dePorMes > c.porMes ? `<span class="de">de <s>${reais(c.dePorMes)}</s> por</span>` : ""}<span class="preco">${reais(c.porMes)}<small>/mês${c.dePorMes > c.porMes ? "*" : ""}</small></span><span class="small">${c.meses > 1 ? "cobrado " + reais(c.total) + " a cada " + c.meses + " meses" : "cobrado todo mês"}</span></div>
       ${meu ? `<span class="chip ok">Seu plano</span>` : c.checkout ? `<a class="btn ${p.id === "profissional" ? "primary" : ""}" href="${esc(c.checkout)}" target="_blank" rel="noopener">Assinar</a>` : `<span class="small">Checkout ainda não configurado</span>`}
     </div>`;
   }).join("");
@@ -3254,8 +3255,9 @@ function desenharPlano() {
       <div class="ue">Posts ${s.periodo === "teste" && !s.isenta ? "no teste" : "neste mês"}: ${s.posts.usados} de ${s.isenta ? "∞" : s.posts.limite} · Buscas de ideias: ${s.ideias.usadas} de ${s.isenta ? "∞" : s.ideias.limite}</div>
       ${s.isenta ? "" : barra(s.posts.usados, s.posts.limite)}</div></div>
     ${s.cobranca ? "" : `<p class="hint">Os limites ainda não estão valendo: a cobrança será ligada quando os planos forem lançados.</p>`}
-    <div class="seg" role="group" aria-label="Ciclo" style="margin:14px 0 10px">${ciclos.map(([v, t]) => `<button data-u="ciclo" data-v="${v}" aria-pressed="${PL.ciclo === v}">${t}${v === "anual" ? " (-17%)" : v === "semestral" ? " (-8%)" : ""}</button>`).join("")}</div>
+    <div class="seg" role="group" aria-label="Ciclo" style="margin:14px 0 10px">${ciclos.map(([v, t]) => `<button data-u="ciclo" data-v="${v}" aria-pressed="${PL.ciclo === v}">${t}</button>`).join("")}</div>
     <div class="planos-grade">${cards}</div>
+    ${d.planos.some(p => p.ciclos.some(c => c.dePorMes > c.porMes)) ? `<p class="hint">* Promoção por tempo limitado.</p>` : ""}
     <p class="hint">O pagamento é feito na Kiwify (cartão, Pix ou boleto). Assim que for aprovado, o plano é liberado aqui.</p>
     ${d.afiliados ? `<div class="urow" style="margin-top:10px"><div><div class="un">Indique e ganhe</div><div class="ue">Seja afiliado da Content Post e ganhe comissão por cada assinatura que vier do seu link.</div></div><a class="btn" href="${esc(d.afiliados)}" target="_blank" rel="noopener">Quero ser afiliado</a></div>` : ""}
     <div class="actions" style="margin-top:14px"><button class="btn" data-u="fechar">Fechar</button></div>`);
