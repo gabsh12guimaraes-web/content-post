@@ -117,6 +117,9 @@ h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.025em; line-height: 1.
 .plano.dest { border-color: var(--red); box-shadow: 0 0 0 1px var(--red), 0 20px 60px -30px var(--red); }
 .plano .tag { position: absolute; top: -12px; left: 24px; background: var(--red); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
 .plano h3 { font-size: 20px; }
+.de { font-size: 14px; color: var(--faint); margin-bottom: -8px; } .de s { color: var(--soft); }
+.desconto { display: inline-block; margin-left: 8px; background: rgba(248,57,90,.16); color: var(--red); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; vertical-align: middle; }
+.promo { text-align: center; color: var(--faint); font-size: 13px; margin-top: 12px; }
 .preco { font-size: 40px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
 .preco small { font-size: 15px; font-weight: 500; color: var(--faint); letter-spacing: 0; }
 .cobranca { font-size: 13px; color: var(--faint); min-height: 20px; }
@@ -224,9 +227,10 @@ footer a { color: var(--soft); }
   <h2 id="planos">Escolha seu plano</h2>
   <p class="lead">A inteligência artificial já vem incluída. Sem contratar outras ferramentas.</p>
   <div class="ciclos" role="group" aria-label="Ciclo de cobrança">
-    <button data-ciclo="mensal">Mensal</button><button data-ciclo="semestral">Semestral -8%</button><button data-ciclo="anual">Anual -17%</button>
+    <button data-ciclo="mensal">Mensal</button><button data-ciclo="semestral">Semestral</button><button data-ciclo="anual">Anual</button>
   </div>
   <div class="grade-planos" id="grade"></div>
+  <p class="promo">* Promoção por tempo limitado.</p>
 
   <div class="garantia">
     <div class="sel">7<small>DIAS</small></div>
@@ -268,17 +272,20 @@ const CHECKOUT = {
 };
 /* ============================================================ */
 const PLANOS = [
-  { id: "essencial", nome: "Essencial", posts: 12, ideias: 8, precos: { mensal: 369, semestral: 339, anual: 307 }, extra: "Para quem posta 3 vezes por semana" },
-  { id: "profissional", nome: "Profissional", posts: 30, ideias: 20, precos: { mensal: 877, semestral: 807, anual: 729 }, extra: "Um post por dia", destaque: true },
-  { id: "agencia", nome: "Agência", posts: 80, ideias: 50, precos: { mensal: 2307, semestral: 2117, anual: 1919 }, extra: "Para agências e várias marcas" },
+  { id: "essencial", nome: "Essencial", posts: 12, ideias: 8, de: { mensal: 369, semestral: 339, anual: 307 }, cupom: { mensal: 52, semestral: 50, anual: 46 }, extra: "Para quem posta 3 vezes por semana" },
+  { id: "profissional", nome: "Profissional", posts: 30, ideias: 20, de: { mensal: 877, semestral: 807, anual: 729 }, cupom: { mensal: 52, semestral: 49, anual: 45 }, extra: "Um post por dia", destaque: true },
+  { id: "agencia", nome: "Agência", posts: 80, ideias: 50, de: { mensal: 2307, semestral: 2117, anual: 1919 }, cupom: { mensal: 52, semestral: 49, anual: 45 }, extra: "Para agências e várias marcas" },
 ];
 const MESES = { mensal: 1, semestral: 6, anual: 12 };
-const reais = v => "R$ " + v.toLocaleString("pt-BR");
+// O preço é o "de" (o do produto na Kiwify) com o cupom PLANOCICLO, que já vai no link (?coupon=). Igual a planos.html e content-post-api/src/planos.js.
+const reais = v => "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
+const centavos = v => Math.round(v * 100) / 100;
+const totalDo = (p, c) => centavos(p.de[c] * MESES[c] * (100 - p.cupom[c]) / 100);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const daUrl = new URLSearchParams(location.search);
 // Repassa a origem da campanha (utm_*, src, sck) para o checkout da Kiwify.
-function comOrigem(link) {
-  try { const u = new URL(link); for (const [k, v] of daUrl) if (/^(utm_[a-z]+|src|sck)$/.test(k)) u.searchParams.set(k, v); if (!u.searchParams.has("src")) u.searchParams.set("src", "lp"); return u.toString(); }
+function comOrigem(link, cupom) {
+  try { const u = new URL(link); if (cupom) u.searchParams.set("coupon", cupom); for (const [k, v] of daUrl) if (/^(utm_[a-z]+|src|sck)$/.test(k)) u.searchParams.set(k, v); if (!u.searchParams.has("src")) u.searchParams.set("src", "lp"); return u.toString(); }
   catch (e) { return link; }
 }
 // Pixel da Meta (opcional)
@@ -321,13 +328,14 @@ let ciclo = MESES[daUrl.get("ciclo")] ? daUrl.get("ciclo") : "anual";
 function desenhar() {
   document.querySelectorAll("[data-ciclo]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ciclo === ciclo)));
   document.getElementById("grade").innerHTML = PLANOS.map(p => {
-    const porMes = p.precos[ciclo], m = MESES[ciclo], link = comOrigem(CHECKOUT[p.id + ":" + ciclo]);
+    const m = MESES[ciclo], total = totalDo(p, ciclo), porMes = centavos(total / m), link = comOrigem(CHECKOUT[p.id + ":" + ciclo], (p.id + ciclo).toUpperCase());
     return `<div class="plano ${p.destaque ? "dest" : ""}">${p.destaque ? `<span class="tag">Mais escolhido</span>` : ""}
       <h3>${esc(p.nome)}</h3>
-      <div class="preco">${reais(porMes)}<small>/mês</small></div>
-      <div class="cobranca">${m > 1 ? `${reais(porMes * m)} a cada ${m} meses` : "cobrado todo mês"}</div>
+      <div class="de">de <s>${reais(p.de[ciclo])}</s> por<span class="desconto">-${p.cupom[ciclo]}%</span></div>
+      <div class="preco">${reais(porMes)}<small>/mês*</small></div>
+      <div class="cobranca">${m > 1 ? `${reais(total)} a cada ${m} meses` : "cobrado todo mês"}</div>
       <ul><li>${p.posts} posts por mês criados pela IA</li><li>${p.ideias} buscas de ideias por mês</li><li>Fotos e vídeos com IA inclusos</li><li>Calendário e publicação automática</li><li>Equipe sem limite de pessoas</li><li>${esc(p.extra)}</li></ul>
-      <a class="btn ${p.destaque ? "primary" : ""}" href="${esc(link)}" data-checkout="${p.id}:${ciclo}" data-valor="${porMes * m}">Assinar ${esc(p.nome)}</a>
+      <a class="btn ${p.destaque ? "primary" : ""}" href="${esc(link)}" data-checkout="${p.id}:${ciclo}" data-valor="${total}">Assinar ${esc(p.nome)}</a>
     </div>`;
   }).join("");
 }
