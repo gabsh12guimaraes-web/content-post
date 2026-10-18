@@ -760,6 +760,26 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .aviso-plano .ap-barra { height: 4px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; }
 .aviso-plano .ap-barra i { display: block; height: 100%; border-radius: 99px; background: var(--red); }
 .aviso-plano .btn { flex: none; }
+/* onboarding do primeiro acesso */
+.onb { display: grid; gap: 16px; }
+.onb-passos { display: flex; gap: 6px; } .onb-passos i { flex: 1; height: 4px; border-radius: 99px; background: var(--line-strong); } .onb-passos i.on { background: var(--red); }
+.onb h2 { margin: 0; font-size: 20px; } .onb .hint { margin: 0; }
+.onb-lista { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.onb-lista li { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--ink-body); }
+.onb-lista li b { color: #fff; } .onb-lista li i { flex: none; width: 24px; height: 24px; border-radius: 50%; background: rgba(248, 57, 90, .14); color: var(--red); display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 12px; }
+.onb-cores { display: flex; gap: 14px; flex-wrap: wrap; } .onb-cores label { display: grid; gap: 6px; font-size: 12px; color: var(--ink-soft); }
+.onb-cores input[type="color"] { width: 64px; height: 40px; padding: 2px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); }
+.onb-logo { display: flex; gap: 12px; align-items: center; } .onb-logo .amostra { width: 120px; height: 64px; border-radius: 8px; border: 1px solid var(--line); background: #1d2030; display: grid; place-items: center; overflow: hidden; } .onb-logo .amostra img { max-width: 90%; max-height: 80%; }
+.onb-opcoes { display: grid; gap: 10px; } .onb-opcao { text-align: left; display: grid; gap: 4px; padding: 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card-soft); color: var(--ink-body); font: inherit; cursor: pointer; }
+.onb-opcao b { color: #fff; } .onb-opcao:hover { border-color: var(--line-strong); } .onb-opcao[aria-pressed="true"] { border-color: var(--red); }
+.onb .seg { flex-wrap: wrap; }
+.passos-ini { margin: 0 0 16px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); display: grid; gap: 10px; }
+.passos-ini .pi-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; } .passos-ini .pi-topo b { color: #fff; font-size: 14px; }
+.passos-ini .pi-barra { height: 4px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; } .passos-ini .pi-barra i { display: block; height: 100%; background: var(--ok); border-radius: 99px; }
+.passos-ini ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; }
+.passos-ini li button { width: 100%; text-align: left; display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card-soft); color: var(--ink-body); font: 500 12.5px var(--font-body); cursor: pointer; }
+.passos-ini li button:hover { border-color: var(--line-strong); } .passos-ini li.feito button { color: var(--ink-faint); text-decoration: line-through; }
+.passos-ini li span.ck { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line-strong); display: grid; place-items: center; font-size: 11px; } .passos-ini li.feito span.ck { background: var(--ok); border-color: var(--ok); color: #05210f; }
 .plano-limite { display: grid; gap: 4px; padding: 12px 14px; margin-bottom: 12px; border-radius: 10px; border: 1px solid rgba(248, 57, 90, .5); background: rgba(248, 57, 90, .1); }
 .plano-limite b { color: #fff; font-size: 15px; } .plano-limite span { color: var(--ink-body); font-size: 13px; }
 .empty { color: var(--ink-soft); font-size: 13px; padding: 24px; }
@@ -928,6 +948,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 <body>
 <div class="wrap">
       <div id="aviso-plano" hidden></div>
+      <div id="primeiros-passos" hidden></div>
       <header class="pg">
         <div><div class="crumb"><span>Pauta</span> / <b id="pg-crumb">Ideias</b></div><h1><span id="pg-titulo">Ideias</span><span id="pg-ajuda"></span></h1><p id="pg-sub"></p></div>
       </header>
@@ -2862,6 +2883,7 @@ function sincronizarCasca() {
   document.querySelectorAll(".kpi").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab));
   desenharProximo();
   desenharNavBaixo();
+  desenharPrimeirosPassos();
   const logo = typeof logoMarca === "function" && M.marca ? logoMarca() : "";
   document.querySelectorAll("[data-wm]").forEach(w => {
     if (logo && w.dataset.logo !== logo) { w.dataset.logo = logo; w.innerHTML = `<img src="${esc(logo)}" alt="Pauta" onerror="this.replaceWith('Pauta')">`; }
@@ -3144,7 +3166,7 @@ document.addEventListener("change", async e => {
       await api({ acao: "enviarArquivoMarca", id: M.marca.id, campo, tipo: f.type, nome: f.name, base64: await arquivoBase64(f) });
     }
     if (campo === "MoodBoard" || !tratarLogos) toast("Arquivo salvo na marca.");
-    await carregarWeb(); renderMarca();
+    await carregarWeb(); renderMarca(); if (OB.aberto) desenharOnboarding();
   } catch (err) { toast("Não deu para enviar: " + textoErro(err)); }
   inp.value = "";
 });
@@ -3307,7 +3329,11 @@ async function iniciarWeb() {
   U.tela = "ok"; U.erro = ""; renderAuth();
   M.conexao = "carregando"; M.ocupado = true; renderMarca();
   SIT.dados = null; SIT.popupMostrado = false; desenharAvisoPlano();
-  try { await carregarWeb(); M.marcaSuja = false; carregarPauta(); carregarSituacao(); } catch (e) { M.erro = e; if (M.conexao !== "login") M.conexao = "negado"; }
+  try {
+    await carregarWeb(); M.marcaSuja = false; carregarPauta();
+    if (U.organizacao && U.organizacao.onboarding && ["dono", "admin"].includes(U.organizacao.papel) && !document.querySelector(".dlg[open]")) abrirOnboarding();
+    carregarSituacao();
+  } catch (e) { M.erro = e; if (M.conexao !== "login") M.conexao = "negado"; }
   M.ocupado = false; renderMarca(); renderAuth(); render();
 }
 async function depoisDeEntrar(r, lembrar) {
@@ -3510,6 +3536,147 @@ function desenharAvisoPlano() {
       ${!motivo ? `<span class="small">Com um plano, a IA cria até 80 posts por mês, com fotos e vídeos, e publica na hora marcada.</span>` : ""}</div>
     <button class="btn primary" data-u="plano">${!s.ativo && !teste ? "Renovar plano" : "Ver planos"}</button></div>`;
 }
+/* ---------- onboarding do primeiro acesso ---------- */
+const OB = { aberto: false, passo: 0, d: {}, salvando: false, estilo: "", buscar: true };
+const TONS = [["descontraído e próximo", "Descontraído"], ["profissional e confiável", "Profissional"], ["inspirador e acolhedor", "Inspirador"], ["divertido e cheio de energia", "Divertido"], ["sofisticado e elegante", "Sofisticado"]];
+function abrirOnboarding() {
+  const m = M.marca || {}, c = lerCores(m.Cores);
+  OB.aberto = true; OB.passo = 0; OB.estilo = ""; OB.buscar = true;
+  OB.d = { nome: m.Nome || (U.organizacao && U.organizacao.nome) || "", perfil: String(m.Perfil || "").replace(/^@+/, ""), faz: m.Posicionamento || "", publico: m.Publico || "", tom: m.TomDeVoz || "",
+    cor1: (c[0] && c[0].hex) || "#1B2A4A", cor2: (c[1] && c[1].hex) || "#F8395A", temas: "", concorrente: "" };
+  desenharOnboarding();
+}
+function lerOnboarding() {
+  const v = id => { const e = document.getElementById(id); return e ? e.value.trim() : null; };
+  for (const [k, id] of [["nome", "ob-nome"], ["perfil", "ob-perfil"], ["faz", "ob-faz"], ["publico", "ob-publico"], ["cor1", "ob-cor1"], ["cor2", "ob-cor2"], ["temas", "ob-temas"], ["concorrente", "ob-conc"]]) { const x = v(id); if (x !== null) OB.d[k] = x; }
+  OB.d.perfil = OB.d.perfil.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@+/, "");
+}
+function desenharOnboarding() {
+  if (!OB.aberto) return;
+  const d = OB.d, P = OB.passo, total = 5, logo = ((M.marca && M.marca.Logo) || [])[0];
+  const barra = `<div class="onb-passos" aria-label="Passo ${P + 1} de ${total}">${Array.from({ length: total }, (_, i) => `<i class="${i <= P ? "on" : ""}"></i>`).join("")}</div>`;
+  const nav = (proximo, extra) => `<div class="actions" style="justify-content:space-between">${P ? `<button class="btn quiet" data-ob="voltar">Voltar</button>` : `<button class="btn quiet" data-ob="depois">Fazer depois</button>`}<span style="display:flex;gap:8px">${extra || ""}<button class="btn primary" data-ob="avancar" ${OB.salvando ? "disabled" : ""}>${OB.salvando ? "Salvando…" : proximo}</button></span></div>`;
+  const telas = [
+    () => `<h2>Boas-vindas à Content Post${U.usuario && U.usuario.nome ? ", " + esc(U.usuario.nome.split(" ")[0]) : ""}!</h2>
+      <p class="hint">Em 4 passos rápidos a IA aprende sobre a sua marca e já sugere as primeiras ideias de post.</p>
+      <ul class="onb-lista"><li><i>1</i><span><b>Sua marca:</b> o que você faz e para quem fala.</span></li><li><i>2</i><span><b>Visual:</b> logo e cores.</span></li>
+      <li><i>3</i><span><b>Seu estilo:</b> se você já posta no Instagram, a IA copia o seu jeito.</span></li><li><i>4</i><span><b>Primeiras ideias:</b> os temas que você quer abordar.</span></li></ul>
+      <p class="small" style="margin:0">Leva uns 3 minutos. Dá para mudar tudo depois em Marca e fontes.</p>${nav("Começar")}`,
+    () => `<h2>Sua marca</h2><p class="hint">A IA usa isso em todas as ideias, textos e legendas.</p>
+      <label class="field"><span>Nome da marca</span><input id="ob-nome" maxlength="100" value="${esc(d.nome)}" placeholder="Ex.: Bar do Zé"></label>
+      <label class="field"><span>Instagram (@)</span><input id="ob-perfil" maxlength="60" value="${esc(d.perfil ? "@" + d.perfil : "")}" placeholder="@suamarca"></label>
+      <label class="field"><span>O que a marca faz</span><textarea id="ob-faz" rows="2" maxlength="600" placeholder="Ex.: Bar com chope artesanal e música ao vivo na Vila Madalena">${esc(d.faz)}</textarea></label>
+      <label class="field"><span>Para quem ela fala</span><input id="ob-publico" maxlength="300" value="${esc(d.publico)}" placeholder="Ex.: jovens de 25 a 40 anos que saem depois do trabalho"></label>
+      <div class="field"><span>Jeito de falar</span><div class="seg" role="group" aria-label="Tom de voz">${TONS.map(([v, t]) => `<button type="button" data-ob="tom" data-v="${esc(v)}" aria-pressed="${d.tom === v}">${t}</button>`).join("")}</div></div>
+      ${nav("Continuar")}`,
+    () => `<h2>Visual da marca</h2><p class="hint">O logo e as cores entram nas artes de todos os posts.</p>
+      <div class="field"><span>Logo</span><div class="onb-logo"><span class="amostra">${logo ? `<img src="${esc(urlArq(logo))}" alt="Logo">` : `<span class="small">sem logo</span>`}</span>
+        <label class="btn">${logo ? "Trocar o logo" : "Enviar o logo"}<input type="file" class="arquivo-oculto" data-arquivo="Logo" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label></div>
+        <p class="small" style="margin:0">PNG com fundo transparente fica melhor. Se tiver fundo, o painel tenta tirar sozinho.</p></div>
+      <div class="field"><span>Cores</span><div class="onb-cores"><label>Principal (fundo)<input type="color" id="ob-cor1" value="${esc(d.cor1.toLowerCase())}"></label><label>Destaque<input type="color" id="ob-cor2" value="${esc(d.cor2.toLowerCase())}"></label></div></div>
+      ${nav("Continuar")}`,
+    () => `<h2>Seu estilo</h2><p class="hint">Se você já posta no Instagram, a IA olha os seus posts e cria um modelo de arte com as suas cores, fonte e moldura.</p>
+      <div class="onb-opcoes">
+        <button type="button" class="onb-opcao" data-ob="estilo" data-v="instagram" aria-pressed="${OB.estilo === "instagram"}" ${d.perfil ? "" : "disabled"}><b>Usar meus posts do Instagram</b><span class="small">${d.perfil ? `A IA busca os últimos posts de @${esc(d.perfil)} (o perfil precisa ser público).` : "Volte um passo e preencha o @ do Instagram para usar esta opção."}</span></button>
+        <button type="button" class="onb-opcao" data-ob="estilo" data-v="enviar" aria-pressed="${OB.estilo === "enviar"}"><b>Enviar alguns posts meus</b><span class="small">De 2 a 8 imagens de posts que você já fez.</span></button>
+        ${OB.estilo === "enviar" ? `<input id="ob-posts" type="file" accept="image/jpeg,image/png,image/webp" multiple>` : ""}
+        <button type="button" class="onb-opcao" data-ob="estilo" data-v="nenhum" aria-pressed="${OB.estilo === "nenhum"}"><b>Ainda não posto</b><span class="small">Sem problema: você escolhe um dos modelos prontos quando o primeiro post ficar pronto.</span></button>
+      </div>${nav(OB.estilo && OB.estilo !== "nenhum" ? "Criar meu modelo e continuar" : "Continuar")}`,
+    () => `<h2>Primeiras ideias</h2><p class="hint">Sobre o que a marca quer falar? A IA usa esses temas para sugerir posts.</p>
+      <label class="field"><span>Temas (separados por vírgula)</span><textarea id="ob-temas" rows="2" maxlength="500" placeholder="Ex.: drinks da casa, agenda de shows, promoções de happy hour, bastidores">${esc(d.temas)}</textarea></label>
+      <label class="field"><span>Um perfil que você admira (opcional)</span><input id="ob-conc" maxlength="60" value="${esc(d.concorrente)}" placeholder="@outrobar"></label>
+      <p class="small" style="margin:-8px 0 0">A IA observa o que funciona lá para inspirar ideias originais para você.</p>
+      <label class="check-tratar"><input type="checkbox" id="ob-buscar" ${OB.buscar ? "checked" : ""}> Já buscar 10 ideias ao terminar (usa 1 das buscas do teste grátis)</label>
+      ${nav("Concluir")}`,
+  ];
+  abrirDlg(`<div class="onb">${barra}${telas[P]()}</div>`);
+}
+async function avancarOnboarding() {
+  lerOnboarding();
+  const d = OB.d, P = OB.passo;
+  const salvar = async campos => { await api({ acao: "salvarMarca", id: M.marca ? M.marca.id : null, campos }); await carregarWeb(); };
+  OB.salvando = true; desenharOnboarding();
+  try {
+    if (P === 1) {
+      if (!d.nome) { OB.salvando = false; desenharOnboarding(); return toast("Dê um nome para a marca."); }
+      await salvar({ Nome: d.nome, Perfil: d.perfil, Posicionamento: d.faz, Publico: d.publico, ...(d.tom ? { TomDeVoz: d.tom } : {}), Redes: (M.marca && M.marca.Redes && M.marca.Redes.length) ? M.marca.Redes : ["Instagram"] });
+    }
+    if (P === 2) {
+      const outras = lerCores(M.marca && M.marca.Cores).slice(2);
+      await salvar({ Cores: [`${d.cor1.toUpperCase()} Principal`, `${d.cor2.toUpperCase()} Destaque`, ...outras.map(c => `${c.hex} ${c.nome}`.trim())].join("\n") });
+    }
+    if (P === 3 && OB.estilo === "instagram") {
+      await api({ acao: "criarModelo", instagram: true, nome: "Meu Instagram" }); toast("A IA está estudando os seus posts. O modelo fica pronto em cerca de 1 minuto.");
+    }
+    if (P === 3 && OB.estilo === "enviar") {
+      const arquivos = [...(document.getElementById("ob-posts")?.files || [])].filter(f => /^image\//.test(f.type)).slice(0, 8);
+      if (arquivos.length < 2) { OB.salvando = false; desenharOnboarding(); return toast("Escolha pelo menos 2 imagens de posts seus, ou outra opção."); }
+      const imagens = []; for (const f of arquivos) { const x = await prepararFoto(f); imagens.push({ tipo: x.tipo, base64: x.base64 }); }
+      await api({ acao: "criarModelo", imagens, nome: "Meu estilo" }); toast("A IA está estudando os seus posts. O modelo fica pronto em cerca de 1 minuto.");
+    }
+    if (P === 4) {
+      OB.buscar = !!document.getElementById("ob-buscar")?.checked;
+      const ja = new Set((M.fontes || []).map(f => (f.nome || f.Nome || "").toLowerCase()));
+      for (const t of d.temas.split(/[,;\n]/).map(x => x.trim()).filter(Boolean).slice(0, 8)) if (!ja.has(t.toLowerCase())) await api({ acao: "salvarFonte", id: null, campos: { Nome: t, Tipo: "Tema", Ativa: true, Peso: 3 } });
+      const conc = d.concorrente.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@+/, "");
+      if (conc) await api({ acao: "salvarFonte", id: null, campos: { Nome: "@" + conc, Tipo: "Perfil", Rede: "Instagram", URL: "https://instagram.com/" + conc, Ativa: true, Peso: 4 } });
+      await concluirOnboarding();
+      await carregarWeb(); renderMarca();
+      ir("ideias");
+      if (OB.buscar && (d.temas || conc)) buscarIdeias({ quantidade: 10 });
+      else toast("Tudo pronto! Clique em Buscar ideias novas quando quiser.");
+      return;
+    }
+    OB.passo++;
+  } catch (err) { toast("Não deu para salvar: " + textoErro(err)); }
+  OB.salvando = false; desenharOnboarding();
+}
+async function concluirOnboarding() {
+  OB.aberto = false; OB.salvando = false; fecharDlg();
+  if (U.organizacao) U.organizacao.onboarding = false;
+  try { await api({ acao: "concluirOnboarding" }); } catch (e) {}
+  render();
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-ob]"); if (!b || !OB.aberto) return;
+  const a = b.dataset.ob;
+  if (a !== "avancar" && a !== "voltar" && a !== "depois") lerOnboarding();
+  if (a === "avancar") return avancarOnboarding();
+  if (a === "voltar") { lerOnboarding(); OB.passo = Math.max(0, OB.passo - 1); return desenharOnboarding(); }
+  if (a === "depois") { toast("Tudo bem. Os primeiros passos ficam no topo da página para quando quiser."); return concluirOnboarding(); }
+  if (a === "tom") { OB.d.tom = b.dataset.v; return desenharOnboarding(); }
+  if (a === "estilo") { OB.estilo = b.dataset.v; return desenharOnboarding(); }
+});
+// Fechar com Esc não conclui: o passo a passo volta no próximo acesso (ou pelo checklist).
+document.addEventListener("close", e => { if (OB.aberto && e.target === dlg()) OB.aberto = false; }, true);
+// Checklist "Primeiros passos" no topo (14 dias depois do cadastro, ou até fechar).
+const PP = { redes: null, carregandoRedes: false };
+function desenharPrimeirosPassos() {
+  const el = document.getElementById("primeiros-passos"); if (!el) return;
+  const o = U.organizacao, chave = "pauta-passos-oculto:" + (o && o.id);
+  let oculto = false; try { oculto = localStorage.getItem(chave) === "1"; } catch (e) {}
+  if (M.modo !== "web" || U.tela !== "ok" || !o || !o.primeirosPassos || oculto || !pauta.carregada || !M.marca) { el.hidden = true; el.innerHTML = ""; return; }
+  if (PP.redes === null && !PP.carregandoRedes) { PP.carregandoRedes = true; api({ acao: "contasRedes" }).then(r => { PP.redes = (r.contas || []).filter(c => c.ativa).length; }).catch(() => { PP.redes = 0; }).finally(() => { PP.carregandoRedes = false; desenharPrimeirosPassos(); }); }
+  const m = M.marca;
+  const itens = [
+    ["Contar sobre a marca", !!(m.Nome && m.Posicionamento && m.Publico), "data-ob-abrir"],
+    ["Enviar o logo e as cores", !!(((m.Logo || [])[0]) && lerCores(m.Cores).length >= 2), 'data-tab="marca"'],
+    ["Criar o modelo do seu perfil", (M.modelos || []).some(x => x.status === "pronto"), 'data-tab="marca"'],
+    ["Buscar as primeiras ideias", state.ideias.length > 0, 'data-tab="ideias"'],
+    ["Criar o primeiro post", state.posts.some(p => !["Planejado", "Erro"].includes(p.status)), 'data-tab="cal"'],
+    ["Conectar o Instagram", (PP.redes || 0) > 0, 'data-u="integracoes"'],
+  ];
+  const feitos = itens.filter(x => x[1]).length;
+  if (feitos === itens.length) { el.hidden = true; el.innerHTML = ""; return; }
+  el.hidden = false;
+  el.innerHTML = `<div class="passos-ini"><div class="pi-topo"><b>Primeiros passos · ${feitos} de ${itens.length}</b><button class="btn quiet" data-pp="ocultar" style="padding:4px 8px;font-size:12px">Ocultar</button></div>
+    <div class="pi-barra"><i style="width:${Math.round(feitos / itens.length * 100)}%"></i></div>
+    <ul>${itens.map(([t, ok, alvo]) => `<li class="${ok ? "feito" : ""}"><button type="button" ${alvo}><span class="ck">${ok ? "✓" : ""}</span>${t}</button></li>`).join("")}</ul></div>`;
+}
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-ob-abrir]")) return abrirOnboarding();
+  if (e.target.closest('[data-pp="ocultar"]')) { try { localStorage.setItem("pauta-passos-oculto:" + (U.organizacao && U.organizacao.id), "1"); } catch (err) {} desenharPrimeirosPassos(); }
+});
 async function abrirPlano(aviso) {
   PL.erro = ""; PL.aviso = aviso || ""; abrirDlg(`<h2>Plano</h2><p class="hint">Carregando…</p>`);
   try { PL.dados = await api({ acao: "plano" }); } catch (e) { PL.erro = textoErro(e); }
