@@ -307,7 +307,7 @@ button { cursor: pointer; }
 .ig-slide .veu { position: absolute; inset: 0; background: linear-gradient(180deg, color-mix(in srgb, var(--veu, #0A0C15) 10%, transparent) 0%, color-mix(in srgb, var(--veu, #0A0C15) 25%, transparent) 40%, color-mix(in srgb, var(--veu, #0A0C15) 94%, transparent) 100%); }
 .ig-slide.sem-foto .veu { display: none; }
 .ig-slide.cta { background: var(--b-acc); }
-.ig-slide.arte .veu, .ig-slide.arte .conteudo, .ig-slide.arte .marca-agua { display: none; }
+.ig-slide.arte .veu, .ig-slide.arte .conteudo, .ig-slide.arte .marca-agua, .ig-slide.arte .contador, .ig-slide.arte .seta { display: none; }
 .ig-slide .marca-agua { position: absolute; top: 5cqw; left: 6cqw; height: 6.5cqw; display: flex; align-items: center; gap: 2cqw; font-size: 3.4cqw; font-weight: 700; letter-spacing: .02em; opacity: .95; }
 .ig-slide .marca-agua img { height: 100%; width: auto; }
 .ig-slide .contador { position: absolute; top: 5cqw; right: 6cqw; font-size: 3cqw; font-weight: 600; padding: 1cqw 2.6cqw; border-radius: 99px; background: rgba(0,0,0,.45); }
@@ -1867,7 +1867,7 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const tX = (lateral ? 3.6 : 4) * U * E;
   ctx.font = `400 ${tX}px Poppins, sans-serif`;
   const linX = quebrar(ctx, semMarcas(sl.x), largTexto - 6.8 * U).slice(0, 8);
-  const hCaixa = linX.length ? linX.length * tX * 1.35 + 6.8 * U : 0;
+  let hCaixa = linX.length ? linX.length * tX * 1.35 + 6.8 * U : 0;
   const yTit = cta ? 30 * U : topoTexto;
   const tam0 = (foto && !cta ? (lateral ? 7 : 8.4) : 10.5) * U * E;
   const tit = ajustarTitulo(ctx, sl.t, { largura: largTexto, alturaMax: Math.max(8 * U, limite - yTit - (hCaixa ? hCaixa + 3 * U : 0) - (cta ? 15 * U : 0)), tamanho: tam0, minimo: 4.5 * U * Em, F });
@@ -1876,6 +1876,9 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   y = tituloRico(ctx, sl.t, { x: xTexto, y, largura: largTexto, alturaMax: 1e9, tamanho: tit.tam, minimo: tit.tam, fonte: fonteDe(F), fonteDestaque: fonteDe(F), upper: F.upper, cor: T.tinta, corDestaque: T.acc, alinhar: alC, entrelinha: 1.05 }).fim;
   if (linX.length) {
     y += 3 * U;
+    // Título no tamanho mínimo e texto longo: corta as linhas que não cabem (com reticências) em vez de vazar no rodapé.
+    const cabem = Math.max(1, Math.floor((limite - y - 6.8 * U) / (tX * 1.35)));
+    if (linX.length > cabem) { linX.length = cabem; linX[cabem - 1] = linX[cabem - 1].replace(/[\s.,;:!?-]*$/, "") + "…"; hCaixa = cabem * tX * 1.35 + 6.8 * U; }
     ctx.fillStyle = T.caixa; retArred(ctx, xTexto, y, largTexto, hCaixa, 2.4 * U); ctx.fill();
     ctx.fillStyle = T.suave; ctx.font = `400 ${tX}px Poppins, sans-serif`; ctx.textAlign = alC;
     const xc = al === "centro" ? xTexto + largTexto / 2 : al === "direita" ? xTexto + largTexto - 3.4 * U : xTexto + 3.4 * U;
@@ -2422,39 +2425,42 @@ function desenharVertical(sl, foto, logos, cores, nome, cv, diag, t) {
   return desenharSlide({ n: sl.n, t: sl.t || "", x: sl.x || "" }, 0, 1, foto, logos, cores, nome, cv, diag);
 }
 async function gerarVideoFinal(p, logo, cores, nome) {
-  const clipes = clipesDoPost(p);
-  const cenas = p.slides.filter(c => clipes[c.n]);
-  if (!cenas.length) throw new Error("os clipes das cenas ainda não foram gerados");
+  // Cada cena usa o clipe dela; cena trocada por uma foto do banco entra como imagem parada de 3 s.
+  const clipes = clipesDoPost(p), fotos = fotosCheias(p);
+  const cenas = p.slides.filter(c => clipes[c.n] || fotos[c.n]);
+  if (!cenas.some(c => clipes[c.n])) throw new Error("os clipes das cenas ainda não foram gerados");
   toast("Carregando os clipes…");
   const vids = [];
-  for (const c of cenas) vids.push(await carregarVideoLocal(clipes[c.n]));
-  if (podeRenderizar()) {
-    const W = 1080, H = 1920, durs = vids.map(v => Math.min(10, v.duration || 5)), total = durs.reduce((a, b) => a + b, 0);
+  for (const c of cenas) vids.push(clipes[c.n] ? await carregarVideoLocal(clipes[c.n]) : await carregarImg(fotos[c.n]));
+  const ehVid = m => m instanceof HTMLVideoElement;
+  const cena = k => ({ n: cenas[k].n, t: cenas[k].x || cenas[k].t });
+  if (podeRenderizar()) try {
+    const W = 1080, H = 1920, durs = vids.map(v => ehVid(v) ? Math.min(10, v.duration || 5) : 3), total = durs.reduce((a, b) => a + b, 0);
     const bps = Math.round(Math.max(2.5e6, Math.min(8e6, 22 * 1024 * 1024 * 8 / total)));
     const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-    const ctx = cv.getContext("2d");
     const blob = await renderizarMp4(cv, { duracao: total, bps,
       aoAvancar: f => toast(`Montando o vídeo final: ${Math.round(f * 100)}%`),
       desenhar: async t => {
         let k = 0, ini = 0;
         while (k < durs.length - 1 && t >= ini + durs[k]) { ini += durs[k]; k++; }
         const local = t - ini;
-        await irPara(vids[k], local);
-        desenharVertical({ n: cenas[k].n, t: cenas[k].x || cenas[k].t }, vids[k], logo, cores, nome, cv, p.diag, local * 1000);
+        if (ehVid(vids[k])) await irPara(vids[k], local);
+        desenharVertical(cena(k), vids[k], logo, cores, nome, cv, p.diag, local * 1000);
       } });
     if (blob.size > 24 * 1024 * 1024) throw new Error("o vídeo passou de 24 MB. Peça um ajuste com cenas mais curtas");
     return [{ tipo: "video/mp4", base64: await blobBase64(blob) }];
-  }
+  } catch (e) { if (!MIME_MP4 || /24 MB/.test(e.message)) throw e; }
   const W = 720, H = 1280;
-  const total = vids.reduce((soma, v) => soma + (v.duration || 5), 0);
+  const total = vids.reduce((soma, v) => soma + (ehVid(v) ? v.duration || 5 : 3), 0);
   const bps = Math.max(1500000, Math.min(5000000, Math.floor(20e6 * 8 / total)));
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-  const ctx = cv.getContext("2d");
-  desenharVertical({ n: cenas[0].n, t: cenas[0].x || cenas[0].t }, vids[0], logo, cores, nome, cv, p.diag, 0);
+  desenharVertical(cena(0), vids[0], logo, cores, nome, cv, p.diag, 0);
   const blob = await gravarCanvas(cv, bps, async () => {
     for (let k = 0; k < vids.length; k++) {
       toast(`Gravando a cena ${k + 1} de ${vids.length}. Deixe esta aba aberta.`);
-      await tocar(vids[k], t => desenharVertical({ n: cenas[k].n, t: cenas[k].x || cenas[k].t }, vids[k], logo, cores, nome, cv, p.diag, t), (vids[k].duration || 10) * 1000 + 150);
+      const pintar = t => desenharVertical(cena(k), vids[k], logo, cores, nome, cv, p.diag, t);
+      if (ehVid(vids[k])) await tocar(vids[k], pintar, (vids[k].duration || 10) * 1000 + 150);
+      else await new Promise(ok => { const t0 = performance.now(); const passo = () => { const t = performance.now() - t0; pintar(t); if (t >= 3000) ok(); else requestAnimationFrame(passo); }; requestAnimationFrame(passo); });
     }
   });
   const b64 = await blobBase64(blob);
@@ -2525,16 +2531,19 @@ function blocoDownload(p) {
   const itens = p.arquivos.map((a, i) => `<button type="button" class="btn quiet" data-act="baixar-arte" data-id="${p.id}" data-v="${i}">${ehArqVideo(a) ? "▶ Vídeo" : "Imagem"}${p.arquivos.length > 1 ? " " + (i + 1) : ""}</button>`).join("");
   return `<div class="baixar"><span class="small">Baixar as artes finais</span><div class="actions">${itens}${p.arquivos.length > 1 ? `<button type="button" class="btn" data-act="baixar-tudo" data-id="${p.id}" ${baixando ? "disabled" : ""}>${baixando === p.id ? "Juntando…" : "Baixar tudo (.zip)"}</button>` : ""}</div></div>`;
 }
-let timerDiag = null;
+// Um timer por post: mudar dois posts seguidos não perde o primeiro. "refazer" acumula até salvar,
+// senão uma segunda mudança rápida mandava refazer:false e as artes antigas voltavam como prontas.
+const timersDiag = {}, refazerDiag = {};
 function mudarDiagramacao(p, k, v) {
   if (p.diag[k] === v) return;
   p.diag[k] = v;
-  const refazer = p.artesProntas;
+  if (p.artesProntas) refazerDiag[p.id] = true;
   setTimeout(() => pintarPrevias(), 0);
-  if (refazer) { p.artesProntas = false; toast("Diagramação mudou. Gere " + (ehVideoFmt(p) ? "o vídeo final" : "as artes finais") + " de novo para aplicar."); }
+  if (p.artesProntas) { p.artesProntas = false; toast("Diagramação mudou. Gere " + (ehVideoFmt(p) ? "o vídeo final" : "as artes finais") + " de novo para aplicar."); }
   render();
-  clearTimeout(timerDiag);
-  timerDiag = setTimeout(async () => {
+  clearTimeout(timersDiag[p.id]);
+  timersDiag[p.id] = setTimeout(async () => {
+    const refazer = !!refazerDiag[p.id]; delete refazerDiag[p.id]; delete timersDiag[p.id];
     try {
       if (M.modo === "web") await api({ acao: "salvarDiagramacao", id: p.id, diagramacao: p.diag, refazer });
       else {
@@ -2542,7 +2551,7 @@ function mudarDiagramacao(p, k, v) {
         if (refazer) f[AT.cal.f.ArtesProntas] = false;
         await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.cal.table, records: [{ id: p.id, fields: f }] });
       }
-    } catch (e) { toast("Não deu para salvar a diagramação: " + textoErro(e)); }
+    } catch (e) { if (refazer) refazerDiag[p.id] = true; toast("Não deu para salvar a diagramação: " + textoErro(e)); }
   }, 500);
 }
 let gerandoArtes = null, ajusteAberto = null, revisando = null, timersRevisao = [], textoAberto = null, salvandoTexto = null;
@@ -2717,9 +2726,9 @@ function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModel
     ${video && !prontas ? `<span class="tag-video">clipe do Magnific</span>` : ""}
     <div class="veu"></div>
     ${d.logo === "nenhum" ? "" : `<div class="marca-agua">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.replaceWith(document.createTextNode('${esc(nome).replace(/'/g, "")}'))">` : esc(nome)}</div>`}
-    ${total > 1 ? `<span class="contador">${i + 1}/${total}</span>` : ""}
+    ${total > 1 && !semModelo ? `<span class="contador">${i + 1}/${total}</span>` : ""}
     <div class="conteudo"><span class="barra"></span><div class="titulo">${destacarHtml(sl.t)}</div>${sl.x ? `<div class="texto">${esc(semMarcas(sl.x))}</div>` : ""}</div>
-    ${total > 1 && !ultimo ? `<span class="seta">arraste →</span>` : ""}
+    ${total > 1 && !ultimo && !semModelo ? `<span class="seta">arraste →</span>` : ""}
   </div>`;
 }
 // Fotos e clipes sem texto de cada slide/cena (mesmo com as artes finais já prontas).
@@ -2754,7 +2763,7 @@ function cardRev(p) {
     prontas = !!final;
     html = final
       ? slidePost({ n: 1, t: "", x: "" }, 0, 1, final.thumbnails && final.thumbnails.large ? final.thumbnails.large.url : "", true, logo, nome, final.url, p.diag, true)
-      : slides.map((sl, i) => slidePost({ n: sl.n, t: sl.x || sl.t, x: "" }, i, slides.length, "", false, logo, nome, clipes[sl.n], p.diag, true, p.id)).join("");
+      : slides.map((sl, i) => slidePost({ n: sl.n, t: sl.x || sl.t, x: "" }, i, slides.length, mapa[sl.n] || "", false, logo, nome, clipes[sl.n], p.diag, true, p.id)).join("");
     if (final) slides = [slides[0] || { n: 1 }];
   } else {
     const videosProntos = {};
@@ -2867,6 +2876,23 @@ document.addEventListener("scroll", e => {
 }, true);
 
 /* ---------- geral ---------- */
+// A pauta se atualiza sozinha enquanto a IA trabalha: o que a pessoa está digitando na revisão (textos, ajuste) não pode sumir.
+const chaveCampo = el => el.id || (el.dataset.et ? `et:${el.dataset.post}:${el.dataset.n}:${el.dataset.et}` : "");
+function guardarRascunhos() {
+  const r = {}, ativo = document.activeElement;
+  document.querySelectorAll("#p-rev input, #p-rev textarea, #p-rev select").forEach(el => {
+    const k = chaveCampo(el); if (!k) return;
+    r[k] = { valor: el.value, marcado: el.checked, foco: el === ativo, ini: el.selectionStart, fim: el.selectionEnd };
+  });
+  return r;
+}
+function restaurarRascunhos(r) {
+  document.querySelectorAll("#p-rev input, #p-rev textarea, #p-rev select").forEach(el => {
+    const x = r[chaveCampo(el)]; if (!x) return;
+    if (el.type === "checkbox") el.checked = x.marcado; else if (el.value !== x.valor) el.value = x.valor;
+    if (x.foco) { el.focus({ preventScroll: true }); try { if (x.ini != null) el.setSelectionRange(x.ini, x.fim); } catch (e) {} }
+  });
+}
 function render() {
   document.querySelectorAll(".track button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
   if (tab === "admin" && !(U.usuario && U.usuario.admin)) tab = "ideias";
@@ -2878,7 +2904,9 @@ function render() {
   document.getElementById("c-cal").textContent = n(state.posts.filter(p => p.status !== "Publicado").length);
   document.getElementById("c-rev").textContent = n(state.posts.filter(p => p.status === "EmRevisao").length);
   document.getElementById("c-agend").textContent = n(state.posts.filter(p => ["Agendado", "Publicando"].includes(p.status)).length);
+  const rascunhos = guardarRascunhos();
   renderIdeias(); renderCal(); renderRev(); renderAgend();
+  restaurarRascunhos(rascunhos);
   flashId = null;
   sincronizarCasca();
   requestAnimationFrame(() => pintarPrevias());
@@ -3168,6 +3196,7 @@ document.addEventListener("change", async e => {
   const campo = inp.dataset.arquivo, arquivos = [...inp.files];
   if (!M.marca || !M.marca.id) { toast("Salve a marca primeiro (pelo menos o nome)."); inp.value = ""; return; }
   try {
+    if (M.marcaSuja) await salvarMarca(); // senão o que foi digitado some ao redesenhar a marca
     for (let i = 0; i < arquivos.length; i++) {
       const f = arquivos[i];
       if (f.size > 5 * 1024 * 1024) { toast(`"${f.name}" passa de 5 MB.`); continue; }
@@ -3349,6 +3378,7 @@ async function carregarWeb() {
 function limparDados() {
   state = { ideias: [], posts: [] }; pauta.carregada = false; pauta.tarefas = [];
   M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null;
+  if (typeof PP !== "undefined") PP.redes = null; // a checagem "Instagram conectado" é por organização
 }
 async function iniciarWeb() {
   if (!U.organizacao) { U.tela = "semOrg"; renderAuth(); return; }
@@ -3375,6 +3405,7 @@ async function depoisDeEntrar(r, lembrar) {
   return iniciarWeb();
 }
 async function entrar(email, senha, lembrar) {
+  U.emailDigitado = email;
   U.ocupado = true; U.erro = ""; renderAuth();
   try { await depoisDeEntrar(await chamar({ acao: "entrar", email, senha, lembrar }, false), lembrar); }
   catch (e) { U.ocupado = false; U.erro = textoErro(e); renderAuth(); }
@@ -3408,7 +3439,8 @@ async function novaOrg(nome) {
 }
 function sairLocal(msg) {
   U.token = ""; U.usuario = null; U.organizacoes = []; U.organizacao = null; sessao.apagar();
-  limparDados(); M.conexao = "login";
+  limparDados(); M.conexao = "login"; fecharDlg();
+  SIT.dados = null; SIT.popupMostrado = false; desenharAvisoPlano();
   U.tela = "login"; U.erro = msg || "";
   render(); renderMarca(); renderAuth();
 }
@@ -3474,12 +3506,12 @@ function renderAuth() {
     ${marcaDoLogin()}
     <h1>Entrar</h1>
     ${aviso}
-    <label class="field"><span>E-mail</span><input id="l-email" type="email" autocomplete="username" value="${esc(ci ? ci.email : "")}"></label>
+    <label class="field"><span>E-mail</span><input id="l-email" type="email" autocomplete="username" value="${esc(ci ? ci.email : U.emailDigitado || "")}"></label>
     <label class="field"><span>Senha</span><input id="l-senha" type="password" autocomplete="current-password"></label>
     <label class="actions small"><input id="l-lembrar" type="checkbox" style="width:auto" checked> Manter conectado neste aparelho</label>
     ${erro}
     <button class="btn primary" data-u="entrar" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Entrando…" : ci ? "Entrar e aceitar o convite" : "Entrar"}</button>
-    <p class="hint">Esqueceu a senha? Peça para um administrador da sua organização remover e convidar você de novo.</p>
+    <p class="hint">Esqueceu a senha? Fale com o suporte do Content Post pelo e-mail da sua conta para redefinir.</p>
     <p class="auth-rodape">Ainda não tem conta? <button type="button" data-u="ir-cadastro">Criar nova conta</button></p>
   </form>`);
   if (!U.ocupado) document.getElementById(ci ? "l-senha" : "l-email")?.focus();
@@ -3499,7 +3531,7 @@ function desenharEquipe() {
   const d = EQ.dados, eu = U.usuario && U.usuario.id;
   const linhas = d.membros.map(m => `<div class="urow">
       <div><div class="un">${esc(m.nome || "(sem nome)")}${m.id === eu ? " (você)" : ""}</div><div class="ue">${esc(m.email)}${m.ultimo_acesso ? " · último acesso " + fmtData(m.ultimo_acesso) : ""}</div></div>
-      <div class="actions">${d.podeGerir && m.id !== eu
+      <div class="actions">${d.podeGerir && m.id !== eu && (m.papel !== "dono" || U.organizacao.papel === "dono")
         ? `<select data-u-sel="papel" data-id="${m.id}" aria-label="Papel">${Object.entries(PAPEIS).filter(([k]) => k !== "dono" || U.organizacao.papel === "dono").map(([k, t]) => `<option value="${k}" ${m.papel === k ? "selected" : ""}>${t}</option>`).join("")}</select>
            <button class="btn quiet" data-u="eq-remover" data-id="${m.id}">Remover</button>`
         : `<span class="chip ${m.papel === "editor" ? "plain" : "acc"}">${esc(PAPEIS[m.papel])}</span>`}
@@ -3710,7 +3742,8 @@ async function abrirPlano(aviso) {
 }
 function desenharPlano() {
   const d = PL.dados;
-  if (!d) return abrirDlg(`<h2>Plano</h2><div class="msg erro">${esc(PL.erro || "Não consegui carregar o plano.")}</div>`);
+  if (!d && U.tela !== "ok") return fecharDlg(); // a sessão caiu: a tela de login já está aberta
+  if (!d) return abrirDlg(`<h2>Plano</h2><div class="msg erro">${esc(PL.erro || "Não consegui carregar o plano.")}</div><div class="actions" style="margin-top:14px"><button class="btn quiet" data-u="fechar">Fechar</button></div>`);
   const s = d.situacao, barra = (u, l) => `<div class="uso"><i style="width:${Math.min(100, Math.round(u / Math.max(1, l) * 100))}%"></i></div>`;
   const ate = s.ate ? new Date(s.ate).toLocaleDateString("pt-BR") : "";
   const atual = s.isenta ? "Sem limite (organização isenta)" : `${esc(s.nome)}${s.ciclo ? " · " + esc(s.ciclo) : ""} · ${s.ativo ? "até " + ate : "venceu em " + ate}`;
@@ -3884,25 +3917,29 @@ document.addEventListener("click", async e => {
   if (a === "plano") return abrirPlano();
   if (a === "ciclo") { PL.ciclo = b.dataset.v; return desenharPlano(); }
   if (a === "int-salvar") {
+    INT.erro = "";
     const v = (document.getElementById("int-" + id)?.value || "").trim(); if (!v) return;
     try { await api({ acao: "salvarIntegracao", provedor: id, valor: v }); INT.dados = await api({ acao: "listarIntegracoes" }); INT.teste[id] = await api({ acao: "testarIntegracao", provedor: id }).then(r => r.resultado); }
     catch (err) { INT.erro = textoErro(err); }
     return desenharIntegracoes();
   }
   if (a === "rede-conectar") {
+    INT.erro = "";
     b.disabled = true;
     try { const r = await api({ acao: "conectarRede", rede: id, voltar: location.origin + location.pathname + "?redes=1" }); location.href = r.url; return; }
     catch (err) { INT.erro = textoErro(err); b.disabled = false; }
     return desenharIntegracoes();
   }
   if (a === "rede-desconectar") {
+    INT.erro = "";
     if (!confirm("Desconectar esta conta? Os posts param de sair nela até você conectar de novo.")) return;
-    try { await api({ acao: "desconectarRede", conta: id }); INT.redes = await api({ acao: "contasRedes" }); redesCarregadas = false; carregarRedes(); toast("Conta desconectada."); }
+    try { await api({ acao: "desconectarRede", conta: id }); INT.redes = await api({ acao: "contasRedes" }); redesCarregadas = false; PP.redes = null; carregarRedes(); toast("Conta desconectada."); }
     catch (err) { INT.erro = textoErro(err); }
     return desenharIntegracoes();
   }
-  if (a === "int-testar") { try { INT.teste[id] = (await api({ acao: "testarIntegracao", provedor: id })).resultado; } catch (err) { INT.erro = textoErro(err); } return desenharIntegracoes(); }
+  if (a === "int-testar") { INT.erro = ""; try { INT.teste[id] = (await api({ acao: "testarIntegracao", provedor: id })).resultado; } catch (err) { INT.erro = textoErro(err); } return desenharIntegracoes(); }
   if (a === "int-remover") {
+    INT.erro = "";
     if (!confirm("Remover esta chave? As etapas que dependem dela param de funcionar.")) return;
     try { await api({ acao: "removerIntegracao", provedor: id }); INT.dados = await api({ acao: "listarIntegracoes" }); delete INT.teste[id]; } catch (err) { INT.erro = textoErro(err); }
     return desenharIntegracoes();
@@ -4476,6 +4513,7 @@ document.addEventListener("click", async e => {
   if (a === "add-cor") { document.getElementById("m-cores").insertAdjacentHTML("beforeend", linhaCor({ hex: "#FF3347", nome: "" })); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
   if (a === "rm-cor") { b.closest(".cor").remove(); M.marcaSuja = true; pintarPaleta(); return renderStatus(); }
   if (a === "salvar-marca") return salvarMarca();
+  if ((a === "logo-rm" || a === "mood-rm") && M.marcaSuja) await salvarMarca();
   if (a === "logo-rm") { if (await executar("salvarMarca", { id: M.marca.id, campos: { [id]: [] } }, "Arquivo removido.")) renderMarca(); return; }
   if (a === "mood-rm") {
     const resto = (M.marca.MoodBoard || []).filter(x => x.id !== id).map(x => ({ id: x.id }));
