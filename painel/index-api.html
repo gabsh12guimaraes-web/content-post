@@ -735,6 +735,18 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .msg { color: var(--ink-body); font-size: 12.5px; }
 .msg.erro { border-color: rgba(248, 57, 90, .45); color: #ffc2cd; background: rgba(248, 57, 90, .05); }
 .msg.ok { border-color: rgba(62, 221, 174, .4); color: #b8f5e2; background: rgba(62, 221, 174, .05); }
+/* aviso do plano no topo (teste grátis, limite, plano vencido) */
+.aviso-plano { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin: 0 0 16px; padding: 12px 14px; border: 1px solid rgba(248, 57, 90, .35); border-radius: 10px; background: linear-gradient(135deg, rgba(248, 57, 90, .10), rgba(248, 57, 90, .02)); }
+.aviso-plano.fim { border-color: rgba(248, 57, 90, .6); background: rgba(248, 57, 90, .12); }
+.aviso-plano .ap-txt { flex: 1 1 260px; min-width: 0; display: grid; gap: 6px; }
+.aviso-plano .ap-txt b { color: #fff; font-size: 13.5px; }
+.aviso-plano .ap-usos { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-body); }
+.aviso-plano .ap-uso { display: grid; gap: 3px; min-width: 120px; }
+.aviso-plano .ap-barra { height: 4px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; }
+.aviso-plano .ap-barra i { display: block; height: 100%; border-radius: 99px; background: var(--red); }
+.aviso-plano .btn { flex: none; }
+.plano-limite { display: grid; gap: 4px; padding: 12px 14px; margin-bottom: 12px; border-radius: 10px; border: 1px solid rgba(248, 57, 90, .5); background: rgba(248, 57, 90, .1); }
+.plano-limite b { color: #fff; font-size: 15px; } .plano-limite span { color: var(--ink-body); font-size: 13px; }
 .empty { color: var(--ink-soft); font-size: 13px; padding: 24px; }
 
 /* luz corrente discreta na borda dos painéis */
@@ -898,6 +910,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
       <img class="cp-logo-img " src="marca/content-post-logo-branco.png" alt="Content Post">
     </div>
     <div class="wrap">
+      <div id="aviso-plano" hidden></div>
       <header class="pg">
         <div><div class="crumb"><span>Pauta</span> / <b id="pg-crumb">Ideias</b></div><h1><span id="pg-titulo">Ideias</span><span id="pg-ajuda"></span></h1><p id="pg-sub"></p></div>
       </header>
@@ -1069,7 +1082,9 @@ async function disparar(corpo, aoComecar) {
   try {
     await api(corpo);
     aoComecar(); salvarDisparos(); conferirDisparos(); render();
+    carregarSituacao();
   } catch (e) {
+    if (e.status === 402) { carregarSituacao(); return; } // a janela de planos já abre com o motivo
     toast("Não deu para começar: " + textoErro(e));
   }
 }
@@ -3217,7 +3232,8 @@ async function iniciarWeb() {
   if (!U.organizacao) { U.tela = "semOrg"; renderAuth(); return; }
   U.tela = "ok"; U.erro = ""; renderAuth();
   M.conexao = "carregando"; M.ocupado = true; renderMarca();
-  try { await carregarWeb(); M.marcaSuja = false; carregarPauta(); } catch (e) { M.erro = e; if (M.conexao !== "login") M.conexao = "negado"; }
+  SIT.dados = null; SIT.popupMostrado = false; desenharAvisoPlano();
+  try { await carregarWeb(); M.marcaSuja = false; carregarPauta(); carregarSituacao(); } catch (e) { M.erro = e; if (M.conexao !== "login") M.conexao = "negado"; }
   M.ocupado = false; renderMarca(); renderAuth(); render();
 }
 async function depoisDeEntrar(r, lembrar) {
@@ -3384,6 +3400,42 @@ const INT = { dados: null, erro: "", teste: {} };
 // Plano da organização: uso do mês, troca de plano pelo checkout da Kiwify e link de afiliado.
 const PL = { dados: null, erro: "", ciclo: "anual", aviso: "" };
 const reais = v => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2 });
+// Situação do plano (para o aviso do topo): recarrega ao entrar, ao trocar de organização e depois de criar ou buscar ideias.
+const SIT = { dados: null, popupMostrado: false };
+async function carregarSituacao() {
+  if (M.modo !== "web" || U.tela !== "ok") return;
+  try { SIT.dados = (await api({ acao: "plano" })).situacao; } catch (e) { return; }
+  desenharAvisoPlano();
+  const s = SIT.dados, chave = "pauta-popup-plano:" + (U.organizacao && U.organizacao.id);
+  // Uma vez por sessão: se o teste acabou ou o limite já foi batido, mostra os planos.
+  if (s && s.cobranca && !s.isenta && motivoPlano(s) && !SIT.popupMostrado) {
+    let ja = false; try { ja = sessionStorage.getItem(chave) === "1"; sessionStorage.setItem(chave, "1"); } catch (e) {}
+    SIT.popupMostrado = true;
+    if (!ja && !document.querySelector(".dlg[open]")) abrirPlano(motivoPlano(s));
+  }
+}
+// Por que a pessoa não consegue criar agora (ou "" se consegue).
+function motivoPlano(s) {
+  const teste = s.plano === "teste";
+  if (!s.ativo) return teste ? "Seu teste grátis terminou. Escolha um plano para continuar criando." : "Seu plano venceu. Renove para continuar criando.";
+  if (s.posts.usados >= s.posts.limite) return teste ? `Você usou os ${s.posts.limite} posts do teste grátis. Escolha um plano para continuar criando.` : `Você usou os ${s.posts.limite} posts do plano neste mês. Mude de plano para criar mais.`;
+  return "";
+}
+function desenharAvisoPlano() {
+  const el = document.getElementById("aviso-plano"); if (!el) return;
+  const s = SIT.dados;
+  const mostrar = s && s.cobranca && !s.isenta && U.tela === "ok" && (s.plano === "teste" || motivoPlano(s));
+  el.hidden = !mostrar; if (!mostrar) { el.innerHTML = ""; return; }
+  const motivo = motivoPlano(s), teste = s.plano === "teste";
+  const dias = Math.max(0, Math.ceil((new Date(s.ate) - new Date()) / 86400000)), ate = new Date(s.ate).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  const uso = (t, u, l) => `<span class="ap-uso"><span>${t}: <b>${Math.min(u, l)} de ${l}</b></span><span class="ap-barra"><i style="width:${Math.min(100, Math.round(u / Math.max(1, l) * 100))}%"></i></span></span>`;
+  const titulo = motivo || `Teste grátis: ${dias === 0 ? "termina hoje" : dias === 1 ? "falta 1 dia" : `faltam ${dias} dias`} (até ${ate})`;
+  el.innerHTML = `<div class="aviso-plano ${motivo ? "fim" : ""}" role="status">
+    <div class="ap-txt"><b>${esc(titulo)}</b>
+      ${s.ativo ? `<div class="ap-usos">${uso(teste ? "Posts do teste" : "Posts no mês", s.posts.usados, s.posts.limite)}${uso(teste ? "Buscas de ideias" : "Buscas de ideias no mês", s.ideias.usadas, s.ideias.limite)}</div>` : ""}
+      ${!motivo ? `<span class="small">Com um plano, a IA cria até 80 posts por mês, com fotos e vídeos, e publica na hora marcada.</span>` : ""}</div>
+    <button class="btn primary" data-u="plano">${!s.ativo && !teste ? "Renovar plano" : "Ver planos"}</button></div>`;
+}
 async function abrirPlano(aviso) {
   PL.erro = ""; PL.aviso = aviso || ""; abrirDlg(`<h2>Plano</h2><p class="hint">Carregando…</p>`);
   try { PL.dados = await api({ acao: "plano" }); } catch (e) { PL.erro = textoErro(e); }
@@ -3406,7 +3458,7 @@ function desenharPlano() {
     </div>`;
   }).join("");
   abrirDlg(`<h2>Plano · ${esc(U.organizacao.nome)}${ajuda("plano")}</h2>
-    ${PL.aviso ? `<div class="msg erro">${esc(PL.aviso)}</div>` : ""}
+    ${PL.aviso ? `<div class="plano-limite" role="alert"><b>${/terminou|venceu/.test(PL.aviso) ? "Seu acesso pausou" : "Você chegou ao limite"}</b><span>${esc(PL.aviso)}</span></div>` : ""}
     <div class="urow"><div><div class="un">${atual}</div>
       <div class="ue">Posts ${s.periodo === "teste" && !s.isenta ? "no teste" : "neste mês"}: ${s.posts.usados} de ${s.isenta ? "∞" : s.posts.limite} · Buscas de ideias: ${s.ideias.usadas} de ${s.isenta ? "∞" : s.ideias.limite}</div>
       ${s.isenta ? "" : barra(s.posts.usados, s.posts.limite)}</div></div>
