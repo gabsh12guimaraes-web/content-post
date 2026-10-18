@@ -52,6 +52,8 @@ header.topo { display: flex; justify-content: space-between; align-items: center
 /* VSL vertical (9:16, gravado no celular): alto o bastante para ver o rosto, sem empurrar o botão para longe */
 .vsl.vertical { aspect-ratio: 9 / 16; height: min(68vh, 620px); max-width: calc(100vw - 32px); width: auto; }
 .vsl.vertical video { object-fit: cover; background: #05060b; }
+/* Reel incorporado: o player do Instagram tem cabeçalho e rodapé além do vídeo 9:16 */
+.vsl.vertical.instagram { --lv: min(380px, calc(100vw - 32px)); aspect-ratio: auto; width: var(--lv); height: calc(var(--lv) * 16 / 9 + 150px); max-width: none; background: #fff; }
 .vsl-play { position: absolute; inset: 0; border: 0; padding: 0; cursor: pointer; background: center / cover no-repeat; display: grid; place-items: center; font: inherit; color: #fff; }
 .vsl-play::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0) 55%, rgba(5,6,11,.75) 100%); }
 .vsl-play .bola { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); z-index: 1; width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #FF5F7A, #F8395A 55%, #C8102E); box-shadow: 0 0 0 10px rgba(248,57,90,.25), 0 18px 40px -10px rgba(248,57,90,.9); display: grid; place-items: center; animation: pulsar 1.8s ease-in-out infinite; }
@@ -286,8 +288,8 @@ footer a { color: var(--soft); }
 <script>
 /* ================= Configuração da campanha ================= */
 // Link do vídeo (YouTube, Vimeo, Panda Video ou arquivo .mp4). Vazio = mostra a demonstração animada.
-// O VSL fica em marca/vsl.mp4: enquanto o arquivo não estiver no site, a página mostra a demonstração animada.
-const VIDEO_URL = "marca/vsl.mp4";
+// Também aceita um Reel do Instagram. Com um .mp4 do próprio site (ex.: marca/vsl.mp4), a página mostra a capa e o botão de play próprios.
+const VIDEO_URL = "https://www.instagram.com/reel/DepwJayR2vq/";
 // Vídeo gravado em pé (9:16) e a capa que aparece antes do play.
 const VIDEO_VERTICAL = true;
 const VIDEO_CAPA = "marca/vsl-capa.jpg";
@@ -329,6 +331,8 @@ const vsl = document.getElementById("vsl");
 function montarVideo(url) {
   let m;
   if ((m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/))) return `<iframe src="https://www.youtube-nocookie.com/embed/${m[1]}?rel=0&modestbranding=1&playsinline=1" title="Vídeo da Content Post" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  // Reel do Instagram: o player oficial (embed), com o cabeçalho e o rodapé do Instagram.
+  if ((m = url.match(/instagram\.com\/(?:reel|reels|p|tv)\/([\w-]+)/))) { vsl.classList.add("instagram"); return `<iframe src="https://www.instagram.com/reel/${m[1]}/embed/" title="Vídeo da Content Post" loading="lazy" scrolling="no" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`; }
   if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/))) return `<iframe src="https://player.vimeo.com/video/${m[1]}?title=0&byline=0&portrait=0" title="Vídeo da Content Post" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
   if (/pandavideo|player-vz/.test(url)) return `<iframe src="${esc(url)}" title="Vídeo da Content Post" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
   if (/\.mp4(\?|$)/i.test(url)) return `<video src="${esc(url)}" ${VIDEO_CAPA ? `poster="${esc(VIDEO_CAPA)}"` : ""} controls playsinline preload="none"></video>
