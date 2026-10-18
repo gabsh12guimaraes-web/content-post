@@ -1163,7 +1163,8 @@ const PERGUNTAS = {
   cenas: { titulo: "Cenas", op: [["auto", "A IA decide"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"]] },
   textoNaTela: { titulo: "Texto na tela", op: [["sim", "Sim"], ["nao", "Não"]] },
   imagens: { titulo: "Imagens", op: [["ia", "Gerar com IA"], ["banco", "Do meu banco"], ["misto", "Misturar"]] },
-  story: { titulo: "Tipo do story", op: [["imagem", "Imagem estática"], ["continuo", "Vídeo contínuo"], ["varios", "Vários vídeos curtos"]] },
+  story: { titulo: "Tipo do story", op: [["imagem", "Imagem estática"], ["sequencia", "Sequência de imagens"], ["continuo", "Vídeo contínuo"], ["varios", "Vários vídeos curtos"]] },
+  telas: { campo: "slides", titulo: "Quantos stories na sequência", op: [["auto", "A IA decide"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"]] },
   fundoStory: { campo: "fundo", titulo: "Fundo", op: [["fotos", "Foto"], ["texto", "Só texto"]] },
   objetivo: { titulo: "Objetivo do post", op: [["", "A IA decide"], ["engajar", "Engajar"], ["educar", "Educar"], ["vender", "Vender"], ["institucional", "Marca"]] },
 };
@@ -1171,6 +1172,7 @@ function perguntasDo(formato, r) {
   if (formato === "Stories") {
     const t = (r && r.story) || "varios";
     if (t === "imagem") return ["story", "fundoStory", "objetivo"];
+    if (t === "sequencia") return ["story", "telas", "fundoStory", "objetivo"];
     if (t === "continuo") return ["story", "textoNaTela", "objetivo"];
     return ["story", "duracao", "cenas", "textoNaTela", "objetivo"];
   }
@@ -1186,7 +1188,7 @@ function abrirBriefing(p) {
   const video = ["Reels", "Stories"].includes(p.formato);
   BR.post = p.id;
   BR.r = video ? { duracao: "30", cenas: "auto", textoNaTela: "sim", objetivo: "" } : { capa: "foto", fundo: "fotos", slides: "auto", objetivo: "" };
-  if (p.formato === "Stories") Object.assign(BR.r, { story: "varios", fundo: "fotos" });
+  if (p.formato === "Stories") Object.assign(BR.r, { story: "varios", fundo: "fotos", slides: "auto" });
   BR.r.imagens = "ia"; BR.r.banco = []; BR.r.pessoa = ""; BR.motivoIA = ""; BR.escolhendoIA = false;
   desenharBriefing();
 }
@@ -1194,7 +1196,7 @@ function desenharBriefing() {
   const p = state.posts.find(x => x.id === BR.post); if (!p) return fecharDlg();
   const pergs = perguntasDo(p.formato, BR.r);
   // A pergunta das imagens entra depois do tipo/capa/fundo, quando o post tem imagem.
-  const comImagem = !(BR.r.fundo === "texto" && (p.formato === "Estatico" || (p.formato === "Stories" && BR.r.story === "imagem"))) && !(p.formato === "Carrossel" && BR.r.capa === "texto" && BR.r.fundo === "texto");
+  const comImagem = !(BR.r.fundo === "texto" && (p.formato === "Estatico" || (p.formato === "Stories" && ["imagem", "sequencia"].includes(BR.r.story)))) && !(p.formato === "Carrossel" && BR.r.capa === "texto" && BR.r.fundo === "texto");
   if (comImagem) pergs.splice(p.formato === "Stories" ? 1 : 0, 0, "imagens");
   const r = BR.r;
   const blocoBanco = () => comImagem && ["banco", "misto"].includes(r.imagens) ? `<div class="field"><span>Fotos e vídeos do banco${ajuda("banco")}</span><p class="small" style="margin:0">Escolha as fotos ou vídeos que podem entrar neste post (até 20), inclusive os que a IA já gerou, ou toque em "IA escolhe para este post" para ela marcar as que têm a ver com o tema. Sem escolher, a IA usa os mais recentes, primeiro os que você enviou. ${r.imagens === "banco" ? "Não gasta créditos de imagem." : "Só as imagens novas gastam créditos."}</p><div id="br-banco"></div></div>` : "";
@@ -1204,7 +1206,7 @@ function desenharBriefing() {
     return `<div class="field"><span>${esc(q.titulo)}</span><div class="seg" role="group" aria-label="${esc(q.titulo)}">${q.op.map(([v, t]) =>
       `<button type="button" data-b="op" data-k="${campo}" data-v="${v}" aria-pressed="${String(BR.r[campo] ?? "") === v}">${esc(t)}</button>`).join("")}</div></div>` + (k === "imagens" ? blocoBanco() + blocoPessoa() : "");
   }).join("");
-  const videos = p.formato === "Stories" && r.story === "imagem" ? 0 : p.formato === "Stories" && r.story === "continuo" ? 1 : ["Reels", "Stories"].includes(p.formato) ? Number(r.cenas) || 4 : (r.capa === "video" ? 1 : 0) + (r.fundo === "videos" ? (Number(r.slides) || 7) - 2 : r.fundo === "misto" ? 2 : 0);
+  const videos = p.formato === "Stories" && ["imagem", "sequencia"].includes(r.story) ? 0 : p.formato === "Stories" && r.story === "continuo" ? 1 : ["Reels", "Stories"].includes(p.formato) ? Number(r.cenas) || 4 : (r.capa === "video" ? 1 : 0) + (r.fundo === "videos" ? (Number(r.slides) || 7) - 2 : r.fundo === "misto" ? 2 : 0);
   abrirDlg(`<h2>Como vai ser este post?${ajuda(p.formato === "Stories" ? "stories" : "briefing")}</h2>
     <p class="hint">${esc(p.titulo)} · ${esc(p.formato)} · ${esc(p.rede)}</p>
     <form onsubmit="return false" style="display:grid;gap:14px">
@@ -1279,7 +1281,7 @@ document.addEventListener("click", e => {
     if (br.imagens === "banco" || !br.pessoa) delete br.pessoa;
     if (br.imagens === "ia") delete br.imagens;
     if (p && p.formato === "Stories") {
-      if (br.story === "imagem") { delete br.duracao; delete br.cenas; delete br.textoNaTela; }
+      if (br.story === "imagem" || br.story === "sequencia") { delete br.duracao; delete br.cenas; delete br.textoNaTela; if (br.story === "imagem") delete br.slides; }
       else { delete br.fundo; if (br.story === "continuo") delete br.cenas; }
     }
     for (const k of Object.keys(br)) if (br[k] === "" || br[k] === undefined) delete br[k];
@@ -1698,7 +1700,8 @@ function fotosCheias(p) {
 }
 
 // Story em imagem estática não é vídeo: vira uma arte vertical.
-const ehStoryImagem = p => p.formato === "Stories" && p.briefing && p.briefing.story === "imagem";
+// Story em imagem: uma só ("imagem") ou uma sequência de várias telas ("sequencia"); os dois seguem o caminho das fotos.
+const ehStoryImagem = p => p.formato === "Stories" && p.briefing && ["imagem", "sequencia"].includes(p.briefing.story);
 // Ajuda contextual: resumo curto + link para a seção da documentação.
 const AJUDA = {
   marcaPagina: ["Marca e fontes", "Tudo o que a IA lê antes de escrever: quem é a marca, como ela fala, as cores, os logos e de onde tirar ideias. Vale para toda a equipe.", "marca"],
@@ -2405,7 +2408,7 @@ function desenharCena(ctx, W, H, v, texto, logos, cores, nome, t, diag, n) {
 // Reels e Stories: o modelo "Vídeo" é o visual próprio das cenas; os outros modelos são os mesmos do carrossel, em 9:16.
 const ehModeloVideo = d => !d || !d.modelo || d.modelo === "video";
 function desenharVertical(sl, foto, logos, cores, nome, cv, diag, t) {
-  if (ehModeloVideo(diag)) return desenharCena(cv.getContext("2d"), cv.width, cv.height, foto, sl.t, logos, cores, nome, t, diag, sl.n);
+  if (ehModeloVideo(diag)) return desenharCena(cv.getContext("2d"), cv.width, cv.height, foto, [sl.t, sl.x].filter(Boolean).join(" · "), logos, cores, nome, t, diag, sl.n);
   // vídeo e story não têm contador nem "arraste": cada cena é desenhada como um slide único
   return desenharSlide({ n: sl.n, t: sl.t || "", x: sl.x || "" }, 0, 1, foto, logos, cores, nome, cv, diag);
 }
@@ -2578,12 +2581,14 @@ async function gerarArtes(p) {
     let artes = [];
     if (ehVideoFmt(p)) artes = await gerarVideoFinal(p, logo, cores, nome);
     else if (ehStoryImagem(p)) {
-      toast("Gerando a arte do story…");
-      const sl = p.slides[0] || { n: 1, t: p.titulo, x: "" };
-      const fotos = fotosCheias(p), foto = fotos[sl.n] ? await carregarImg(fotos[sl.n]) : ehModeloVideo(p.diag) ? document.createElement("canvas") : null;
-      const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920;
-      desenharVertical(ehModeloVideo(p.diag) ? { n: sl.n, t: [sl.t, sl.x].filter(Boolean).join(" · ") } : sl, foto, logo, cores, nome, cv, p.diag, 1000);
-      artes = [{ tipo: "image/jpeg", base64: await paraBase64(cv) }];
+      const telas = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }], fotos = fotosCheias(p);
+      for (const [k, sl] of telas.entries()) {
+        toast(telas.length > 1 ? `Gerando o story ${k + 1} de ${telas.length}…` : "Gerando a arte do story…");
+        const foto = fotos[sl.n] ? await carregarImg(fotos[sl.n]) : ehModeloVideo(p.diag) ? document.createElement("canvas") : null;
+        const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920;
+        desenharVertical(sl, foto, logo, cores, nome, cv, p.diag, 1000);
+        artes.push({ tipo: "image/jpeg", base64: await paraBase64(cv) });
+      }
     }
     else {
       const fotos = fotosCheias(p), clipes = clipesDoPost(p);
