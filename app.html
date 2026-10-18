@@ -566,6 +566,7 @@ body.travado .wrap { visibility: hidden; }
 .rev-midia .th i { position: absolute; left: 4px; top: 4px; font: 700 10px/1 Poppins, sans-serif; font-style: normal; background: rgba(0,0,0,.6); color: #fff; border-radius: 99px; padding: 3px 6px; }
 .rev-midia .btn { padding: 5px 6px; font-size: 11px; justify-content: center; }
 .bi-contagem { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bi-contagem .bi-ia { padding: 6px 12px; font-size: 13px; } .bi-motivo { margin: 6px 0 0; opacity: .8; }
 button.link { background: none; border: 0; padding: 0; color: var(--red, #F8395A); font: inherit; text-decoration: underline; cursor: pointer; }
 /* redes de publicação */
 .redes-post { display: grid; gap: 6px; margin-top: 8px; }
@@ -1113,7 +1114,7 @@ function abrirBriefing(p) {
   BR.post = p.id;
   BR.r = video ? { duracao: "30", cenas: "auto", textoNaTela: "sim", objetivo: "" } : { capa: "foto", fundo: "fotos", slides: "auto", objetivo: "" };
   if (p.formato === "Stories") Object.assign(BR.r, { story: "varios", fundo: "fotos" });
-  BR.r.imagens = "ia"; BR.r.banco = [];
+  BR.r.imagens = "ia"; BR.r.banco = []; BR.motivoIA = ""; BR.escolhendoIA = false;
   desenharBriefing();
 }
 function desenharBriefing() {
@@ -1123,7 +1124,7 @@ function desenharBriefing() {
   const comImagem = !(BR.r.fundo === "texto" && (p.formato === "Estatico" || (p.formato === "Stories" && BR.r.story === "imagem"))) && !(p.formato === "Carrossel" && BR.r.capa === "texto" && BR.r.fundo === "texto");
   if (comImagem) pergs.splice(p.formato === "Stories" ? 1 : 0, 0, "imagens");
   const r = BR.r;
-  const blocoBanco = () => comImagem && ["banco", "misto"].includes(r.imagens) ? `<div class="field"><span>Fotos e vídeos do banco${ajuda("banco")}</span><p class="small" style="margin:0">Escolha as fotos ou vídeos que podem entrar neste post (até 20), inclusive os que a IA já gerou. Sem escolher, a IA usa os mais recentes, primeiro os que você enviou. ${r.imagens === "banco" ? "Não gasta créditos de imagem." : "Só as imagens novas gastam créditos."}</p><div id="br-banco"></div></div>` : "";
+  const blocoBanco = () => comImagem && ["banco", "misto"].includes(r.imagens) ? `<div class="field"><span>Fotos e vídeos do banco${ajuda("banco")}</span><p class="small" style="margin:0">Escolha as fotos ou vídeos que podem entrar neste post (até 20), inclusive os que a IA já gerou, ou toque em "IA escolhe para este post" para ela marcar as que têm a ver com o tema. Sem escolher, a IA usa os mais recentes, primeiro os que você enviou. ${r.imagens === "banco" ? "Não gasta créditos de imagem." : "Só as imagens novas gastam créditos."}</p><div id="br-banco"></div></div>` : "";
   const blocos = pergs.map(k => {
     const q = PERGUNTAS[k], campo = q.campo || k;
     return `<div class="field"><span>${esc(q.titulo)}</span><div class="seg" role="group" aria-label="${esc(q.titulo)}">${q.op.map(([v, t]) =>
@@ -1590,7 +1591,7 @@ const AJUDA = {
   diagramacao: ["Diagramação", "Escolha o modelo (foto de fundo, editorial ou imagem lateral), o fundo claro ou escuro, o texto e o logo. A prévia muda na hora.", "diagramacao"],
   textos: ["Editar textos", "Mude título e texto de cada slide, a legenda e as hashtags sem esperar a IA. Depois, gere as artes de novo.", "textos"],
   ajustes: ["Pedir ajuste", "Escolha o post inteiro ou um slide só, marque se quer imagem nova e diga o que mudar. A nova versão chega em 1 ou 2 minutos. Até 3 ajustes por post.", "ajustes"],
-  banco: ["Banco de imagens e vídeos", "Envie fotos e vídeos da marca (produtos, loja, equipe). Tudo que a IA gera também fica guardado aqui, para reutilizar quando quiser, inclusive quando acabam os créditos. Ao criar um post, escolha \"Do meu banco\"; na revisão, dá para trocar a mídia de qualquer slide.", "banco"],
+  banco: ["Banco de imagens e vídeos", "Envie fotos e vídeos da marca (produtos, loja, equipe). Tudo que a IA gera também fica guardado aqui, para reutilizar quando quiser, inclusive quando acabam os créditos. Ao criar um post, escolha \"Do meu banco\" e marque as fotos, ou deixe a IA escolher as que combinam com o post; na revisão, dá para trocar a mídia de qualquer slide.", "banco"],
   redes: ["Publicar em", "Escolha entre as redes conectadas em Integrações. Cada uma recebe o texto no tamanho dela (X 280, Threads 500 caracteres). Stories vão só para Instagram e Facebook; o TikTok aceita vídeo ou fotos.", "redes"],
   agendados: ["Agendados", "Posts aprovados entram na fila e são publicados pelo Zernio na hora marcada. \"Publicar agora\" não espera o horário.", "agendados"],
   integracoes: ["Integrações", "Cada organização usa as próprias chaves: Claude escreve, Magnific gera imagens e vídeos e Apify coleta as fontes. Em Redes conectadas, conecte o Instagram e as outras redes onde os posts saem. Cole, salve e clique em Testar.", "integracoes"],
@@ -3676,7 +3677,7 @@ function gradeEscolha(selecionadas, acao, extra) {
     const f = BI.filtroEscolha || "todos", def = FILTROS_BANCO.find(x => x[0] === f) || FILTROS_BANCO[0];
     const lista = BI.lista.filter(def[2]);
     const filtros = `<div class="seg bi-filtros" role="group" aria-label="Filtrar">${FILTROS_BANCO.map(([k, t, fn]) => { const n = BI.lista.filter(fn).length; return k !== "todos" && !n ? "" : `<button type="button" data-escolha-filtro="${k}" aria-pressed="${f === k}">${t} <span class="small">${n}</span></button>`; }).join("")}</div>`;
-    const conta = acao === "briefing" ? `<div class="bi-contagem small"><span>${selecionadas.length ? `${selecionadas.length} escolhido${selecionadas.length > 1 ? "s" : ""}` : "Nenhum escolhido: a IA escolhe sozinha"}</span>${selecionadas.length ? `<button type="button" class="link" data-escolha-limpar>Limpar</button>` : ""}<button type="button" class="link" data-tab="banco" data-fechar-dlg>Abrir o banco</button></div>` : "";
+    const conta = acao === "briefing" ? `<div class="bi-contagem small"><button type="button" class="btn quiet bi-ia" data-escolha-ia ${BR.escolhendoIA ? "disabled" : ""}>${BR.escolhendoIA ? "A IA está escolhendo…" : "✨ IA escolhe para este post"}</button><span>${selecionadas.length ? `${selecionadas.length} escolhido${selecionadas.length > 1 ? "s" : ""}` : "Nenhum escolhido: a IA usa os mais recentes"}</span>${selecionadas.length ? `<button type="button" class="link" data-escolha-limpar>Limpar</button>` : ""}<button type="button" class="link" data-tab="banco" data-fechar-dlg>Abrir o banco</button></div>${BR.motivoIA ? `<p class="small bi-motivo">IA: ${esc(BR.motivoIA)}</p>` : ""}` : "";
     return filtros + conta + (lista.length ? `<div class="bi-escolha">${lista.map(x => `<button type="button" class="${selecionadas.includes(x.id) ? "on" : ""}" data-escolha="${acao}" data-v="${x.id}" ${extra || ""} aria-pressed="${selecionadas.includes(x.id)}" title="${esc(x.nome)}"><span class="bi-midia">${midiaBanco(x, true)}${x.origem === "ia" ? `<span class="bi-selo ia">IA</span>` : ""}${ehVideoBanco(x) ? `<span class="bi-play">▶</span>` : ""}</span><span>${esc(x.nome || (ehVideoBanco(x) ? "Vídeo" : "Foto"))}</span></button>`).join("")}</div>` : `<p class="small" style="margin:0">Nada neste filtro.</p>`);
   }
   if (!BI.lista.length) return `<p class="small" style="margin:0">O banco está vazio. Envie fotos ou vídeos em <button type="button" class="link" data-tab="banco" data-fechar-dlg>Banco de imagens e vídeos</button> (menu do perfil).</p>`;
@@ -3697,11 +3698,25 @@ async function abrirTrocaFoto(post, slide) {
 document.addEventListener("click", async e => {
   if (e.target.closest("[data-fechar-dlg]")) fecharDlg();
   const fb = e.target.closest("[data-escolha-filtro]"); if (fb) { BI.filtroEscolha = fb.dataset.escolhaFiltro; return desenharEscolhaBanco(); }
-  if (e.target.closest("[data-escolha-limpar]")) { BR.r.banco = []; return desenharEscolhaBanco(); }
+  if (e.target.closest("[data-escolha-limpar]")) { BR.r.banco = []; BR.motivoIA = ""; return desenharEscolhaBanco(); }
+  if (e.target.closest("[data-escolha-ia]")) {
+    if (BR.escolhendoIA) return;
+    const obs = document.getElementById("br-obs"); if (obs) BR.r.observacoes = obs.value;
+    const post = BR.post; BR.escolhendoIA = true; desenharEscolhaBanco();
+    try {
+      const r = await api({ acao: "escolherBanco", id: post, briefing: BR.r });
+      if (BR.post !== post) return;
+      if (!r.ids || !r.ids.length) { BR.motivoIA = ""; toast("A IA não achou no banco nada que combine com este post. Escolha à mão ou gere com IA."); }
+      else { BR.r.banco = r.ids; BR.motivoIA = r.motivo || ""; BI.filtroEscolha = "todos"; toast(`A IA escolheu ${r.ids.length} ${r.ids.length > 1 ? "itens" : "item"}. Confira e mude se quiser.`); }
+    } catch (err) { toast("Não deu para a IA escolher: " + textoErro(err)); }
+    finally { if (BR.post === post) { BR.escolhendoIA = false; desenharEscolhaBanco(); } }
+    return;
+  }
   const b = e.target.closest("[data-escolha]"); if (!b) return;
   if (b.dataset.escolha === "briefing") {
     const lista = BR.r.banco || [];
     BR.r.banco = lista.includes(b.dataset.v) ? lista.filter(x => x !== b.dataset.v) : lista.concat(b.dataset.v).slice(0, 20);
+    BR.motivoIA = "";
     return desenharEscolhaBanco();
   }
   if (b.dataset.escolha === "troca") {
