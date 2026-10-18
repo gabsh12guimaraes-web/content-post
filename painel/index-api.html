@@ -509,6 +509,9 @@ body.travado .wrap { visibility: hidden; }
 /* navegação de baixo no celular */
 .nav-baixo { display: none; }
 @media (max-width: 760px) {
+  /* o menu lateral termina onde a barra de baixo começa (altura medida em --altura-nav) e rola por dentro */
+  .side { max-height: calc(100vh - var(--altura-nav, 0px)); max-height: calc(100dvh - var(--altura-nav, 0px)); }
+  body.menu-aberto .side { border-bottom: 1px solid var(--line); }
   .nav-baixo:not([hidden]) { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); background: rgba(10,12,21,.92); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--line); }
   .nav-baixo button { position: relative; display: grid; justify-items: center; gap: 3px; padding: 6px 2px; border: 0; background: none; color: var(--ink-faint); font: 600 10px/1.1 inherit; font-family: inherit; border-radius: 10px; min-width: 0; }
   .nav-baixo span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: -.01em; }
@@ -2810,12 +2813,16 @@ const ICONES_NAV = {
   agend: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2",
 };
 const NOMES_NAV = { marca: "Marca", ideias: "Ideias", cal: "Calendário", rev: "Revisão", agend: "Agendados" };
+// Altura da barra de baixo (inclui a área do gesto no iPhone), para o menu lateral não ficar por baixo dela.
+function medirNav() { const n = document.getElementById("nav-baixo"); const h = n && getComputedStyle(n).display !== "none" ? n.offsetHeight : 0; document.documentElement.style.setProperty("--altura-nav", h + "px"); }
+addEventListener("resize", medirNav);
 function desenharNavBaixo() {
   let nav = document.getElementById("nav-baixo");
-  if (!nav) { nav = document.createElement("nav"); nav.id = "nav-baixo"; nav.className = "nav-baixo"; nav.setAttribute("aria-label", "Etapas"); document.body.appendChild(nav); }
+  if (!nav) { nav = document.createElement("nav"); nav.id = "nav-baixo"; nav.className = "nav-baixo"; nav.setAttribute("aria-label", "Etapas"); document.body.appendChild(nav); if (window.ResizeObserver) new ResizeObserver(medirNav).observe(nav); }
   const pend = { ideias: state.ideias.filter(i => i.status === "Sugerida").length, rev: state.posts.filter(p => p.status === "EmRevisao").length };
   nav.hidden = !(M.modo !== "web" || U.tela === "ok");
   nav.innerHTML = Object.keys(NOMES_NAV).map(k => `<button data-tab="${k}" aria-current="${k === tab}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONES_NAV[k]}"/></svg><span>${NOMES_NAV[k]}</span>${pend[k] ? `<i>${pend[k]}</i>` : ""}</button>`).join("");
+  medirNav();
 }
 document.addEventListener("click", e => {
   if (!e.target.closest("[data-menu]")) return;
