@@ -49,6 +49,17 @@ header.topo { display: flex; justify-content: space-between; align-items: center
 .hero .sub { color: var(--soft); font-size: clamp(16px, 2.2vw, 19px); max-width: 640px; margin: 16px auto 26px; text-wrap: pretty; }
 .vsl { position: relative; max-width: 860px; margin: 0 auto; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; border: 1px solid rgba(248,57,90,.35); box-shadow: 0 30px 80px -30px rgba(248,57,90,.55); background: #05060b; }
 .vsl iframe, .vsl video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+/* VSL vertical (9:16, gravado no celular): alto o bastante para ver o rosto, sem empurrar o botão para longe */
+.vsl.vertical { aspect-ratio: 9 / 16; height: min(68vh, 620px); max-width: calc(100vw - 32px); width: auto; }
+.vsl.vertical video { object-fit: cover; background: #05060b; }
+.vsl-play { position: absolute; inset: 0; border: 0; padding: 0; cursor: pointer; background: center / cover no-repeat; display: grid; place-items: center; font: inherit; color: #fff; }
+.vsl-play::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,11,0) 55%, rgba(5,6,11,.75) 100%); }
+.vsl-play .bola { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); z-index: 1; width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #FF5F7A, #F8395A 55%, #C8102E); box-shadow: 0 0 0 10px rgba(248,57,90,.25), 0 18px 40px -10px rgba(248,57,90,.9); display: grid; place-items: center; animation: pulsar 1.8s ease-in-out infinite; }
+.vsl-play .bola::before { content: ""; margin-left: 6px; border-left: 26px solid #fff; border-top: 16px solid transparent; border-bottom: 16px solid transparent; }
+.vsl-play .rotulo { position: absolute; z-index: 1; bottom: 18px; left: 0; right: 0; font-weight: 700; font-size: 15px; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
+.vsl-play:focus-visible { outline: 3px solid #fff; outline-offset: -3px; }
+@keyframes pulsar { 50% { box-shadow: 0 0 0 18px rgba(248,57,90,.12), 0 18px 40px -10px rgba(248,57,90,.9); } }
+@media (prefers-reduced-motion: reduce) { .vsl-play .bola { animation: none; } }
 /* demonstração animada (aparece enquanto não houver vídeo) */
 .demo { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1.1fr; gap: 4%; padding: 5% 6%; background: radial-gradient(90% 120% at 100% 0%, rgba(248,57,90,.2), transparent 60%), #0d0f1a; }
 .demo .passos-demo { display: grid; align-content: center; gap: 3.2cqw; container-type: inline-size; }
@@ -275,7 +286,11 @@ footer a { color: var(--soft); }
 <script>
 /* ================= Configuração da campanha ================= */
 // Link do vídeo (YouTube, Vimeo, Panda Video ou arquivo .mp4). Vazio = mostra a demonstração animada.
-const VIDEO_URL = "";
+// O VSL fica em marca/vsl.mp4: enquanto o arquivo não estiver no site, a página mostra a demonstração animada.
+const VIDEO_URL = "marca/vsl.mp4";
+// Vídeo gravado em pé (9:16) e a capa que aparece antes do play.
+const VIDEO_VERTICAL = true;
+const VIDEO_CAPA = "marca/vsl-capa.jpg";
 // ID do Pixel da Meta (só números). Vazio = sem pixel.
 const PIXEL_META = "";
 // Mostrar o botão abaixo do vídeo só depois de X segundos (0 = sempre visível). Funciona com vídeo; sem vídeo fica sempre visível.
@@ -316,14 +331,26 @@ function montarVideo(url) {
   if ((m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/))) return `<iframe src="https://www.youtube-nocookie.com/embed/${m[1]}?rel=0&modestbranding=1&playsinline=1" title="Vídeo da Content Post" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
   if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/))) return `<iframe src="https://player.vimeo.com/video/${m[1]}?title=0&byline=0&portrait=0" title="Vídeo da Content Post" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
   if (/pandavideo|player-vz/.test(url)) return `<iframe src="${esc(url)}" title="Vídeo da Content Post" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
-  if (/\.mp4(\?|$)/i.test(url)) return `<video src="${esc(url)}" controls playsinline preload="metadata"></video>`;
+  if (/\.mp4(\?|$)/i.test(url)) return `<video src="${esc(url)}" ${VIDEO_CAPA ? `poster="${esc(VIDEO_CAPA)}"` : ""} controls playsinline preload="none"></video>
+    ${VIDEO_CAPA ? `<button type="button" class="vsl-play" style="background-image:url('${esc(VIDEO_CAPA)}')" aria-label="Assistir ao vídeo"><span class="bola"></span><span class="rotulo">Assista com som 🔊</span></button>` : ""}`;
   return "";
 }
+var timerDemo = null;
 const videoHtml = VIDEO_URL ? montarVideo(VIDEO_URL) : "";
-if (videoHtml) {
+function mostrarVideo() {
   vsl.innerHTML = videoHtml;
+  if (VIDEO_VERTICAL || /\/shorts\//.test(VIDEO_URL)) vsl.classList.add("vertical");
+  const v = vsl.querySelector("video"), play = vsl.querySelector(".vsl-play");
+  if (v && play) play.addEventListener("click", () => { play.remove(); v.muted = false; v.play().catch(() => {}); evento("ViewContent", { content_name: "vsl" }); });
   if (CTA_APOS_SEGUNDOS > 0) { const c = document.getElementById("cta-video"); c.hidden = true; setTimeout(() => { c.hidden = false; }, CTA_APOS_SEGUNDOS * 1000); }
-} else {
+}
+// Arquivo .mp4 do próprio site: só troca a demonstração pelo vídeo se o arquivo já foi publicado.
+if (videoHtml && /\.mp4(\?|$)/i.test(VIDEO_URL) && !/^https?:/i.test(VIDEO_URL)) {
+  desenharDemo();
+  fetch(VIDEO_URL, { method: "HEAD" }).then(r => { if (r.ok) { pararDemo(); mostrarVideo(); } }).catch(() => {});
+} else if (videoHtml) mostrarVideo();
+else desenharDemo();
+function desenharDemo() {
   vsl.innerHTML = `<div class="demo" aria-hidden="true">
     <div class="passos-demo">${[["Ideias", "A IA sugere pautas"], ["Criação", "Textos, fotos e vídeos"], ["Revisão", "Você aprova"], ["Publicado", "Na hora marcada"]].map(([t, s], i) => `<div class="passo-demo" data-i="${i}"><i>${i + 1}</i><div><b>${t}</b><span>${s}</span></div></div>`).join("")}</div>
     <div class="tela-demo">
@@ -336,8 +363,9 @@ if (videoHtml) {
   const passos = [...vsl.querySelectorAll(".passo-demo")], cenas = [...vsl.querySelectorAll(".cena")];
   let i = 0;
   const mostrar = () => { passos.forEach((p, k) => p.classList.toggle("on", k === i)); cenas.forEach((c, k) => c.classList.toggle("on", k === i)); i = (i + 1) % 4; };
-  mostrar(); if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(mostrar, 2200);
+  mostrar(); if (!matchMedia("(prefers-reduced-motion: reduce)").matches) timerDemo = setInterval(mostrar, 2200);
 }
+function pararDemo() { clearInterval(timerDemo); }
 // Planos
 let ciclo = MESES[daUrl.get("ciclo")] ? daUrl.get("ciclo") : "anual";
 function desenhar() {
