@@ -545,6 +545,12 @@ body.travado .wrap { visibility: hidden; }
 .bi-escolha button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bi-escolha button.on { border-color: var(--red, #F8395A); box-shadow: 0 0 0 1px var(--red, #F8395A); color: #fff; }
 .bi-slide { display: flex; align-items: center; gap: 10px; } .bi-slide img { width: 48px; height: 60px; object-fit: cover; border-radius: 4px; }
+.bi-card video { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 6px; background: #000; display: block; }
+.bi-midia { position: relative; } .bi-midia .bi-selo { position: absolute; top: 6px; left: 6px; font: 700 10px/1 Poppins, sans-serif; letter-spacing: .04em; background: rgba(10,12,21,.78); color: #fff; border-radius: 99px; padding: 4px 7px; }
+.bi-midia .bi-selo.ia { background: var(--red, #F8395A); }
+.bi-midia .bi-play { position: absolute; right: 6px; bottom: 6px; font-size: 11px; background: rgba(0,0,0,.6); color: #fff; border-radius: 99px; padding: 3px 7px; }
+.bi-escolha button video { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 5px; display: block; background: #000; }
+.bi-filtros { margin: 0 0 12px; flex-wrap: wrap; }
 button.link { background: none; border: 0; padding: 0; color: var(--red, #F8395A); font: inherit; text-decoration: underline; cursor: pointer; }
 /* redes de publicação */
 .redes-post { display: grid; gap: 6px; margin-top: 8px; }
@@ -1083,7 +1089,7 @@ function perguntasDo(formato, r) {
   return ["capa", "fundo", "slides", "objetivo"];
 }
 function abrirBriefing(p) {
-  if (M.modo === "web" && !BI.carregado) carregarBanco(true).then(() => document.getElementById("br-banco") && desenharEscolhaBanco());
+  if (M.modo === "web") carregarBanco(true).then(() => document.getElementById("br-banco") && desenharEscolhaBanco());
   const video = ["Reels", "Stories"].includes(p.formato);
   BR.post = p.id;
   BR.r = video ? { duracao: "30", cenas: "auto", textoNaTela: "sim", objetivo: "" } : { capa: "foto", fundo: "fotos", slides: "auto", objetivo: "" };
@@ -1108,7 +1114,7 @@ function desenharBriefing() {
     <p class="hint">${esc(p.titulo)} · ${esc(p.formato)} · ${esc(p.rede)}</p>
     <form onsubmit="return false" style="display:grid;gap:14px">
       ${blocos}
-      ${comImagem && ["banco", "misto"].includes(r.imagens) ? `<div class="field"><span>Fotos do banco${ajuda("banco")}</span><p class="small" style="margin:0">Escolha as fotos que podem entrar neste post (até 20). Sem escolher, a IA usa as mais recentes do banco.</p><div id="br-banco"></div></div>` : ""}
+      ${comImagem && ["banco", "misto"].includes(r.imagens) ? `<div class="field"><span>Fotos e vídeos do banco${ajuda("banco")}</span><p class="small" style="margin:0">Escolha as fotos ou vídeos que podem entrar neste post (até 20). Sem escolher, a IA usa os mais recentes do banco, primeiro os que você enviou.</p><div id="br-banco"></div></div>` : ""}
       <label class="field"><span>Observações (opcional)</span><textarea id="br-obs" rows="3" maxlength="1000" placeholder="Ex.: mostrar a pulseira em uso no bar, citar a promoção de sexta, evitar fundo branco">${esc(r.observacoes || "")}</textarea></label>
       ${["banco", "misto"].includes(r.imagens) && BI.carregado && !BI.lista.length ? `<div class="msg erro">O banco de imagens está vazio. Envie fotos antes ou escolha "Gerar com IA".</div>` : ""}
       ${videos ? `<p class="small" style="margin:0">Vai gerar cerca de ${videos} clipe${videos > 1 ? "s" : ""} de vídeo no Magnific, que gastam mais créditos que fotos e levam alguns minutos a mais.</p>` : ""}
@@ -1565,7 +1571,7 @@ const AJUDA = {
   diagramacao: ["Diagramação", "Escolha o modelo (foto de fundo, editorial ou imagem lateral), o fundo claro ou escuro, o texto e o logo. A prévia muda na hora.", "diagramacao"],
   textos: ["Editar textos", "Mude título e texto de cada slide, a legenda e as hashtags sem esperar a IA. Depois, gere as artes de novo.", "textos"],
   ajustes: ["Pedir ajuste", "Escolha o post inteiro ou um slide só, marque se quer imagem nova e diga o que mudar. A nova versão chega em 1 ou 2 minutos. Até 3 ajustes por post.", "ajustes"],
-  banco: ["Banco de imagens", "Envie as fotos da marca (produtos, loja, equipe). Ao criar um post, escolha \"Do meu banco\" e a IA escreve os slides em cima dessas fotos. Na revisão, dá para trocar a foto de qualquer slide.", "banco"],
+  banco: ["Banco de imagens e vídeos", "Envie fotos e vídeos da marca (produtos, loja, equipe). Tudo que a IA gera também fica guardado aqui, para reutilizar quando quiser, inclusive quando acabam os créditos. Ao criar um post, escolha \"Do meu banco\"; na revisão, dá para trocar a mídia de qualquer slide.", "banco"],
   redes: ["Publicar em", "Escolha entre as redes conectadas em Integrações. Cada uma recebe o texto no tamanho dela (X 280, Threads 500 caracteres). Stories vão só para Instagram e Facebook; o TikTok aceita vídeo ou fotos.", "redes"],
   agendados: ["Agendados", "Posts aprovados entram na fila e são publicados pelo Zernio na hora marcada. \"Publicar agora\" não espera o horário.", "agendados"],
   integracoes: ["Integrações", "Cada organização usa as próprias chaves: Claude escreve, Magnific gera imagens e vídeos e Apify coleta as fontes. Em Redes conectadas, conecte o Instagram e as outras redes onde os posts saem. Cole, salve e clique em Testar.", "integracoes"],
@@ -3528,7 +3534,14 @@ function formFonte(x) {
   </div>`;
 }
 // Banco de imagens: fotos próprias da marca (produtos, loja) para usar nos posts no lugar das geradas por IA.
-const BI = { lista: [], carregado: false, carregando: false, enviando: 0, total: 0, editando: null, erro: "" };
+const BI = { lista: [], carregado: false, carregando: false, enviando: 0, total: 0, editando: null, erro: "", filtro: "todos" };
+const ehVideoBanco = x => /^video\//.test((x.arquivo && x.arquivo.type) || "");
+const FILTROS_BANCO = [["todos", "Todos", () => true], ["envio", "Enviados por você", x => x.origem !== "ia"], ["ia", "Gerados por IA", x => x.origem === "ia"], ["fotos", "Fotos", x => !ehVideoBanco(x)], ["videos", "Vídeos", ehVideoBanco]];
+const bancoFiltrado = () => BI.lista.filter((FILTROS_BANCO.find(f => f[0] === BI.filtro) || FILTROS_BANCO[0])[2]);
+// Miniatura de foto ou vídeo do banco (vídeo mostra o primeiro quadro).
+const midiaBanco = (x, lazy) => ehVideoBanco(x)
+  ? `<video src="${esc(urlArq(x.arquivo))}#t=0.1" muted playsinline preload="metadata" aria-label="${esc(x.nome || "Vídeo")}"></video>`
+  : `<img src="${esc(urlArq(x.arquivo))}" alt="${esc(x.nome || "")}" ${lazy ? 'loading="lazy"' : ""}>`;
 let timerBanco = null;
 async function carregarBanco(silencioso) {
   if (BI.carregando) return; BI.carregando = true;
@@ -3554,53 +3567,60 @@ function prepararFoto(f) {
   });
 }
 async function enviarBanco(arquivos) {
-  const fotos = [...arquivos].filter(f => /^image\//.test(f.type));
-  if (!fotos.length) return toast("Escolha fotos em JPG, PNG ou WEBP.");
+  const grandes = [...arquivos].filter(f => f.type === "video/mp4" && f.size > 25 * 1024 * 1024);
+  if (grandes.length) toast(`${grandes.map(f => f.name).join(", ")}: vídeos de até 25 MB.`);
+  const fotos = [...arquivos].filter(f => /^image\//.test(f.type) || (f.type === "video/mp4" && f.size <= 25 * 1024 * 1024));
+  if (!fotos.length) return grandes.length ? null : toast("Escolha fotos em JPG, PNG ou WEBP, ou vídeos em MP4.");
   BI.enviando = fotos.length; BI.total = fotos.length; desenharBanco();
   let falhas = 0;
   for (const f of fotos) {
-    try { const x = await prepararFoto(f); await api({ acao: "enviarImagemBanco", tipo: x.tipo, base64: x.base64, nome: f.name, titulo: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60) }); }
+    try { const x = f.type === "video/mp4" ? { tipo: f.type, base64: await arquivoBase64(f) } : await prepararFoto(f); await api({ acao: "enviarImagemBanco", tipo: x.tipo, base64: x.base64, nome: f.name, titulo: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60) }); }
     catch (e) { falhas++; toast("Não deu para enviar " + f.name + ": " + textoErro(e)); }
     BI.enviando--; desenharBanco();
   }
-  toast(falhas ? `Enviei ${fotos.length - falhas} de ${fotos.length} fotos.` : `${fotos.length} foto${fotos.length > 1 ? "s" : ""} no banco. A IA está descrevendo cada uma.`);
+  toast(falhas ? `Enviei ${fotos.length - falhas} de ${fotos.length} arquivos.` : `${fotos.length} arquivo${fotos.length > 1 ? "s" : ""} no banco.${fotos.some(f => /^image\//.test(f.type)) ? " A IA está descrevendo as fotos." : ""}`);
   carregarBanco();
 }
 function desenharBanco() {
   const el = document.getElementById("banco-lista"); if (!el) return;
   const st = document.getElementById("banco-status");
-  if (st) st.textContent = BI.enviando ? `Enviando ${BI.total - BI.enviando + 1} de ${BI.total}…` : BI.carregado ? `${BI.lista.length} foto${BI.lista.length === 1 ? "" : "s"}` : "";
+  if (st) { const nv = BI.lista.filter(ehVideoBanco).length, nf = BI.lista.length - nv; st.textContent = BI.enviando ? `Enviando ${BI.total - BI.enviando + 1} de ${BI.total}…` : BI.carregado ? [`${nf} foto${nf === 1 ? "" : "s"}`, nv ? `${nv} vídeo${nv === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ") : ""; }
+  const fl = document.getElementById("banco-filtros");
+  if (fl) fl.innerHTML = BI.carregado && BI.lista.length ? FILTROS_BANCO.map(([k, t, f]) => { const n = BI.lista.filter(f).length; return k !== "todos" && !n ? "" : `<button type="button" data-bi="filtro" data-id="${k}" aria-pressed="${BI.filtro === k}">${t} <span class="small">${n}</span></button>`; }).join("") : "";
   if (BI.erro && !BI.carregado) { el.innerHTML = `<div class="msg erro">${esc(BI.erro)}</div>`; return; }
   if (!BI.carregado) { el.innerHTML = `<div class="esqueleto"><i></i></div>`; return; }
-  if (!BI.lista.length) { el.innerHTML = `<p class="hint" style="margin:0">Nenhuma foto ainda. Envie as fotos dos seus produtos, da loja ou da equipe: a IA monta os posts em cima delas.</p>`; return; }
-  el.innerHTML = BI.lista.map(x => BI.editando === x.id ? `<div class="bi-card editando">
-      <img src="${esc(urlArq(x.arquivo))}" alt="">
+  if (!BI.lista.length) { el.innerHTML = `<p class="hint" style="margin:0">Nada ainda. Envie fotos e vídeos dos seus produtos, da loja ou da equipe. Tudo que a IA gerar nos posts também aparece aqui.</p>`; return; }
+  const lista = bancoFiltrado();
+  if (!lista.length) { el.innerHTML = `<p class="hint" style="margin:0">Nada neste filtro.</p>`; return; }
+  el.innerHTML = lista.map(x => BI.editando === x.id ? `<div class="bi-card editando">
+      ${midiaBanco(x)}
       <label class="field"><span>Nome</span><input id="bi-nome" maxlength="80" value="${esc(x.nome)}"></label>
       <label class="field"><span>O que aparece</span><textarea id="bi-desc" rows="2" maxlength="400">${esc(x.descricao)}</textarea></label>
       <label class="field"><span>Etiquetas (separe por vírgula)</span><input id="bi-tags" maxlength="200" value="${esc((x.tags || []).join(", "))}"></label>
       <div class="actions"><button type="button" class="btn primary" data-bi="salvar" data-id="${x.id}">Salvar</button><button type="button" class="btn quiet" data-bi="cancelar">Cancelar</button></div>
     </div>` : `<div class="bi-card">
-      <img src="${esc(urlArq(x.arquivo))}" alt="${esc(x.nome)}" loading="lazy">
+      <div class="bi-midia">${midiaBanco(x, true)}${x.origem === "ia" ? `<span class="bi-selo ia" title="Gerado por IA num post">IA</span>` : ""}${ehVideoBanco(x) ? `<span class="bi-play">▶ vídeo</span>` : ""}</div>
       <b>${esc(x.nome || "Sem nome")}</b>
       <span class="small">${x.descrevendo ? `<span class="chip warn">IA descrevendo…</span>` : esc(x.descricao || "Sem descrição. Clique em Editar para descrever.")}</span>
       ${(x.tags || []).length ? `<span class="bi-tags">${x.tags.map(t => `<i>${esc(t)}</i>`).join("")}</span>` : ""}
-      <div class="actions"><button type="button" class="btn quiet" data-bi="editar" data-id="${x.id}">Editar</button><button type="button" class="btn quiet" data-bi="remover" data-id="${x.id}">Remover</button></div>
+      <div class="actions"><button type="button" class="btn quiet" data-bi="editar" data-id="${x.id}">Editar</button><a class="btn quiet" href="${esc(urlArq(x.arquivo))}" download="${esc((x.nome || "arquivo").replace(/[^\w\- ]+/g, "") + "." + String((x.arquivo && x.arquivo.type) || "image/jpeg").split("/")[1].replace("jpeg", "jpg"))}" target="_blank" rel="noopener">Baixar</a><button type="button" class="btn quiet" data-bi="remover" data-id="${x.id}">Remover</button></div>
     </div>`).join("");
 }
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-bi]"); if (!b) return;
   const a = b.dataset.bi, id = b.dataset.id;
+  if (a === "filtro") { BI.filtro = id; return desenharBanco(); }
   if (a === "editar") { BI.editando = id; return desenharBanco(); }
   if (a === "cancelar") { BI.editando = null; return desenharBanco(); }
   if (a === "salvar") {
     const v = k => document.getElementById(k)?.value || "";
-    try { await api({ acao: "salvarImagemBanco", id, nome: v("bi-nome"), descricao: v("bi-desc"), tags: v("bi-tags").split(",") }); BI.editando = null; toast("Foto atualizada."); carregarBanco(); }
+    try { await api({ acao: "salvarImagemBanco", id, nome: v("bi-nome"), descricao: v("bi-desc"), tags: v("bi-tags").split(",") }); BI.editando = null; toast("Atualizado."); carregarBanco(); }
     catch (err) { toast("Não deu para salvar: " + textoErro(err)); }
     return;
   }
   if (a === "remover") {
     if (b.dataset.confirma !== "1") { b.dataset.confirma = "1"; b.textContent = "Remover mesmo?"; setTimeout(() => { b.dataset.confirma = ""; b.textContent = "Remover"; }, 3000); return; }
-    try { await api({ acao: "removerImagemBanco", id }); toast("Foto removida do banco. Os posts que já usam essa foto continuam com ela."); carregarBanco(); }
+    try { await api({ acao: "removerImagemBanco", id }); toast("Removido do banco. Os posts que já usam esse arquivo continuam com ele."); carregarBanco(); }
     catch (err) { toast("Não deu para remover: " + textoErro(err)); }
   }
 });
@@ -3612,18 +3632,18 @@ document.addEventListener("drop", e => { const z = e.target.closest && e.target.
 // Escolha de fotos do banco (briefing do post e troca na revisão)
 function gradeEscolha(selecionadas, acao, extra) {
   if (!BI.carregado) return `<div class="esqueleto"><i></i></div>`;
-  if (!BI.lista.length) return `<p class="small" style="margin:0">O banco está vazio. Envie fotos em <button type="button" class="link" data-tab="marca" data-fechar-dlg>Marca e fontes › Banco de imagens</button>.</p>`;
-  return `<div class="bi-escolha">${BI.lista.map(x => `<button type="button" class="${selecionadas.includes(x.id) ? "on" : ""}" data-escolha="${acao}" data-v="${x.id}" ${extra || ""} aria-pressed="${selecionadas.includes(x.id)}" title="${esc(x.nome)}"><img src="${esc(urlArq(x.arquivo))}" alt="" loading="lazy"><span>${esc(x.nome || "Foto")}</span></button>`).join("")}</div>`;
+  if (!BI.lista.length) return `<p class="small" style="margin:0">O banco está vazio. Envie fotos ou vídeos em <button type="button" class="link" data-tab="marca" data-fechar-dlg>Marca e fontes › Banco de imagens e vídeos</button>.</p>`;
+  return `<div class="bi-escolha">${BI.lista.map(x => `<button type="button" class="${selecionadas.includes(x.id) ? "on" : ""}" data-escolha="${acao}" data-v="${x.id}" ${extra || ""} aria-pressed="${selecionadas.includes(x.id)}" title="${esc(x.nome)}"><span class="bi-midia">${midiaBanco(x, true)}${x.origem === "ia" ? `<span class="bi-selo ia">IA</span>` : ""}${ehVideoBanco(x) ? `<span class="bi-play">▶</span>` : ""}</span><span>${esc(x.nome || (ehVideoBanco(x) ? "Vídeo" : "Foto"))}</span></button>`).join("")}</div>`;
 }
 function desenharEscolhaBanco() {
   const el = document.getElementById("br-banco"); if (el) el.innerHTML = gradeEscolha(BR.r.banco || [], "briefing");
   const t = document.getElementById("troca-banco"); if (t) t.innerHTML = gradeEscolha([], "troca", `data-post="${t.dataset.post}" data-slide="${t.dataset.slide}"`);
 }
 async function abrirTrocaFoto(post, slide) {
-  abrirDlg(`<h2>Trocar a foto do slide${ajuda("banco")}</h2><p class="hint">Escolha uma foto do banco. Ela entra no lugar da atual, sem IA e sem espera.</p>
+  abrirDlg(`<h2>Trocar a mídia do slide${ajuda("banco")}</h2><p class="hint">Escolha uma foto ou vídeo do banco, inclusive os que a IA já gerou. Entra no lugar do atual, sem IA, sem espera e sem gastar créditos.</p>
     <div id="troca-banco" data-post="${post.id}" data-slide="${slide}"></div>
     <div class="actions" style="margin-top:14px"><button class="btn quiet" data-u="fechar">Cancelar</button></div>`);
-  if (!BI.carregado) await carregarBanco(); else desenharEscolhaBanco();
+  desenharEscolhaBanco(); await carregarBanco();
 }
 document.addEventListener("click", async e => {
   if (e.target.closest("[data-fechar-dlg]")) fecharDlg();
@@ -3700,14 +3720,15 @@ function renderMarca() {
     </section>
   </div>
   <section class="glass box banco" style="margin-top:14px">
-    <div class="actions" style="justify-content:space-between"><h2>Banco de imagens${ajuda("banco")}</h2><span class="small" id="banco-status"></span></div>
-    <p class="hint">Fotos reais da marca: produtos, loja, equipe. Ao criar um post, escolha "Do meu banco" e a IA monta os slides em cima delas, em vez de gerar imagens.</p>
-    <label class="bi-zona" id="banco-zona"><input type="file" id="banco-arquivos" class="arquivo-oculto" accept="image/jpeg,image/png,image/webp" multiple>
-      <b>Arraste as fotos para cá ou clique para escolher</b><span class="small">JPG, PNG ou WEBP. Pode enviar várias de uma vez. A IA descreve cada foto para escolher a certa em cada post.</span></label>
+    <div class="actions" style="justify-content:space-between"><h2>Banco de imagens e vídeos${ajuda("banco")}</h2><span class="small" id="banco-status"></span></div>
+    <p class="hint">Suas fotos e vídeos (produtos, loja, equipe) e tudo que a IA já gerou nos posts, guardado sozinho. Ao criar um post, escolha "Do meu banco" para reutilizar, sem gastar créditos de IA.</p>
+    <label class="bi-zona" id="banco-zona"><input type="file" id="banco-arquivos" class="arquivo-oculto" accept="image/jpeg,image/png,image/webp,video/mp4" multiple>
+      <b>Arraste fotos e vídeos para cá ou clique para escolher</b><span class="small">Fotos em JPG, PNG ou WEBP; vídeos em MP4 de até 25 MB. A IA descreve cada foto para escolher a certa em cada post.</span></label>
+    <div class="seg bi-filtros" id="banco-filtros" role="group" aria-label="Filtrar o banco"></div>
     <div class="bi-grade" id="banco-lista"></div>
   </section>`;
   renderFontes(); renderStatus();
-  if (M.modo === "web") { if (!BI.carregado) carregarBanco(true); else desenharBanco(); }
+  if (M.modo === "web") { desenharBanco(); carregarBanco(true); } // recarrega: posts novos põem mídias geradas no banco
 }
 
 function pintarPaleta() {
