@@ -95,7 +95,7 @@ h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.025em; line-height: 1.
 .vitrine-carrossel img { flex: none; width: min(300px, 74vw); height: auto; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 14px; scroll-snap-align: start; border: 1px solid var(--line); max-width: 100%; }
 .galeria { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
 .galeria img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 12px; display: block; }
-@media (max-width: 760px) { .galeria { grid-template-columns: repeat(3, minmax(0, 1fr)); } .galeria img:nth-child(n+10) { display: none; } }
+@media (max-width: 760px) { .galeria { grid-template-columns: repeat(2, minmax(0, 1fr)); } .galeria img:nth-child(n+5) { display: none; } }
 .formato p { padding: 12px 14px 14px; color: var(--soft); font-size: 13px; }
 .formato p b { color: #fff; display: block; font-size: 15px; }
 @media (max-width: 760px) { .formatos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -178,33 +178,28 @@ footer a { color: var(--soft); }
 
   <h2>Todos os formatos que o Instagram pede</h2>
   <div class="formatos">
-    <div class="formato"><div class="arte foto" data-tag="Carrossel"><img src="marca/exemplos/carrossel-1.webp" alt="Capa de carrossel criada pela Content Post: Coisas que você não faz mais no bar" loading="lazy"></div><p><b>Carrossel</b>Slides com fotos, vídeos ou só texto.</p></div>
-    <div class="formato"><div class="arte foto" data-tag="Reels"><img src="marca/exemplos/foto-show.webp" alt="Cena de show gerada por IA para um Reels" loading="lazy"><span class="play">▶ 0:30</span></div><p><b>Reels</b>Cenas em vídeo com texto na tela.</p></div>
-    <div class="formato"><div class="arte foto" data-tag="Estático"><img src="marca/exemplos/estatico.webp" alt="Post estático criado pela Content Post: Encosta a pulseira. Pronto, segue o rolê." loading="lazy"></div><p><b>Estático</b>Uma arte só, com foto ou só texto.</p></div>
-    <div class="formato"><div class="arte foto" data-tag="Stories"><img src="marca/exemplos/foto-danca.webp" alt="Imagem gerada por IA para Stories" loading="lazy"></div><p><b>Stories</b>Imagem, vídeo contínuo ou vários vídeos.</p></div>
+    <div class="formato"><div class="arte foto" data-tag="Carrossel"><img src="marca/cp/cp-carrossel-1.webp" alt="Capa de carrossel criada na Content Post: Seu Instagram parado está custando clientes" loading="lazy"></div><p><b>Carrossel</b>Slides com fotos, vídeos ou só texto.</p></div>
+    <div class="formato"><div class="arte foto" data-tag="Reels"><img src="marca/cp/cp-cinema.webp" alt="Capa de Reels no modelo Cinema: De uma ideia a um post em minutos" loading="lazy"><span class="play">▶ 0:30</span></div><p><b>Reels</b>Cenas em vídeo com texto na tela.</p></div>
+    <div class="formato"><div class="arte foto" data-tag="Estático"><img src="marca/cp/cp-manchete.webp" alt="Post estático no modelo Manchete: 3 sinais de que seu perfil precisa de ajuda" loading="lazy"></div><p><b>Estático</b>Uma arte só, com foto ou só texto.</p></div>
+    <div class="formato"><div class="arte foto" data-tag="Stories"><img src="marca/cp/cp-minimal.webp" alt="Arte no modelo Minimal: Postar todo dia sem esforço" loading="lazy"></div><p><b>Stories</b>Imagem, vídeo contínuo ou vários vídeos.</p></div>
   </div>
 
   <h2>Feito com a Content Post</h2>
   <p class="lead">Um carrossel de verdade, criado pela plataforma: texto, foto e diagramação. Arraste para ver os slides.</p>
   <div class="vitrine-carrossel" tabindex="0" aria-label="Slides de um carrossel criado pela Content Post">
-    <img src="marca/exemplos/carrossel-1.webp" alt="Slide 1 de um carrossel criado pela Content Post" loading="lazy">
-    <img src="marca/exemplos/carrossel-2.webp" alt="Slide 2 de um carrossel criado pela Content Post" loading="lazy">
-    <img src="marca/exemplos/carrossel-3.webp" alt="Slide 3 de um carrossel criado pela Content Post" loading="lazy">
-    <img src="marca/exemplos/carrossel-4.webp" alt="Slide 4 de um carrossel criado pela Content Post" loading="lazy">
-    <img src="marca/exemplos/estatico.webp" alt="Último slide do carrossel, com a chamada final" loading="lazy">
+    <img src="marca/cp/cp-carrossel-1.webp" alt="Slide 1 de um carrossel criado na Content Post" loading="lazy">
+    <img src="marca/cp/cp-carrossel-2.webp" alt="Slide 2 de um carrossel criado na Content Post" loading="lazy">
+    <img src="marca/cp/cp-carrossel-3.webp" alt="Slide 3 de um carrossel criado na Content Post" loading="lazy">
+    <img src="marca/cp/cp-carrossel-4.webp" alt="Slide 4 de um carrossel criado na Content Post" loading="lazy">
+    <img src="marca/cp/cp-carrossel-5.webp" alt="Último slide do carrossel, com a chamada final" loading="lazy">
   </div>
-  <p class="lead" style="margin-top:34px">E algumas das imagens que a IA gerou para posts reais, com a identidade da marca:</p>
+  <p class="lead" style="margin-top:34px">E outros modelos de diagramação que você escolhe com um clique:</p>
   <div class="galeria">
-    <img src="marca/exemplos/foto-pulseira.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
-    <img src="marca/exemplos/foto-brinde.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
-    <img src="marca/exemplos/foto-drink.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
-    <img src="marca/exemplos/foto-maquininha.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
-    <img src="marca/exemplos/foto-palco.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
-    <img src="marca/exemplos/foto-celular.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
-    <img src="marca/exemplos/foto-pista.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
-    <img src="marca/exemplos/foto-mesa.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
-    <img src="marca/exemplos/foto-maos.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
-    <img src="marca/exemplos/foto-bar.webp" alt="Imagem gerada por IA na Content Post" loading="lazy">
+    <img src="marca/cp/cp-cinema.webp" alt="Modelo Cinema" loading="lazy">
+    <img src="marca/cp/cp-manchete.webp" alt="Modelo Manchete" loading="lazy">
+    <img src="marca/cp/cp-minimal.webp" alt="Modelo Minimal" loading="lazy">
+    <img src="marca/cp/cp-manchete-2.webp" alt="Modelo Manchete com imagem" loading="lazy">
+    <img src="marca/cp/cp-minimal-2.webp" alt="Modelo Minimal em fundo claro" loading="lazy">
   </div>
 
   <h2>Feita para quem vive de Instagram</h2>
@@ -310,9 +305,9 @@ if (videoHtml) {
   vsl.innerHTML = `<div class="demo" aria-hidden="true">
     <div class="passos-demo">${[["Ideias", "A IA sugere pautas"], ["Criação", "Textos, fotos e vídeos"], ["Revisão", "Você aprova"], ["Publicado", "Na hora marcada"]].map(([t, s], i) => `<div class="passo-demo" data-i="${i}"><i>${i + 1}</i><div><b>${t}</b><span>${s}</span></div></div>`).join("")}</div>
     <div class="tela-demo">
-      <div class="cena ideias"><div><em>8.5</em> · Carrossel<b>5 erros ao dividir a conta</b></div><div><em>7.9</em> · Reels<b>Bastidores de uma sexta lotada</b></div><div><em>7.2</em> · Stories<b>Novidade chegando</b></div></div>
+      <div class="cena ideias"><div><em>8.5</em> · Carrossel<b>Seu Instagram parado está custando clientes</b></div><div><em>7.9</em> · Reels<b>Um mês de posts em uma tarde</b></div><div><em>7.2</em> · Stories<b>3 sinais de que seu perfil precisa de ajuda</b></div></div>
       <div class="cena criando"><div class="anel"></div>Criando o post com IA…</div>
-      <div class="cena post"><img src="marca/exemplos/carrossel-1.webp" alt=""></div>
+      <div class="cena post"><img src="marca/cp/cp-carrossel-1.webp" alt=""></div>
       <div class="cena publicado"><div class="check">✓</div>Publicado no Instagram</div>
     </div>
   </div><span class="selo-demo">Demonstração</span>`;

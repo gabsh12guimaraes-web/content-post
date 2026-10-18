@@ -1877,8 +1877,8 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
     if (texto) {
       const partes = partesTexto(texto); const fN = `500 ${3.9 * U}px Poppins, sans-serif`, fD = `600 ${3.9 * U}px Poppins, sans-serif`;
       const r = linhasRicas(ctx, partes, 82 * U, fN, fD);
-      for (const l of r.linhas.slice(0, 2)) { y += 5 * U; let xx = 9 * U; for (const it of l.itens) { ctx.font = it.dest ? fD : fN; ctx.fillStyle = it.dest ? cores.acc : "rgba(255,255,255,.88)"; ctx.fillText(it.w, xx, y); xx += it.largura + r.espaco; } }
-      y += 2.5 * U;
+      for (const l of r.linhas.slice(0, 2)) { y += 5 * U; let xx = 9 * U; for (const it of l.itens) { if (it.colado && it !== l.itens[0]) xx -= r.espaco; ctx.font = it.dest ? fD : fN; ctx.fillStyle = it.dest ? cores.acc : "rgba(255,255,255,.88)"; ctx.fillText(it.w, xx, y); xx += it.largura + r.espaco; } }
+      y += 5.5 * U; // espaço para acentos de caixa alta (Ê, Ó) não encostarem no texto de cima
     }
     tituloRico(ctx, titulo, { x: 9 * U, y, largura: 82 * U, alturaMax: (foto ? 40 : 62) * U, tamanho: 17 * U, minimo: 8 * U, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#F6EFE4", corDestaque: cores.acc, alinhar: al, entrelinha: F.upper ? 0.98 : 1.04 });
     rodapeChamada(ctx, U, W, H, i, total, "rgba(255,255,255,.92)");
