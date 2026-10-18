@@ -2211,7 +2211,8 @@ async function pintarPrevias() {
           guardarPrevia(chave, cv);
           continue;
         }
-        const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : null;
+        const clipe = clipesDoPost(post)[sl.n];
+        const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : clipe ? await quadroCache(clipe) : null;
         desenharSlide(sl, i, slides.length, foto, logos, cores, nome, cv, post.diag);
         guardarPrevia(chave, cv);
       }
@@ -2475,6 +2476,18 @@ async function gravarSlideVideo(sl, i, total, url, logo, cores, nome, diag) {
   if (blob.size > 20 * 1024 * 1024) throw new Error("um slide em vídeo passou de 20 MB");
   return { tipo: "video/mp4", base64: b64 };
 }
+// Story com vídeo do banco: uma tela 9:16 gravada por cima do clipe (até 10 s).
+async function gravarVideoVertical(sl, url, logo, cores, nome, diag) {
+  const v = await carregarVideoLocal(url), dur = Math.min(10, v.duration || 5);
+  const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920;
+  const pintar = t => desenharVertical(sl, v, logo, cores, nome, cv, diag, t);
+  let blob = null;
+  if (podeRenderizar()) blob = await renderizarMp4(cv, { duracao: dur, bps: 5e6, desenhar: async t => { await irPara(v, t); pintar(t * 1000); } }).catch(e => { if (!MIME_MP4) throw e; return null; });
+  // Sem codificador H.264 em 1080 × 1920: grava em tempo real, em 720 × 1280.
+  if (!blob) { cv.width = 720; cv.height = 1280; pintar(0); blob = await gravarCanvas(cv, 3000000, () => tocar(v, pintar, dur * 1000 + 150)); }
+  if (blob.size > 24 * 1024 * 1024) throw new Error("um story em vídeo passou de 24 MB");
+  return { tipo: "video/mp4", base64: await blobBase64(blob) };
+}
 // Baixar as artes finais: uma a uma ou todas num .zip (fotos e vídeos).
 function nomeArquivoArte(p, a, i) {
   const base = String(p.titulo || "post").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "post";
@@ -2589,8 +2602,14 @@ async function gerarArtes(p) {
     let artes = [];
     if (ehVideoFmt(p)) artes = await gerarVideoFinal(p, logo, cores, nome);
     else if (ehStoryImagem(p)) {
-      const telas = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }], fotos = fotosCheias(p);
+      const telas = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }], fotos = fotosCheias(p), clipes = clipesDoPost(p);
       for (const [k, sl] of telas.entries()) {
+        // Tela com vídeo do banco: grava o story em vídeo (9:16) com o texto e o logo por cima.
+        if (clipes[sl.n]) {
+          toast(telas.length > 1 ? `Gravando o story ${k + 1} de ${telas.length} (vídeo). Deixe esta aba aberta.` : "Gravando o story em vídeo. Deixe esta aba aberta.");
+          artes.push(await gravarVideoVertical(sl, clipes[sl.n], logo, cores, nome, p.diag));
+          continue;
+        }
         toast(telas.length > 1 ? `Gerando o story ${k + 1} de ${telas.length}…` : "Gerando a arte do story…");
         const foto = fotos[sl.n] ? await carregarImg(fotos[sl.n]) : ehModeloVideo(p.diag) ? document.createElement("canvas") : null;
         const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920;
@@ -3215,6 +3234,8 @@ function textoErro(e) {
   }[code];
   if (msg) return msg;
   if (code === "tool_error") return "O Airtable recusou a operação: " + String(e.message || "").slice(0, 200);
+  // Erros do próprio painel (gravar vídeo, carregar clipe…) já vêm com a mensagem certa.
+  if (!code && e && e.message) return e.message;
   return "Não foi possível falar com o Airtable" + (code ? " (" + code + ")" : "") + ".";
 }
 const NEGADO = ["needs_reauth", "server_not_connected", "blocked_by_policy", "approval_required", "not_in_manifest", "selection_required", "not_granted", "capability_disabled"];
