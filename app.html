@@ -1651,12 +1651,12 @@ function capa(ctx, im, W = ARTE_L, H = ARTE_A) {
   ctx.drawImage(im, (W - w) / 2, (H - h) / 2, w, h);
 }
 // Desenha o logo na versão e posição escolhidas (ou a versão que contrasta com o fundo, no automático).
-function desenharLogo(ctx, W, H, U, logos, nome, diag, lh, margem, corNome) {
+function desenharLogo(ctx, W, H, U, logos, nome, diag, lh, margem, corNome, margemX) {
   const pos = (diag && diag.logoPos) || "te", escolha = (diag && diag.logo) || "auto";
   if (escolha === "nenhum") return;
-  const larguraMax = W * 0.45;
+  const larguraMax = W * 0.45, mx = margemX == null ? 6 * U : margemX;
   const y = pos[0] === "b" ? H - margem - lh : margem;
-  const xDe = w => pos[1] === "c" ? (W - w) / 2 : pos[1] === "d" ? W - 6 * U - w : 6 * U;
+  const xDe = w => pos[1] === "c" ? (W - w) / 2 : pos[1] === "d" ? W - mx - w : mx;
   let logo = null;
   if (logos && logos.width) logo = logos;
   else if (logos) {
@@ -1838,10 +1838,10 @@ function cabecalhoAutor(ctx, U, x, y, logos, cores, nome, claro) {
   ctx.fillStyle = claro ? "#ffffff" : "#111111"; ctx.font = `600 ${3.4 * U}px Poppins, sans-serif`; ctx.fillText(nome, x + r * 2 + 2.4 * U, y + (perfil ? 4.2 : 5.6) * U);
   if (perfil) { ctx.fillStyle = claro ? "rgba(255,255,255,.72)" : "rgba(17,17,17,.6)"; ctx.font = `500 ${2.9 * U}px Poppins, sans-serif`; ctx.fillText(perfil, x + r * 2 + 2.4 * U, y + 7.8 * U); }
 }
-function contador(ctx, U, W, i, total, claro) {
+function contador(ctx, U, W, i, total, claro, esquerda) {
   if (total < 2) return;
   const txt = `${i + 1}/${total}`; ctx.font = `500 ${3.2 * U}px Poppins, sans-serif`;
-  const w = ctx.measureText(txt).width + 6 * U, h = 7 * U, x = W - 5 * U - w, y = 4 * U;
+  const w = ctx.measureText(txt).width + 6 * U, h = 7 * U, x = esquerda ? 5 * U : W - 5 * U - w, y = 4 * U;
   ctx.fillStyle = claro ? "rgba(0,0,0,.42)" : "rgba(17,17,17,.38)"; retArred(ctx, x, y, w, h, h / 2); ctx.fill();
   ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.textAlign = "center"; ctx.fillText(txt, x + w / 2, y + h / 2); ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 }
@@ -1851,6 +1851,14 @@ function rodapeChamada(ctx, U, W, H, i, total, cor, alinhar) {
   if (!txt) return;
   ctx.font = `600 ${3.6 * U}px Poppins, sans-serif`; ctx.fillStyle = cor; ctx.textAlign = alinhar || "right";
   ctx.fillText(txt, alinhar === "left" ? 7 * U : alinhar === "center" ? W / 2 : W - 7 * U, H - 6 * U); ctx.textAlign = "left";
+}
+// Logo nos modelos novos: "Automático" + "Topo esquerda" usa o lugar padrão do modelo (cabeçalho de perfil no
+// Impacto e no Minimal, canto de baixo na Manchete); qualquer outra escolha desenha a versão e a posição pedidas.
+function logoDoModelo(diag, padrao) {
+  const versao = diag.logo || "auto", pos = ["te", "tc", "td"].includes(diag.logoPos) ? diag.logoPos : "te";
+  if (versao === "nenhum") return { tipo: "nenhum", pos };
+  if (versao === "auto" && pos === "te") return { tipo: padrao, pos };
+  return { tipo: "logo", pos };
 }
 function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const W = ARTE_L, H = ARTE_A, U = W / 100;
@@ -1871,8 +1879,10 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
     const brilho = ctx.createRadialGradient(W * 0.75, H * 0.18, 0, W * 0.75, H * 0.18, W * 0.9);
     brilho.addColorStop(0, hexRgba(cores.acc, 0.55)); brilho.addColorStop(1, hexRgba(cores.acc, 0)); ctx.fillStyle = brilho; ctx.fillRect(0, 0, W, H);
     const v = ctx.createLinearGradient(0, H * 0.8, 0, H); v.addColorStop(0, hexRgba(cores.bg, 0)); v.addColorStop(1, hexRgba(cores.bg, 0.55)); ctx.fillStyle = v; ctx.fillRect(0, H * 0.8, W, H * 0.2);
-    cabecalhoAutor(ctx, U, 9 * U, 6 * U, logos, cores, nome, true);
-    contador(ctx, U, W, i, total, true);
+    const L = logoDoModelo(diag, "perfil");
+    if (L.tipo === "perfil") cabecalhoAutor(ctx, U, 9 * U, 6 * U, logos, cores, nome, true);
+    else if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 7 * U, 6 * U, "#fff", 9 * U);
+    contador(ctx, U, W, i, total, true, L.tipo === "logo" && L.pos === "td");
     let y = 17 * U;
     if (texto) {
       const partes = partesTexto(texto); const fN = `500 ${3.9 * U}px Poppins, sans-serif`, fD = `600 ${3.9 * U}px Poppins, sans-serif`;
@@ -1888,9 +1898,10 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
       cobrir(ctx, foto, 0, H * 0.46, W, H * 0.54);
       const g = ctx.createLinearGradient(0, H * 0.46, 0, H * 0.6); g.addColorStop(0, "rgba(245,244,240,1)"); g.addColorStop(1, "rgba(245,244,240,0)"); ctx.fillStyle = g; ctx.fillRect(0, H * 0.46, W, H * 0.15);
     }
-    cabecalhoAutor(ctx, U, 9 * U, 8 * U, logos, cores, nome, false);
-    if (diag.logo !== "nenhum") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "td", logo: diag.logo && diag.logo !== "auto" ? diag.logo : (logos && logos.simDark ? "simDark" : "auto") }, 6.5 * U, 13 * U, "#111");
-    contador(ctx, U, W, i, total, false);
+    const L = logoDoModelo(diag, "perfil");
+    if (L.tipo === "perfil") cabecalhoAutor(ctx, U, 9 * U, 8 * U, logos, cores, nome, false);
+    else if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 6.5 * U, 7.5 * U, "#111", 9 * U);
+    contador(ctx, U, W, i, total, false, L.tipo === "logo" && L.pos === "td");
     const fim = tituloRico(ctx, titulo, { x: 10 * U, y: (foto ? 17 : 34) * U, largura: 80 * U, alturaMax: (foto ? 24 : 40) * U, tamanho: 10.5 * U, minimo: 6 * U, fonte: fT(F.peso), fonteDestaque: diag.fonte && diag.fonte !== "auto" ? fT(F.peso, true) : serifItalico, upper: F.upper, cor: "#111111", corDestaque: cores.acc, alinhar: al === "left" ? "center" : al, entrelinha: 0.98 });
     if (texto) textoSimples(ctx, texto, { x: 14 * U, y: fim.fim + 1.5 * U, largura: 72 * U, tam: 3.6 * U, fonte: `400 ${3.6 * U}px Poppins, sans-serif`, cor: "rgba(17,17,17,.62)", alinhar: "center", maxLinhas: 3 });
     ctx.font = `500 ${2.5 * U}px Poppins, sans-serif`; ctx.fillStyle = foto ? "rgba(255,255,255,.85)" : "rgba(17,17,17,.45)";
@@ -1898,23 +1909,27 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
     if (perfilMarca()) { ctx.textAlign = "right"; ctx.fillText(perfilMarca().toUpperCase(), W - 9 * U, H - 5 * U); ctx.textAlign = "left"; }
   } else if (m === "manchete") {
     ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, W, H);
-    contador(ctx, U, W, i, total, false);
-    const t = tituloRico(ctx, titulo, { x: 5 * U, y: 4 * U, largura: foto ? 76 * U : 86 * U, alturaMax: (foto ? 44 : 70) * U, tamanho: 13.5 * U, minimo: 7 * U, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#0B0B0D", corDestaque: cores.acc, alinhar: "left", entrelinha: 0.96 });
+    const L = logoDoModelo(diag, "base");
+    if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 5.5 * U, 4.5 * U, "#111", 5 * U);
+    contador(ctx, U, W, i, total, false, L.tipo === "logo" && L.pos === "td");
+    const topoT = L.tipo === "logo" || total > 1 ? 12 * U : 4 * U;
+    const t = tituloRico(ctx, titulo, { x: 5 * U, y: topoT, largura: foto ? 76 * U : 86 * U, alturaMax: (foto ? 44 : 70) * U - (topoT - 4 * U), tamanho: 13.5 * U, minimo: 7 * U, fonte: fT(F.peso), fonteDestaque: fT(F.peso), upper: F.upper, cor: "#0B0B0D", corDestaque: cores.acc, alinhar: "left", entrelinha: 0.96 });
     // ponto na cor de destaque, ao lado da última linha
     const raio = 5.6 * U; ctx.fillStyle = cores.acc; ctx.beginPath(); ctx.arc(W - 5 * U - raio, t.fim - raio * 1.1, raio, 0, Math.PI * 2); ctx.fill();
     let y = t.fim + 2 * U;
     if (texto) y = textoSimples(ctx, texto, { x: 5 * U, y, largura: 88 * U, tam: 3.7 * U, fonte: `400 ${3.7 * U}px Poppins, sans-serif`, cor: "#1A1A1D", maxLinhas: 3 }) + 2 * U;
     if (foto) { const y0 = Math.min(y + 1 * U, H * 0.62); ctx.save(); retArred(ctx, 5 * U, y0, 90 * U, H - y0 - 4 * U, 3.4 * U); ctx.clip(); cobrir(ctx, foto, 5 * U, y0, 90 * U, H - y0 - 4 * U); ctx.restore(); }
     else rodapeChamada(ctx, U, W, H, i, total, "rgba(11,11,13,.6)", "left");
-    if (diag.logo !== "nenhum" && !foto) desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "bd" }, 5 * U, 5 * U, "#111");
+    if (L.tipo === "base") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "bd" }, 5 * U, foto ? 8 * U : 5 * U, "#111", foto ? 9 * U : 6 * U);
   } else {
     // cinema
     ctx.fillStyle = cores.bg; ctx.fillRect(0, 0, W, H);
     if (foto) cobrir(ctx, foto, 0, 0, W, H);
     const g = ctx.createLinearGradient(0, H * 0.4, 0, H); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.82)"); ctx.fillStyle = g; ctx.fillRect(0, H * 0.4, W, H * 0.6);
     const topo = ctx.createLinearGradient(0, 0, 0, H * 0.18); topo.addColorStop(0, "rgba(0,0,0,.35)"); topo.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = topo; ctx.fillRect(0, 0, W, H * 0.18);
-    desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: "te" }, 7 * U, 6 * U, "#fff");
-    contador(ctx, U, W, i, total, true);
+    const L = logoDoModelo(diag, "logo");
+    if (L.tipo !== "nenhum") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, 7 * U, 6 * U, "#fff");
+    contador(ctx, U, W, i, total, true, L.tipo !== "nenhum" && L.pos === "td");
     // mede a altura do bloco para encostar na base
     const fN = fT(F.peso), fD = fT(F.peso, true);
     const largura = 84 * U; let tam = 8.6 * U, linhas;
@@ -1931,11 +1946,13 @@ function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) 
 // Prévia dos modelos novos: o mesmo desenho da arte final, num canvas da prévia.
 const cacheImg = new Map();
 const imgCache = url => { if (!cacheImg.has(url)) cacheImg.set(url, carregarImg(url).catch(() => null)); return cacheImg.get(url); };
-let logosPrevia = null;
+let logosPrevia = null, chaveLogosPrevia = "";
 async function logosDaPrevia() {
-  if (logosPrevia) return logosPrevia;
-  const urls = urlsLogos(true), o = {};
+  const urls = urlsLogos(true), chave = JSON.stringify(urls);
+  if (logosPrevia && chave === chaveLogosPrevia) return logosPrevia;
+  const o = {};
   for (const [k, u] of Object.entries(urls)) o[k] = u ? await imgCache(u) : null;
+  chaveLogosPrevia = chave;
   return (logosPrevia = o);
 }
 let pintando = false, pintarDeNovo = false;
@@ -2494,7 +2511,8 @@ function cardRev(p) {
   const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
   const editorial = !ehVideo && (MODELOS_ED.includes(p.diag.modelo) || MODELOS_NOVOS.includes(p.diag.modelo));
   const posicoes = editorial ? [["te", "Topo esquerda"], ["tc", "Topo centro"], ["td", "Topo direita"]] : [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
-  const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}`;
+  const padraoLogo = { impacto: "o cabeçalho de perfil (símbolo, nome e @)", minimal: "o cabeçalho de perfil (símbolo, nome e @)", manchete: "o logo no canto de baixo", cinema: "o logo no topo esquerdo" }[p.diag.modelo];
+  const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}${!ehVideo && padraoLogo ? `<p class="small" style="margin:0">Neste modelo, Automático + Topo esquerda usa ${padraoLogo}. Escolha outra versão ou posição para trocar.</p>` : ""}`;
   const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação${ajuda("diagramacao")}</span>${segM}<span class="small">Texto</span>
       <div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
       ${editorial || MODELOS_NOVOS.includes(p.diag.modelo) ? "" : `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>`}
