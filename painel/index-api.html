@@ -3219,7 +3219,7 @@ function desenharEquipe() {
 const INT = { dados: null, erro: "", teste: {} };
 // Plano da organização: uso do mês, troca de plano pelo checkout da Kiwify e link de afiliado.
 const PL = { dados: null, erro: "", ciclo: "anual", aviso: "" };
-const reais = v => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 0 });
+const reais = v => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2 });
 async function abrirPlano(aviso) {
   PL.erro = ""; PL.aviso = aviso || ""; abrirDlg(`<h2>Plano</h2><p class="hint">Carregando…</p>`);
   try { PL.dados = await api({ acao: "plano" }); } catch (e) { PL.erro = textoErro(e); }
