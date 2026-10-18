@@ -540,6 +540,9 @@ body.travado .wrap { visibility: hidden; }
 .bi-card.editando { grid-column: span 2; } @media (max-width: 420px) { .bi-card.editando { grid-column: auto; } }
 .bi-tags { display: flex; flex-wrap: wrap; gap: 4px; } .bi-tags i { font-style: normal; font-size: 11px; background: rgba(255,255,255,.07); border-radius: 99px; padding: 1px 8px; color: var(--ink-soft); }
 .bi-card .actions { gap: 4px; } .bi-card .actions .btn { padding: 6px 8px; font-size: 12px; }
+.pe-escolha button .pe-nada { width: 100%; aspect-ratio: 1; border-radius: 5px; display: grid; place-items: center; background: rgba(255,255,255,.05); font-size: 22px; }
+.pe-form { display: grid; gap: 8px; margin-top: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+.pe-form label.ok { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; }
 .bi-escolha { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 320px; overflow: auto; padding: 2px; }
 .bi-escolha button { display: grid; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink-soft); font: 500 11px/1.2 inherit; font-family: inherit; cursor: pointer; text-align: left; min-width: 0; }
 .bi-escolha button img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 5px; }
@@ -1076,6 +1079,7 @@ function buscarIdeias(pedido) {
 }
 /* ---------- perguntas antes de criar o post ---------- */
 const BR = { post: null, r: {} };
+const PE = { lista: [], carregado: false, form: false, enviando: false };
 const PERGUNTAS = {
   capa: { titulo: "Capa (primeiro slide)", op: [["foto", "Foto"], ["video", "Vídeo"], ["texto", "Só texto"]] },
   fundo: { titulo: "Fundo dos outros slides", op: [["fotos", "Fotos"], ["videos", "Vídeos"], ["misto", "Misto"], ["texto", "Só texto"]] },
@@ -1103,11 +1107,13 @@ function perguntasDo(formato, r) {
 function abrirBriefing(p) {
   BI.filtroEscolha = "todos";
   if (M.modo === "web") carregarBanco(true).then(() => document.getElementById("br-banco") && desenharEscolhaBanco());
+  if (M.modo === "web") carregarPessoas();
+  PE.form = false;
   const video = ["Reels", "Stories"].includes(p.formato);
   BR.post = p.id;
   BR.r = video ? { duracao: "30", cenas: "auto", textoNaTela: "sim", objetivo: "" } : { capa: "foto", fundo: "fotos", slides: "auto", objetivo: "" };
   if (p.formato === "Stories") Object.assign(BR.r, { story: "varios", fundo: "fotos" });
-  BR.r.imagens = "ia"; BR.r.banco = []; BR.motivoIA = ""; BR.escolhendoIA = false;
+  BR.r.imagens = "ia"; BR.r.banco = []; BR.r.pessoa = ""; BR.motivoIA = ""; BR.escolhendoIA = false;
   desenharBriefing();
 }
 function desenharBriefing() {
@@ -1118,10 +1124,11 @@ function desenharBriefing() {
   if (comImagem) pergs.splice(p.formato === "Stories" ? 1 : 0, 0, "imagens");
   const r = BR.r;
   const blocoBanco = () => comImagem && ["banco", "misto"].includes(r.imagens) ? `<div class="field"><span>Fotos e vídeos do banco${ajuda("banco")}</span><p class="small" style="margin:0">Escolha as fotos ou vídeos que podem entrar neste post (até 20), inclusive os que a IA já gerou, ou toque em "IA escolhe para este post" para ela marcar as que têm a ver com o tema. Sem escolher, a IA usa os mais recentes, primeiro os que você enviou. ${r.imagens === "banco" ? "Não gasta créditos de imagem." : "Só as imagens novas gastam créditos."}</p><div id="br-banco"></div></div>` : "";
+  const blocoPessoa = () => comImagem && r.imagens !== "banco" && M.modo === "web" ? `<div class="field"><span>Pessoa real nas imagens (opcional)</span><p class="small" style="margin:0">Para posts humanizados: a IA coloca a pessoa da foto em algumas imagens, como a capa ou os bastidores. Use uma foto de rosto nítida, de frente e com boa luz.</p><div id="br-pessoa"></div></div>` : "";
   const blocos = pergs.map(k => {
     const q = PERGUNTAS[k], campo = q.campo || k;
     return `<div class="field"><span>${esc(q.titulo)}</span><div class="seg" role="group" aria-label="${esc(q.titulo)}">${q.op.map(([v, t]) =>
-      `<button type="button" data-b="op" data-k="${campo}" data-v="${v}" aria-pressed="${String(BR.r[campo] ?? "") === v}">${esc(t)}</button>`).join("")}</div></div>` + (k === "imagens" ? blocoBanco() : "");
+      `<button type="button" data-b="op" data-k="${campo}" data-v="${v}" aria-pressed="${String(BR.r[campo] ?? "") === v}">${esc(t)}</button>`).join("")}</div></div>` + (k === "imagens" ? blocoBanco() + blocoPessoa() : "");
   }).join("");
   const videos = p.formato === "Stories" && r.story === "imagem" ? 0 : p.formato === "Stories" && r.story === "continuo" ? 1 : ["Reels", "Stories"].includes(p.formato) ? Number(r.cenas) || 4 : (r.capa === "video" ? 1 : 0) + (r.fundo === "videos" ? (Number(r.slides) || 7) - 2 : r.fundo === "misto" ? 2 : 0);
   abrirDlg(`<h2>Como vai ser este post?${ajuda(p.formato === "Stories" ? "stories" : "briefing")}</h2>
@@ -1133,8 +1140,58 @@ function desenharBriefing() {
       ${videos ? `<p class="small" style="margin:0">Vai gerar cerca de ${videos} clipe${videos > 1 ? "s" : ""} de vídeo no Magnific, que gastam mais créditos que fotos e levam alguns minutos a mais.</p>` : ""}
       <div class="actions"><button class="btn quiet" type="button" data-b="cancelar">Cancelar</button><button class="btn primary" type="button" data-b="criar">Criar post</button></div>
     </form>`);
-  desenharEscolhaBanco();
+  desenharEscolhaBanco(); desenharPessoas();
 }
+// Pessoas com foto de rosto (posts humanizados): escolher no briefing ou cadastrar uma nova.
+async function carregarPessoas() {
+  try { PE.lista = (await api({ acao: "listarPessoas" })).pessoas || []; } catch (e) { PE.lista = []; }
+  PE.carregado = true;
+  if (BR.r.pessoa && !PE.lista.some(x => x.id === BR.r.pessoa)) BR.r.pessoa = "";
+  desenharPessoas();
+}
+function desenharPessoas() {
+  const el = document.getElementById("br-pessoa"); if (!el) return;
+  if (!PE.carregado) { el.innerHTML = `<div class="esqueleto"><i></i></div>`; return; }
+  const sel = BR.r.pessoa || "", escolhida = PE.lista.find(x => x.id === sel);
+  el.innerHTML = `<div class="bi-escolha pe-escolha">
+      <button type="button" class="${sel ? "" : "on"}" data-pe="sel" data-v="" aria-pressed="${!sel}"><span class="pe-nada">–</span><span>Ninguém</span></button>
+      ${PE.lista.map(x => `<button type="button" class="${sel === x.id ? "on" : ""}" data-pe="sel" data-v="${x.id}" aria-pressed="${sel === x.id}" title="${esc(x.nome)}"><img src="${esc(urlArq(x.arquivo))}" alt="" loading="lazy"><span>${esc(x.nome || "Sem nome")}</span></button>`).join("")}
+      ${PE.form ? "" : `<button type="button" data-pe="nova"><span class="pe-nada">+</span><span>Nova pessoa</span></button>`}
+    </div>
+    ${escolhida && !PE.form ? `<div class="bi-contagem small" style="margin-top:6px"><span>${esc(escolhida.nome || "Esta pessoa")} vai aparecer em algumas imagens.</span><button type="button" class="link" data-pe="remover" data-v="${escolhida.id}">Remover do cadastro</button></div>` : ""}
+    ${PE.form ? `<div class="pe-form">
+      <label class="field"><span>Nome</span><input id="pe-nome" maxlength="60" placeholder="Ex.: Gabriel, fundador"></label>
+      <label class="field"><span>Foto de rosto</span><input id="pe-foto" type="file" accept="image/jpeg,image/png,image/webp"></label>
+      <label class="ok"><input id="pe-ok" type="checkbox"> <span>Tenho autorização desta pessoa para usar a imagem dela nos posts da marca.</span></label>
+      <div class="actions"><button type="button" class="btn quiet" data-pe="cancelar">Cancelar</button><button type="button" class="btn primary" data-pe="enviar" ${PE.enviando ? "disabled" : ""}>${PE.enviando ? "Enviando…" : "Salvar pessoa"}</button></div>
+    </div>` : ""}`;
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-pe]"); if (!b) return;
+  const a = b.dataset.pe;
+  if (a === "sel") { BR.r.pessoa = b.dataset.v; return desenharPessoas(); }
+  if (a === "nova") { PE.form = true; return desenharPessoas(); }
+  if (a === "cancelar") { PE.form = false; return desenharPessoas(); }
+  if (a === "remover") {
+    if (b.dataset.confirma !== "1") { b.dataset.confirma = "1"; b.textContent = "Remover mesmo?"; setTimeout(() => { b.dataset.confirma = ""; b.textContent = "Remover do cadastro"; }, 3000); return; }
+    try { await api({ acao: "removerPessoa", id: b.dataset.v }); BR.r.pessoa = ""; toast("Pessoa removida. Os posts já criados continuam com as imagens."); carregarPessoas(); }
+    catch (err) { toast("Não deu para remover: " + textoErro(err)); }
+    return;
+  }
+  if (a === "enviar") {
+    const f = document.getElementById("pe-foto")?.files[0], nome = (document.getElementById("pe-nome")?.value || "").trim();
+    if (!f || !/^image\//.test(f.type)) return toast("Escolha uma foto de rosto em JPG, PNG ou WEBP.");
+    if (!document.getElementById("pe-ok")?.checked) return toast("Confirme que você tem autorização da pessoa para usar a imagem dela.");
+    PE.enviando = true; desenharPessoas();
+    try {
+      const x = await prepararFoto(f);
+      const r = await api({ acao: "enviarPessoa", tipo: x.tipo, base64: x.base64, nome: nome || f.name.replace(/\.[^.]+$/, ""), autorizado: true });
+      PE.form = false; BR.r.pessoa = r.id; toast("Pessoa salva. Ela fica disponível para os próximos posts.");
+      await carregarPessoas();
+    } catch (err) { toast("Não deu para salvar: " + textoErro(err)); }
+    finally { PE.enviando = false; desenharPessoas(); }
+  }
+});
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-b]"); if (!b) return;
   const obs = document.getElementById("br-obs");
@@ -1145,6 +1202,7 @@ document.addEventListener("click", e => {
     const p = state.posts.find(x => x.id === BR.post); fecharDlg();
     const br = { ...BR.r };
     if (!["banco", "misto"].includes(br.imagens)) delete br.banco; else if (!br.banco.length) delete br.banco;
+    if (br.imagens === "banco" || !br.pessoa) delete br.pessoa;
     if (br.imagens === "ia") delete br.imagens;
     if (p && p.formato === "Stories") {
       if (br.story === "imagem") { delete br.duracao; delete br.cenas; delete br.textoNaTela; }
