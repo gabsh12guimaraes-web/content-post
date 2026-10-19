@@ -567,8 +567,22 @@ body.travado .wrap { visibility: hidden; }
 .rev-midia .th img, .rev-midia .th video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .rev-midia .th i { position: absolute; left: 4px; top: 4px; font: 700 10px/1 Poppins, sans-serif; font-style: normal; background: rgba(0,0,0,.6); color: #fff; border-radius: 99px; padding: 3px 6px; }
 .rev-midia .btn { padding: 5px 6px; font-size: 11px; justify-content: center; }
-.rev-fonte { display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; gap: 2px; font-size: 11px; text-align: center; color: var(--ink-soft); }
-.rev-fonte .btn { padding: 4px 0; font-weight: 700; }
+.rev-fonte-bloco { display: grid; gap: 10px; }
+.fonte-telas { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 4px; scrollbar-width: thin; }
+.fonte-tela { flex: none; width: 84px; position: relative; padding: 0; border: 2px solid transparent; border-radius: 9px; background: rgba(255,255,255,.04); cursor: pointer; overflow: hidden; opacity: .9; transition: border-color .15s, opacity .15s, transform .15s; }
+.fonte-tela canvas { width: 100%; height: auto; display: block; }
+.fonte-tela:hover { opacity: 1; }
+.fonte-tela.on { border-color: var(--red); opacity: 1; transform: translateY(-2px); box-shadow: 0 8px 20px -10px var(--red); }
+.fonte-telas:has(.on) .fonte-tela:not(.on) { opacity: .45; }
+.fonte-tela .n, .fonte-tela .pct { position: absolute; font: 700 10px/1 Poppins, sans-serif; background: rgba(0,0,0,.65); color: #fff; border-radius: 99px; padding: 3px 6px; }
+.fonte-tela .n { left: 4px; top: 4px; }
+.fonte-tela .pct { right: 4px; bottom: 4px; }
+.fonte-barra { display: grid; grid-template-columns: auto 1fr auto auto auto; align-items: center; gap: 10px; }
+.fonte-barra input[type=range] { width: 100%; height: 32px; accent-color: var(--red); cursor: pointer; touch-action: pan-y; }
+.fonte-barra .a-menor { font-size: 12px; color: var(--ink-soft); }
+.fonte-barra .a-maior { font-size: 21px; font-weight: 700; color: var(--ink-soft); }
+.fonte-barra output { min-width: 48px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fonte-barra .btn { padding: 6px 10px; font-size: 12px; }
 .bi-contagem { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .bi-contagem .bi-ia { padding: 6px 12px; font-size: 13px; } .bi-motivo { margin: 6px 0 0; opacity: .8; }
 button.link { background: none; border: 0; padding: 0; color: var(--red, #F8395A); font: inherit; text-decoration: underline; cursor: pointer; }
@@ -1054,10 +1068,10 @@ function seletorRedes(p) {
   return `<div class="redes-post"><span class="small">Publicar em${ajuda("redes")}</span><div class="redes-lista">${botoes}</div>${avisos.length ? `<p class="small" style="margin:0">${avisos.map(esc).join(" ")}</p>` : ""}</div>`;
 }
 async function mudarRede(p, r) {
-  const antes = p.redes.slice();
+  const antes = p.redes.slice(), ancora = ancoraClique;
   p.redes = p.redes.includes(r) ? p.redes.filter(x => x !== r) : REDES_POST.filter(x => x === r || p.redes.includes(x));
   if (!p.redes.length) { p.redes = antes; return toast("Escolha pelo menos uma rede."); }
-  render();
+  atualizarCard(p, ancora);
   try { await api({ acao: "salvarRedes", id: p.id, redes: p.redes }); }
   catch (e) { p.redes = antes; render(); toast("Não deu para salvar as redes: " + textoErro(e)); }
 }
@@ -2060,7 +2074,7 @@ function logoDoModelo(diag, padrao) {
   if (versao === "auto" && pos === "te") return { tipo: padrao, pos, baixo: padrao === "base" };
   return { tipo: "logo", pos, baixo: pos[0] === "b" };
 }
-// Escala do texto de cada slide ou cena (A− / A+ na revisão): 0,6 a 1,6; 1 é o tamanho do modelo.
+// Escala do texto de cada slide ou cena (barra "Tamanho do texto" na revisão): 0,6 a 1,6; 1 é o tamanho do modelo.
 const escalaTexto = (diag, n) => { const v = Number(((diag && diag.escalas) || {})[n]); return v >= 0.6 && v <= 1.6 ? v : 1; };
 function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
@@ -2527,13 +2541,41 @@ function blocoDownload(p) {
 // Um timer por post: mudar dois posts seguidos não perde o primeiro. "refazer" acumula até salvar,
 // senão uma segunda mudança rápida mandava refazer:false e as artes antigas voltavam como prontas.
 const timersDiag = {}, refazerDiag = {};
-function mudarDiagramacao(p, k, v) {
+// Redesenha só o card do post na revisão, sem mexer no resto da página: a tela fica parada no mesmo lugar
+// (o botão clicado continua na mesma altura), as prévias já desenhadas são reaproveitadas e o slide que estava à vista continua à vista.
+const chaveCv = c => [c.dataset.previa, c.dataset.i, c.dataset.vertical || "", c.dataset.mini || ""].join("|");
+const seletorDe = el => `[data-act="${el.dataset.act}"]` + ["id", "k", "v"].map(a => el.dataset[a] != null ? `[data-${a}="${CSS.escape(el.dataset[a])}"]` : "").join("");
+function atualizarCard(p, ancora) {
+  const velho = document.getElementById("rev-" + p.id);
+  if (!velho || tab !== "rev") return render();
+  const sel = ancora && ancora.isConnected && velho.contains(ancora) && ancora.dataset.act ? seletorDe(ancora) : null;
+  const topo = sel ? ancora.getBoundingClientRect().top : null, focado = sel && document.activeElement === ancora;
+  const rascunhos = guardarRascunhos();
+  const antigos = new Map([...velho.querySelectorAll("canvas[data-previa]")].map(c => [chaveCv(c), c]));
+  const rolagens = [...velho.querySelectorAll("[data-trilho], .lista, .fonte-telas")].map(el => el.scrollLeft);
+  const tmp = document.createElement("div"); tmp.innerHTML = cardRev(p);
+  const novo = tmp.firstElementChild;
+  novo.querySelectorAll("canvas[data-previa]").forEach(c => { const a = antigos.get(chaveCv(c)); if (a) c.replaceWith(a); });
+  velho.replaceWith(novo);
+  restaurarRascunhos(rascunhos);
+  [...novo.querySelectorAll("[data-trilho], .lista, .fonte-telas")].forEach((el, i) => { if (rolagens[i]) { el.scrollLeft = rolagens[i]; el.dispatchEvent(new Event("scroll")); } });
+  if (sel) {
+    const n = novo.querySelector(sel);
+    if (n) { const d = n.getBoundingClientRect().top - topo; if (Math.abs(d) > 0.5) scrollBy(0, d); if (focado) n.focus({ preventScroll: true }); }
+  }
+  setTimeout(() => pintarPrevias(), 0);
+}
+let ancoraClique = null;
+function mudarDiagramacao(p, k, v, op = {}) {
   if (p.diag[k] === v) return;
   p.diag[k] = v;
   if (p.artesProntas) refazerDiag[p.id] = true;
   setTimeout(() => pintarPrevias(), 0);
+  const eraPronta = p.artesProntas;
   if (p.artesProntas) { p.artesProntas = false; toast("Diagramação mudou. Gere " + (ehVideoFmt(p) ? "o vídeo final" : "as artes finais") + " de novo para aplicar."); }
-  render();
+  // "leve": arrastando a barra do texto, só as prévias mudam; o card é redesenhado quando a pessoa solta
+  if (op.leve) { if (eraPronta) cardPendente[p.id] = true; }
+  else atualizarCard(p, op.ancora || ancoraClique);
   clearTimeout(timersDiag[p.id]);
   timersDiag[p.id] = setTimeout(async () => {
     const refazer = !!refazerDiag[p.id]; delete refazerDiag[p.id]; delete timersDiag[p.id];
@@ -2739,10 +2781,54 @@ function midiasRev(p) {
     <div class="lista">${slides.map((sl, i) => { const c = clipes[sl.n], f = fotos[sl.n];
       return `<div class="rev-midia"><div class="th">${c ? `<video src="${esc(c)}#t=0.1" muted playsinline preload="metadata"></video><i>▶</i>` : f ? `<img src="${esc(f)}" alt="" loading="lazy">` : "Só texto"}</div>
         <span class="small">${nomeItem}${slides.length > 1 ? " " + (i + 1) : ""}</span>
-        <button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">Trocar pelo banco</button>
-        <div class="rev-fonte" role="group" aria-label="Tamanho do texto: ${esc(nomeItem.toLowerCase())} ${i + 1}"><button type="button" class="btn quiet" data-act="fonte" data-id="${p.id}" data-v="${sl.n}" data-d="-1" title="Diminuir o texto" ${escalaTexto(p.diag, sl.n) <= 0.6 ? "disabled" : ""}>A−</button><span title="Tamanho do texto">${Math.round(escalaTexto(p.diag, sl.n) * 100)}%</span><button type="button" class="btn quiet" data-act="fonte" data-id="${p.id}" data-v="${sl.n}" data-d="1" title="Aumentar o texto" ${escalaTexto(p.diag, sl.n) >= 1.6 ? "disabled" : ""}>A+</button></div></div>`; }).join("")}</div>
-    <p class="small" style="margin:0">Use uma foto ou vídeo seu, ou um que a IA já gerou. Troca na hora e não gasta créditos. Em A− e A+, diminua ou aumente o texto de cada ${slides.length > 1 ? esc(nomeItem.toLowerCase()) : "imagem"}.</p></div>`;
+        <button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">Trocar pelo banco</button></div>`; }).join("")}</div>
+    <p class="small" style="margin:0">Use uma foto ou vídeo seu, ou um que a IA já gerou. Troca na hora e não gasta créditos.</p></div>`;
 }
+// Tamanho do texto: uma barra só. Nenhuma imagem marcada = muda todas juntas; tocou numa = muda só ela; tocou de novo = volta a mudar todas.
+const fonteSel = {}, cardPendente = {};
+function fonteRev(p) {
+  if (M.modo !== "web" || ["Ajustes", "Publicando", "Publicado"].includes(p.status)) return "";
+  const slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
+  if (!slides.some(sl => sl.n === fonteSel[p.id])) fonteSel[p.id] = null;
+  const sel = fonteSel[p.id], vertical = ehVideoFmt(p) || p.formato === "Stories";
+  const nomeItem = ehVideoFmt(p) ? "cena" : "imagem";
+  const { valor, misto } = valorFonte(p, slides);
+  const idx = sel ? slides.findIndex(sl => sl.n === sel) + 1 : 0;
+  return `<div class="diag rev-fonte-bloco" data-fonte-bloco="${p.id}"><span class="lbl">Tamanho do texto</span>
+    ${slides.length > 1 ? `<div class="fonte-telas" role="group" aria-label="Escolha ${nomeItem === "cena" ? "a cena" : "a imagem"} para mudar só ela">${slides.map((sl, i) => `<button type="button" class="fonte-tela ${sel === sl.n ? "on" : ""}" data-act="fonte-sel" data-id="${p.id}" data-v="${sl.n}" aria-pressed="${sel === sl.n}" aria-label="${nomeItem} ${i + 1}">
+      <canvas data-previa="${esc(p.id)}" data-i="${i}" data-mini="1" ${vertical ? `data-vertical="1" width="1080" height="1920"` : `width="${ARTE_L}" height="${ARTE_A}"`} aria-hidden="true"></canvas>
+      <span class="n">${i + 1}</span><span class="pct" data-fonte-pct="${sl.n}">${Math.round(escalaTexto(p.diag, sl.n) * 100)}%</span></button>`).join("")}</div>` : ""}
+    <div class="fonte-barra"><span class="a-menor" aria-hidden="true">A</span>
+      <input type="range" min="60" max="160" step="5" value="${Math.round(valor * 100)}" data-fonte-range="${p.id}" aria-label="Tamanho do texto ${sel ? `da ${nomeItem} ${idx}` : slides.length > 1 ? `de todas as ${nomeItem}s` : ""}">
+      <span class="a-maior" aria-hidden="true">A</span><output data-fonte-out>${misto ? "Misto" : Math.round(valor * 100) + "%"}</output>
+      <button type="button" class="btn quiet" data-act="fonte-padrao" data-id="${p.id}" title="Voltar ao tamanho padrão">Padrão</button></div>
+    <p class="small" style="margin:0" data-fonte-dica>${slides.length < 2 ? "Arraste para a esquerda para diminuir e para a direita para aumentar." : sel ? `Mudando só ${nomeItem === "cena" ? "a cena" : "a imagem"} ${idx}. Toque nela de novo para voltar a mudar todas.` : `Mudando todas juntas. Toque numa ${nomeItem} para mudar só ela.`}</p></div>`;
+}
+function valorFonte(p, slides) {
+  const sel = fonteSel[p.id];
+  if (sel) return { valor: escalaTexto(p.diag, sel), misto: false };
+  const vs = slides.map(sl => escalaTexto(p.diag, sl.n));
+  const misto = vs.some(v => v !== vs[0]);
+  return { valor: misto ? vs.reduce((a, b) => a + b, 0) / vs.length : vs[0], misto };
+}
+document.addEventListener("input", e => {
+  const r = e.target.closest("[data-fonte-range]"); if (!r) return;
+  const p = state.posts.find(x => x.id === r.dataset.fonteRange); if (!p) return;
+  const slides = p.slides.length ? p.slides : [{ n: 1 }];
+  const v = Math.round(Number(r.value)) / 100, sel = fonteSel[p.id];
+  const escalas = { ...(p.diag.escalas || {}) };
+  for (const n of sel ? [sel] : slides.map(sl => sl.n)) { if (v === 1) delete escalas[n]; else escalas[n] = v; }
+  mudarDiagramacao(p, "escalas", escalas, { leve: true });
+  // atualiza os números na hora, sem redesenhar o card (a barra continua na mão)
+  const bloco = r.closest("[data-fonte-bloco]");
+  bloco.querySelectorAll("[data-fonte-pct]").forEach(el => { el.textContent = Math.round(escalaTexto(p.diag, Number(el.dataset.fontePct)) * 100) + "%"; });
+  bloco.querySelector("[data-fonte-out]").textContent = Math.round(v * 100) + "%";
+});
+document.addEventListener("change", e => {
+  const r = e.target.closest("[data-fonte-range]"); if (!r) return;
+  const p = state.posts.find(x => x.id === r.dataset.fonteRange);
+  if (p && cardPendente[p.id]) { delete cardPendente[p.id]; atualizarCard(p, null); }
+});
 function cardRev(p) {
   const cores = coresMarca(), logo = logoMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
   const ehVideo = ehVideoFmt(p);
@@ -2841,7 +2927,7 @@ function cardRev(p) {
   const abas = podeEditar ? `<div class="seg abas-rev" role="tablist" aria-label="Editar"><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="visual" aria-selected="${aba === "visual"}" aria-pressed="${aba === "visual"}">Visual</button><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="textos" aria-selected="${aba === "textos"}" aria-pressed="${aba === "textos"}">Textos</button></div>` : "";
   const acoes = p.status === "Ajustes"
     ? `<div class="working"><span class="dot"></span>A IA está aplicando seu ajuste. A nova prévia aparece aqui em alguns minutos.</div>`
-    : `${abas}${aba === "textos" ? textos : midiasRev(p) + diag}${seletorRedes(p)}${artes}${blocoDownload(p)}<div class="barra-decisao">${decisao}</div>`;
+    : `${abas}${aba === "textos" ? textos : midiasRev(p) + fonteRev(p) + diag}${seletorRedes(p)}${artes}${blocoDownload(p)}<div class="barra-decisao">${decisao}</div>`;
   return `<article class="rcard glass" id="rev-${p.id}">
     <div class="ig ${ehVideo || p.formato === "Stories" ? "vertical" : ""}" data-al="${esc(p.diag.alinhar)}" data-pos="${esc(p.diag.posicao)}" style="--b-bg:${cores.bg};--b-acc:${cores.acc}">
       <div class="ig-top"><span class="ig-avatar">${simboloMarca(cores.bg) ? `<img src="${esc(simboloMarca(cores.bg))}" alt="" onerror="this.remove()">` : esc(nome.slice(0, 2).toUpperCase())}</span>
@@ -2993,6 +3079,7 @@ document.addEventListener("click", e => {
   const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; return render(); }
   const b = e.target.closest("[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
+  ancoraClique = b; setTimeout(() => { ancoraClique = null; }, 0);
   const ideia = state.ideias.find(i => i.id === id);
   const post = state.posts.find(p => p.id === id);
 
@@ -3007,6 +3094,8 @@ document.addEventListener("click", e => {
     post.diag.modelo = "";
     return mudarDiagramacao(post, "modelo", "proprio");
   }
+  if (act === "fonte-sel" && post) { const n = Number(b.dataset.v); fonteSel[post.id] = fonteSel[post.id] === n ? null : n; return atualizarCard(post, b); }
+  if (act === "fonte-padrao" && post) { const alvo = fonteSel[post.id]; const escalas = { ...(post.diag.escalas || {}) }; if (alvo) delete escalas[alvo]; else for (const k of Object.keys(escalas)) delete escalas[k]; return mudarDiagramacao(post, "escalas", escalas); }
   if (act === "fonte" && post) {
     const n = b.dataset.v, nova = Math.round(Math.min(1.6, Math.max(0.6, escalaTexto(post.diag, n) + Number(b.dataset.d) * 0.1)) * 10) / 10;
     const escalas = { ...(post.diag.escalas || {}) };
