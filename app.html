@@ -701,6 +701,9 @@ body.travado .wrap { visibility: hidden; }
 .pe-escolha button .pe-nada { width: 100%; aspect-ratio: 1; border-radius: 5px; display: grid; place-items: center; background: rgba(255,255,255,.05); font-size: 22px; }
 .pe-form { display: grid; gap: 8px; margin-top: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
 .pe-form label.ok { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; }
+.bi-avisos { display: grid; gap: 8px; margin: 10px 0; }
+.bi-avisos ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.bi-avisos .btn { justify-self: start; }
 .bi-escolha { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 320px; overflow: auto; padding: 2px; }
 .bi-escolha button { display: grid; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink-soft); font: 500 11px/1.2 inherit; font-family: inherit; cursor: pointer; text-align: left; min-width: 0; }
 .bi-escolha button img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 5px; }
@@ -3967,7 +3970,7 @@ async function chamar(corpo, comToken = true) {
   }
   let j = null;
   try { j = await r.json(); } catch (e) {}
-  if (!r.ok || !j || j.ok === false) throw { web: true, status: r.status, login: !!(j && j.login), semOrganizacao: !!(j && j.semOrganizacao), message: (j && j.erro) || ("A plataforma respondeu com erro " + r.status + ".") };
+  if (!r.ok || !j || j.ok === false) throw { web: true, status: r.status, login: !!(j && j.login), semOrganizacao: !!(j && j.semOrganizacao), message: (j && j.erro) || (r.status === 413 ? "O arquivo é grande demais para enviar." : "A plataforma respondeu com erro " + r.status + ".") };
   return j;
 }
 async function api(corpo) {
@@ -4759,19 +4762,132 @@ function prepararFoto(f) {
     im.onerror = () => falha(new Error(`não consegui abrir "${f.name}"`)); im.src = u;
   });
 }
+// Envio ao banco: foto é reduzida e vira JPEG; vídeo em MP4 de até 24 MB sobe como está; vídeo maior ou em outro formato
+// (.mov do iPhone, .webm…) é convertido aqui no navegador para MP4 (H.264 + som), até 1080p e cabendo no limite.
+const LIMITE_VIDEO = 24 * 1024 * 1024, VIDEO_MAX_S = 180;
+const ehVideoArq = f => /^video\//.test(f.type) || /\.(mov|mp4|m4v|webm|avi|mkv|3gp)$/i.test(f.name || "");
+const mb = n => (n / 1048576).toFixed(n < 10 * 1048576 ? 1 : 0).replace(".", ",") + " MB";
+async function converterVideo(f, aoAvancar) {
+  if (!podeRenderizar()) throw new Error(`o vídeo tem ${mb(f.size)} e este navegador não consegue reduzir vídeos. Use o Chrome ou o Edge no computador, ou exporte o vídeo em MP4 com até 24 MB`);
+  let v;
+  try { v = await carregarVideo(URL.createObjectURL(f)); v._blob = f; }
+  catch (e) { throw new Error("não consegui abrir o vídeo neste navegador (vídeos HEVC do iPhone só abrem no Safari ou no Chrome do Mac). Tente por outro navegador ou exporte em MP4 (H.264)"); }
+  const dur = v.duration;
+  if (!isFinite(dur) || dur <= 0) throw new Error("não consegui ler a duração do vídeo");
+  if (dur > VIDEO_MAX_S) throw new Error(`o vídeo tem ${Math.round(dur / 60)} min; o banco aceita vídeos de até 3 minutos. Corte o trecho que vai usar e envie de novo`);
+  // até 1080 no lado menor e 1920 no maior, sem aumentar; dimensões pares
+  const k = Math.min(1, 1080 / Math.min(v.videoWidth, v.videoHeight), 1920 / Math.max(v.videoWidth, v.videoHeight));
+  const W = Math.max(2, Math.round(v.videoWidth * k / 2) * 2), H = Math.max(2, Math.round(v.videoHeight * k / 2) * 2);
+  const audioBps = 128000, bps = Math.round(Math.max(600000, Math.min(8e6, (22 * 1048576 * 8) / dur - audioBps)));
+  const fps = dur > 60 ? 24 : 30;
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const ctx = cv.getContext("2d");
+  const a = await prepararAudio([{ v, ini: 0, dur, de: 0 }], dur, null);
+  // Rápido: toca o vídeo acelerado e codifica cada quadro que aparece. Sem requestVideoFrameCallback, vai quadro a quadro.
+  const blob = "requestVideoFrameCallback" in HTMLVideoElement.prototype
+    ? await converterTocando(v, cv, ctx, { dur, bps, audio: a.audio, codecA: a.codecA, aoAvancar }).catch(() => null)
+    : null;
+  const final = blob || await renderizarMp4(cv, { fps, duracao: dur, bps, audio: a.audio, codecA: a.codecA, aoAvancar,
+    desenhar: async t => { await irPara(v, t); ctx.drawImage(v, 0, 0, W, H); } });
+  URL.revokeObjectURL(v.src);
+  if (final.size > LIMITE_VIDEO) throw new Error(`mesmo reduzido o vídeo ficou com ${mb(final.size)}. Envie um trecho mais curto`);
+  return final;
+}
+// Conversão tocando o vídeo (sem som, acelerado) e pegando cada quadro mostrado, com o tempo real dele no vídeo.
+async function converterTocando(v, cv, ctx, { dur, bps, audio, codecA, aoAvancar }) {
+  await carregarScript(URL_MP4MUXER);
+  const W = cv.width, H = cv.height;
+  let codec = null;
+  for (const c of CODECS_H264) { try { const r = await VideoEncoder.isConfigSupported({ codec: c, width: W, height: H, bitrate: bps, framerate: 30 }); if (r.supported) { codec = c; break; } } catch (e) {} }
+  if (!codec) throw new Error("sem H.264");
+  const comAudio = !!(audio && codecA);
+  const muxer = new Mp4Muxer.Muxer({ target: new Mp4Muxer.ArrayBufferTarget(), video: { codec: "avc", width: W, height: H, frameRate: 30 }, ...(comAudio ? { audio: { codec: codecA.mux, sampleRate: AUDIO_SR, numberOfChannels: 2 } } : {}), fastStart: "in-memory", firstTimestampBehavior: "offset" });
+  let erro = null, ultimoKey = -1e9, n = 0;
+  const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => { erro = e; } });
+  enc.configure({ codec, width: W, height: H, bitrate: bps, framerate: 30, latencyMode: "quality", avc: { format: "avc" } });
+  v.muted = true; v.currentTime = 0; v.playbackRate = dur > 30 ? 4 : 2;
+  await new Promise((ok, falha) => {
+    let ultimo = -1;
+    const quadro = (agora, meta) => {
+      if (erro) return falha(erro);
+      const t = meta.mediaTime;
+      if (t > ultimo) {
+        ultimo = t; ctx.drawImage(v, 0, 0, W, H);
+        const us = Math.round(t * 1e6), f = new VideoFrame(cv, { timestamp: us });
+        const key = us - ultimoKey >= 2e6; if (key) ultimoKey = us;
+        enc.encode(f, { keyFrame: key }); f.close(); n++;
+        if (aoAvancar && n % 15 === 0) aoAvancar(Math.min(1, t / dur));
+        // codificador atrasado: espera um pouco antes de seguir
+        if (enc.encodeQueueSize > 12) { v.pause(); const volta = () => enc.encodeQueueSize > 4 ? setTimeout(volta, 10) : v.play().catch(falha); volta(); }
+      }
+      if (!v.ended) v.requestVideoFrameCallback(quadro);
+    };
+    v.onended = () => ok();
+    v.requestVideoFrameCallback(quadro);
+    v.play().catch(falha);
+  });
+  await enc.flush(); enc.close();
+  if (erro) throw erro;
+  if (n < 2) throw new Error("poucos quadros");
+  if (comAudio) {
+    const aenc = new AudioEncoder({ output: (chunk, meta) => muxer.addAudioChunk(chunk, meta), error: e => { erro = e; } });
+    aenc.configure({ codec: codecA.codec, sampleRate: AUDIO_SR, numberOfChannels: 2, bitrate: 128000 });
+    const fimA = Math.min(audio.n, Math.round(dur * AUDIO_SR)), Q = 1024;
+    for (let i = 0; i < fimA; i += Q) {
+      const k = Math.min(Q, fimA - i), dados = new Float32Array(k * 2);
+      dados.set(audio.L.subarray(i, i + k), 0); dados.set(audio.R.subarray(i, i + k), k);
+      const ad = new AudioData({ format: "f32-planar", sampleRate: AUDIO_SR, numberOfFrames: k, numberOfChannels: 2, timestamp: Math.round(i * 1e6 / AUDIO_SR), data: dados });
+      aenc.encode(ad); ad.close();
+      if (aenc.encodeQueueSize > 32) await new Promise(r => setTimeout(r, 2));
+    }
+    await aenc.flush(); aenc.close();
+    if (erro) throw erro;
+  }
+  muxer.finalize();
+  return new Blob([muxer.target.buffer], { type: "video/mp4" });
+}
+// Motivo legível para o que deu errado no envio.
+function motivoEnvio(e) {
+  const m = textoErro(e);
+  if (e && e.status === 413) return "o arquivo é grande demais para enviar";
+  if (/Failed to fetch|NetworkError|Não consegui falar com a plataforma/i.test(m)) return "a conexão caiu durante o envio (internet instável ou arquivo grande). Tente de novo";
+  return m.replace(/\.$/, "");
+}
+function mostrarAvisosBanco(falhas, enviados) {
+  const el = document.getElementById("banco-avisos"); if (!el) return;
+  el.innerHTML = falhas.length ? `<div class="msg erro bi-avisos"><b>${falhas.length === 1 ? "1 arquivo não subiu" : falhas.length + " arquivos não subiram"}${enviados ? ` (${enviados} subiram)` : ""}:</b>
+      <ul>${falhas.map(x => `<li><b>${esc(x.nome)}</b>: ${esc(x.motivo)}.</li>`).join("")}</ul>
+      <button type="button" class="btn quiet" data-bi="fechar-avisos">Entendi</button></div>` : "";
+}
 async function enviarBanco(arquivos) {
-  const grandes = [...arquivos].filter(f => f.type === "video/mp4" && f.size > 25 * 1024 * 1024);
-  if (grandes.length) toast(`${grandes.map(f => f.name).join(", ")}: vídeos de até 25 MB.`);
-  const fotos = [...arquivos].filter(f => /^image\//.test(f.type) || (f.type === "video/mp4" && f.size <= 25 * 1024 * 1024));
-  if (!fotos.length) return grandes.length ? null : toast("Escolha fotos em JPG, PNG ou WEBP, ou vídeos em MP4.");
-  BI.enviando = fotos.length; BI.total = fotos.length; desenharBanco();
-  let falhas = 0;
-  for (const f of fotos) {
-    try { const x = f.type === "video/mp4" ? { tipo: f.type, base64: await arquivoBase64(f), capa: await capaDoArquivoVideo(f) } : await prepararFoto(f); await api({ acao: "enviarImagemBanco", tipo: x.tipo, base64: x.base64, capa: x.capa, nome: f.name, titulo: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60) }); }
-    catch (e) { falhas++; toast("Não deu para enviar " + f.name + ": " + textoErro(e)); }
+  const lista = [...arquivos], falhas = [];
+  const validos = lista.filter(f => { if (/^image\//.test(f.type) || /\.(heic|heif)$/i.test(f.name) || ehVideoArq(f)) return true; falhas.push({ nome: f.name, motivo: "não é foto nem vídeo" }); return false; });
+  if (!validos.length) return mostrarAvisosBanco(falhas, 0);
+  BI.enviando = validos.length; BI.total = validos.length; desenharBanco(); mostrarAvisosBanco([], 0);
+  const st = t => { const el = document.getElementById("banco-status"); if (el) el.textContent = t; };
+  let enviados = 0;
+  for (const [i, f] of validos.entries()) {
+    const pos = validos.length > 1 ? ` (${i + 1} de ${validos.length})` : "";
+    try {
+      let x;
+      if (ehVideoArq(f)) {
+        let arq = f;
+        if (!(f.type === "video/mp4" && f.size <= LIMITE_VIDEO)) {
+          toast(`Convertendo ${f.name} para subir${pos}… deixe esta aba aberta.`);
+          arq = await converterVideo(f, fr => st(`Convertendo ${f.name}: ${Math.round(fr * 100)}%`));
+        }
+        st(`Enviando ${f.name}${pos}…`);
+        x = { tipo: "video/mp4", base64: await arquivoBase64(arq), capa: await capaDoArquivoVideo(arq) };
+      } else {
+        try { x = await prepararFoto(f); }
+        catch (e) { throw new Error(/\.(heic|heif)$/i.test(f.name) || /heic|heif/i.test(f.type) ? "foto HEIC do iPhone não abre neste navegador. Envie pelo Safari ou mude a câmera para \"Mais compatível\" (JPG)" : "não consegui abrir a imagem (arquivo corrompido ou formato não suportado)"); }
+      }
+      await api({ acao: "enviarImagemBanco", tipo: x.tipo, base64: x.base64, capa: x.capa, nome: f.name.replace(/\.(mov|m4v|webm|avi|mkv|3gp)$/i, ".mp4"), titulo: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60) });
+      enviados++;
+    } catch (e) { falhas.push({ nome: f.name, motivo: motivoEnvio(e) }); }
     BI.enviando--; desenharBanco();
   }
-  toast(falhas ? `Enviei ${fotos.length - falhas} de ${fotos.length} arquivos.` : `${fotos.length} arquivo${fotos.length > 1 ? "s" : ""} no banco.${fotos.some(f => /^image\//.test(f.type)) ? " A IA está descrevendo as fotos." : ""}`);
+  mostrarAvisosBanco(falhas, enviados);
+  toast(falhas.length ? (enviados ? `Subiram ${enviados} de ${lista.length}. Veja abaixo o que não subiu e por quê.` : "Nada subiu. Veja abaixo o motivo.") : `${enviados} arquivo${enviados > 1 ? "s" : ""} no banco.${validos.some(f => !ehVideoArq(f)) ? " A IA está descrevendo as fotos." : ""}`);
   carregarBanco();
 }
 function desenharBanco() {
@@ -4803,6 +4919,7 @@ document.addEventListener("click", async e => {
   const b = e.target.closest("[data-bi]"); if (!b) return;
   const a = b.dataset.bi, id = b.dataset.id;
   if (a === "filtro") { BI.filtro = id; return desenharBanco(); }
+  if (a === "fechar-avisos") return mostrarAvisosBanco([], 0);
   if (a === "editar") { BI.editando = id; return desenharBanco(); }
   if (a === "cancelar") { BI.editando = null; return desenharBanco(); }
   if (a === "salvar") {
@@ -5211,8 +5328,9 @@ function renderBancoPagina() {
   if (!el.querySelector("#banco-lista")) el.innerHTML = `<section class="glass box banco">
     <div class="actions" style="justify-content:space-between"><h2>Seus arquivos${ajuda("banco")}</h2><span class="small" id="banco-status"></span></div>
     <p class="hint">Fotos e vídeos que você envia (produtos, loja, equipe) e tudo que a IA gera nos posts, guardado sozinho com o selo IA. Use em <b>Criar post › Imagens › Do meu banco</b> ou em <b>Revisão › Imagens do post › Trocar pelo banco</b>, sem gastar créditos.</p>
-    <label class="bi-zona" id="banco-zona"><input type="file" id="banco-arquivos" class="arquivo-oculto" accept="image/jpeg,image/png,image/webp,video/mp4" multiple>
-      <b>Arraste fotos e vídeos para cá ou clique para escolher</b><span class="small">Fotos em JPG, PNG ou WEBP; vídeos em MP4 de até 25 MB. A IA descreve cada foto para escolher a certa em cada post.</span></label>
+    <label class="bi-zona" id="banco-zona"><input type="file" id="banco-arquivos" class="arquivo-oculto" accept="image/*,video/*,.mov,.m4v,.heic,.heif" multiple>
+      <b>Arraste fotos e vídeos para cá ou clique para escolher</b><span class="small">Fotos e vídeos do celular ou do computador. Vídeo grande ou em outro formato (como o .mov do iPhone) é convertido aqui mesmo para MP4 antes de subir, até 3 minutos. A IA descreve cada foto para escolher a certa em cada post.</span></label>
+    <div id="banco-avisos" aria-live="polite"></div>
     <div class="seg bi-filtros" id="banco-filtros" role="group" aria-label="Filtrar o banco"></div>
     <div class="bi-grade" id="banco-lista"></div>
   </section>`;
