@@ -2856,13 +2856,14 @@ async function trilhaDeAudio(partes, total) {
 }
 async function codecAudio() {
   if (typeof window.AudioEncoder !== "function" || typeof window.AudioData !== "function") return null;
-  for (const [codec, mux] of [["mp4a.40.2", "aac"], ["opus", "opus"]]) {
+  // Só AAC: o Instagram (e o Facebook) recusam vídeo com áudio Opus. Sem AAC, o áudio vai pelo gravador (ou o vídeo sai sem som).
+  for (const [codec, mux] of [["mp4a.40.2", "aac"]]) {
     try { const r = await AudioEncoder.isConfigSupported({ codec, sampleRate: AUDIO_SR, numberOfChannels: 2, bitrate: 128000 }); if (r.supported) return { codec, mux }; } catch (e) {}
   }
   return null;
 }
 // O MediaRecorder grava junto o som dos vídeos que estão tocando (quando o WebCodecs não codifica áudio).
-const MIME_MP4_AUDIO = (() => { try { return ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1,mp4a.40.2", "video/mp4;codecs=avc1,opus"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || (window.MediaRecorder && MediaRecorder.isTypeSupported("video/mp4") ? "video/mp4" : ""); } catch (e) { return ""; } })();
+const MIME_MP4_AUDIO = (() => { try { return ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1,mp4a.40.2", "video/mp4;codecs=avc1.640028,mp4a.40.2"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || ""; } catch (e) { return ""; } })();
 const querAudio = diag => !diag || diag.audio !== "mudo";
 // Trilha pronta para o WebCodecs; "gravador" = tem som mas este navegador só grava áudio pelo MediaRecorder.
 async function prepararAudio(partes, total, diag) {
