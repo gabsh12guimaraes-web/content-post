@@ -1633,11 +1633,21 @@ function miniatura(p) {
   if (ehArqVideo(a)) return posterDe(a) ? `<div class="mini" style="background-image:${cssUrl(posterDe(a))}"></div>` : `<div class="mini"><video src="${esc(a.url)}#t=0.1" muted playsinline preload="metadata"></video></div>`;
   return `<div class="mini" style="background-image:${cssUrl(urlArq(a))}"></div>`;
 }
+let tentandoPub = null;
+async function tentarPublicarDeNovo(p) {
+  if (tentandoPub) return;
+  tentandoPub = p.id; render();
+  try { await api({ acao: "tentarPublicarDeNovo", id: p.id }); p.status = "Publicando"; p.erro = ""; toast("Publicando de novo. O que já saiu não é repetido."); }
+  catch (e) { toast("Não deu para tentar de novo: " + textoErro(e)); }
+  tentandoPub = null; render(); setTimeout(() => carregarPauta(), 4000);
+}
 function linhaAgend(p) {
   let botoes = "";
   if (M.modo === "web") {
     if (p.status === "Agendado") botoes = `<button class="btn primary" data-act="publicar-agora" data-id="${p.id}" ${p.artesProntas ? "" : "disabled title=\"Faltam as artes finais\""}>Publicar agora</button><button class="btn" data-act="mudar-data" data-id="${p.id}">Mudar data</button>`;
-    else if (p.status === "Erro") botoes = `<button class="btn" data-act="mudar-data" data-id="${p.id}">Mudar data</button>`;
+    else if (p.status === "Erro") botoes = `${p.artesProntas ? `<button class="btn primary" data-act="tentar-publicar" data-id="${p.id}" ${tentandoPub === p.id ? "disabled" : ""}>${tentandoPub === p.id ? "Tentando…" : "Tentar de novo"}</button>` : ""}<button class="btn" data-act="mudar-data" data-id="${p.id}">Mudar data</button>`;
+    // saiu só em parte das redes: tenta de novo só as que faltaram
+    else if (p.status === "Publicado" && p.erro && p.artesProntas) botoes = `<button class="btn" data-act="tentar-publicar" data-id="${p.id}" ${tentandoPub === p.id ? "disabled" : ""}>${tentandoPub === p.id ? "Tentando…" : "Tentar de novo nas que faltaram"}</button>`;
   }
   const links = Object.entries(p.links || {}).filter(([, l]) => /^https?:/.test(l));
   if (links.length) botoes += links.map(([r, l]) => `<a class="btn" href="${esc(l)}" target="_blank" rel="noopener">Ver no ${esc(r)}</a>`).join("");
@@ -3591,6 +3601,7 @@ document.addEventListener("click", e => {
 
   if (act === "ir-marca") return ir("marca");
   if (act === "previa-rede" && post) return abrirPreviaRede(post);
+  if (act === "tentar-publicar" && post) return tentarPublicarDeNovo(post);
   if (act === "gerar-artes" && post) return gerarArtes(post);
   if (act === "diag" && post) return mudarDiagramacao(post, b.dataset.k, b.dataset.v);
   if (act === "diag-salvo" && post) {
