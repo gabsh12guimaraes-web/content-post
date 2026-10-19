@@ -2066,7 +2066,7 @@ document.addEventListener("click", e => {
   const [t, txt, ancora] = AJUDA[b.dataset.ajuda];
   const pop = document.createElement("div");
   pop.className = "ajuda-pop"; pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", t);
-  pop.innerHTML = `<b>${esc(t)}</b><p>${esc(txt)}</p><a href="ajuda.html#${ancora}" target="_blank" rel="noopener">Ver documentação →</a>`;
+  pop.innerHTML = `<b>${esc(t)}</b><p>${esc(txt)}</p><a href="ajuda#${ancora}" target="_blank" rel="noopener">Ver documentação →</a>`;
   (b.closest("dialog") || document.body).appendChild(pop);
   b.setAttribute("aria-expanded", "true");
   const r = b.getBoundingClientRect(), w = Math.min(300, innerWidth - 24);
@@ -3889,7 +3889,7 @@ function renderAuth() {
       <button class="btn" data-u="nova-org">+ Nova organização</button>
       <div class="quem"><span class="av" aria-hidden="true">${esc(iniciais(U.usuario.nome))}</span><span>${esc(U.usuario.nome || U.usuario.email)}<small>${esc(PAPEIS[U.organizacao && U.organizacao.papel] || "")}</small></span></div>
       ${U.usuario.admin ? `<button class="btn" data-u="admin">Painel admin</button>` : ""}<button class="btn" data-u="banco">Banco de imagens</button><button class="btn" data-u="equipe">Equipe</button><button class="btn" data-u="integracoes">Integrações</button><button class="btn" data-u="plano">Plano</button>
-      <a class="btn quiet" href="ajuda.html" target="_blank" rel="noopener">Como usar</a><button class="btn quiet" data-u="minha-senha">Minha senha</button><button class="btn quiet" data-u="sair">Sair</button>`
+      <a class="btn quiet" href="ajuda" target="_blank" rel="noopener">Como usar</a><button class="btn quiet" data-u="minha-senha">Minha senha</button><button class="btn quiet" data-u="sair">Sair</button>`
     : (web ? "" : `<span class="notice">Aprove ou peça ajustes na aba Revisão.</span>`);
   const aberto = web && U.tela !== "ok";
   el.hidden = !aberto; document.body.classList.toggle("travado", aberto);

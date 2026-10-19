@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
-Disallow: /app.html
-Disallow: /antigo.html
+Disallow: /app
+Disallow: /antigo
 Disallow: /painel/
 Disallow: /base/
 Disallow: /fluxos/
