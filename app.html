@@ -1007,6 +1007,8 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 
 /* campos */
 .field input, .field textarea, .field select, .reason input, textarea, .auth-card input { background: var(--card-soft); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none; }
+/* No celular, campo com letra menor que 16 px faz o iPhone dar zoom ao tocar */
+@media (hover: none) and (pointer: coarse) { input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select { font-size: 16px !important; } }
 .field input:focus, .field textarea:focus, .field select:focus, .reason input:focus, textarea:focus { border-color: var(--red); }
 .field select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%), linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 30px; }
 .field select option { background: var(--card-soft); }
@@ -4025,7 +4027,31 @@ function renderAuth() {
 
 /* ---------- diálogos: equipe, integrações, nova organização, minha senha, agendar, remover ---------- */
 const dlg = () => document.getElementById("dlg");
-function abrirDlg(html) { const d = dlg(); d.innerHTML = html; if (!d.open) d.showModal(); d.querySelector("input:not([readonly]), select, textarea")?.focus(); }
+// Abre ou redesenha o pop-up. Redesenhar (ex.: clicar numa opção do briefing) mantém a rolagem e não leva o cursor para um campo;
+// no celular o cursor nunca vai sozinho para um campo (abriria o teclado e daria zoom): só quando a pessoa toca nele.
+const telaDeToque = () => matchMedia("(hover: none) and (pointer: coarse)").matches;
+// O botão tocado por último no pop-up: ao redesenhar, ele continua na mesma altura da tela.
+let toqueDlg = null;
+document.addEventListener("pointerdown", e => { const el = e.target.closest && e.target.closest("#dlg button, #dlg [data-b]"); if (el) toqueDlg = el; }, true);
+const seletorDlg = el => el.tagName.toLowerCase() + Object.entries(el.dataset).map(([k, v]) => `[data-${k.replace(/[A-Z]/g, m => "-" + m.toLowerCase())}="${CSS.escape(v)}"]`).join("");
+function abrirDlg(html) {
+  const d = dlg(), jaAberto = d.open, topo = d.scrollTop;
+  const ancora = jaAberto && toqueDlg && d.contains(toqueDlg) && Object.keys(toqueDlg.dataset).length ? { sel: seletorDlg(toqueDlg), y: toqueDlg.getBoundingClientRect().top } : null;
+  d.innerHTML = html;
+  if (!jaAberto) d.showModal(); else d.scrollTop = topo;
+  if (ancora) {
+    // alinha agora e de novo se algo acima mudar de altura logo depois (miniaturas carregando, lista do banco chegando)
+    const alinhar = () => { const n = d.querySelector(ancora.sel); if (n) { const dy = n.getBoundingClientRect().top - ancora.y; if (Math.abs(dy) > 0.5) d.scrollTop += dy; } };
+    alinhar();
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(alinhar), fim = () => { ro.disconnect(); d.removeEventListener("wheel", fim); d.removeEventListener("touchstart", fim); };
+      [...d.children].forEach(c => ro.observe(c));
+      d.addEventListener("wheel", fim, { passive: true }); d.addEventListener("touchstart", fim, { passive: true });
+      setTimeout(fim, 1500);
+    }
+  }
+  if (!jaAberto && !telaDeToque()) d.querySelector("input:not([readonly]), select, textarea")?.focus();
+}
 function fecharDlg() { const d = dlg(); if (d.open) d.close(); }
 const EQ = { dados: null, erro: "", link: "" };
 async function abrirEquipe() {
