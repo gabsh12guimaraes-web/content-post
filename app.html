@@ -152,6 +152,9 @@ button { cursor: pointer; }
 .ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px; }
 @media (max-width: 400px) { .ideas { grid-template-columns: 1fr; } }
 .idea { padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+/* Cartões fora da tela não são diagramados até chegarem perto (listas longas ficam leves no celular). */
+.idea { content-visibility: auto; contain-intrinsic-size: auto 320px; }
+.mais-ideias { display: flex; justify-content: center; margin-top: 16px; }
 .idea.dim { opacity: 0.5; }
 .idea h3 { font-size: 17px; font-weight: 600; }
 .idea p { margin: 0; color: var(--ink-soft); }
@@ -1296,9 +1299,13 @@ async function mudarRede(p, r) {
   try { await api({ acao: "salvarRedes", id: p.id, redes: p.redes }); }
   catch (e) { p.redes = antes; render(); toast("Não deu para salvar as redes: " + textoErro(e)); }
 }
+let pautaAdiantada = null;
 async function carregarPauta() {
   try {
-    const j = await api({ acao: "pauta" });
+    const adiantada = pautaAdiantada; pautaAdiantada = null;
+    const j = await (adiantada || api({ acao: "pauta", versao: pauta.versao || undefined }));
+    if (j.igual && pauta.carregada) { carregarRedes(); return; } // nada mudou: não redesenha
+    pauta.versao = j.versao || null;
     pauta.tarefas = j.tarefas || [];
     receberPauta(j.ideias || [], j.posts || []);
     carregarRedes();
@@ -1904,9 +1911,12 @@ function renderIdeias() {
   const fb = (s, label) => `<button aria-pressed="${filtro === s}" data-filtro="${s}">${label} · ${contagem(s)}</button>`;
   el.innerHTML = falhaIdeias + head + `<div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div></div>
     ${filtrosExtra}
-    ${lista.length ? `<div class="ideas">${lista.map(cardIdeia).join("")}</div>`
+    ${lista.length ? `<div class="ideas">${lista.slice(0, ideiasVisiveis).map(cardIdeia).join("")}</div>${lista.length > ideiasVisiveis ? `<div class="mais-ideias"><button class="btn" data-mais-ideias>Mostrar mais ${Math.min(IDEIAS_PAGINA, lista.length - ideiasVisiveis)} de ${lista.length - ideiasVisiveis}</button></div>` : ""}`
       : `<div class="empty glass">${state.ideias.length ? "Nenhuma ideia neste filtro." : "Nenhuma ideia ainda. Clique em Buscar ideias novas."}</div>`}`;
 }
+// A lista de ideias vem em páginas de 30: com centenas de cartões o celular travava a cada redesenho.
+const IDEIAS_PAGINA = 30;
+let ideiasVisiveis = IDEIAS_PAGINA;
 function cardIdeia(i) {
   let rodape;
   if (i.status === "Sugerida" || i.status === "Guardada") {
@@ -2631,7 +2641,7 @@ async function pintarPrevias() {
   if (pintando) { pintarDeNovo = true; return; }
   pintando = true;
   try {
-    const cvs = [...document.querySelectorAll("canvas[data-previa]")];
+    const cvs = [...document.querySelectorAll("canvas[data-previa]")].filter(cv => !cv.closest("[hidden]")); // abas escondidas não pintam
     if (cvs.length) {
       await Promise.all([document.fonts.load(`400 40px Anton`), document.fonts.load(`400 40px 'Bebas Neue'`), document.fonts.load(`400 40px 'Archivo Black'`), document.fonts.load(`800 40px 'Playfair Display'`), document.fonts.load(`italic 500 40px 'Playfair Display'`), document.fonts.load(`400 40px 'DM Serif Display'`), document.fonts.load(`italic 400 40px 'DM Serif Display'`), document.fonts.load(`800 40px Poppins`)]).catch(() => {});
       const logos = await logosDaPrevia(), cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
@@ -3510,9 +3520,11 @@ function render() {
   document.getElementById("c-cal").textContent = n(state.posts.filter(p => p.status !== "Publicado").length);
   document.getElementById("c-rev").textContent = n(state.posts.filter(p => p.status === "EmRevisao").length);
   document.getElementById("c-agend").textContent = n(state.posts.filter(p => ["Agendado", "Publicando"].includes(p.status)).length);
-  const rascunhos = guardarRascunhos();
-  renderIdeias(); renderCal(); renderRev(); renderAgend();
-  restaurarRascunhos(rascunhos);
+  // Só a aba aberta é redesenhada (antes eram as quatro a cada mudança e a cada recarga da pauta);
+  // as outras se redesenham quando forem abertas, porque ir() chama render().
+  const rascunhos = tab === "rev" ? guardarRascunhos() : null;
+  ({ ideias: renderIdeias, cal: renderCal, rev: renderRev, agend: renderAgend })[tab]?.();
+  if (rascunhos) restaurarRascunhos(rascunhos);
   flashId = null;
   sincronizarCasca();
   requestAnimationFrame(() => pintarPrevias());
@@ -3603,9 +3615,10 @@ async function mudarIdeia(ideia, campos, ok) {
 
 document.addEventListener("click", e => {
   const tabBtn = e.target.closest(".track button, .kpi, button[data-tab]"); if (tabBtn) return ir(tabBtn.dataset.tab);
-  const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; return render(); }
+  const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; ideiasVisiveis = IDEIAS_PAGINA; return render(); }
+  if (e.target.closest("[data-mais-ideias]")) { ideiasVisiveis += IDEIAS_PAGINA; return renderIdeias(); }
   const fi = e.target.closest("[data-fi]");
-  if (fi) { if (fi.dataset.fi === "limpar") { FI.tipo = "Todos"; FI.cat = "Todas"; } else if (fi.dataset.fi === "ordem") FI.ordem = fi.dataset.v; else FI[fi.dataset.fi] = FI[fi.dataset.fi] === fi.dataset.v && fi.dataset.v !== "Todos" && fi.dataset.v !== "Todas" ? (fi.dataset.fi === "tipo" ? "Todos" : "Todas") : fi.dataset.v; guardarFI(); return renderIdeias(); }
+  if (fi) { ideiasVisiveis = IDEIAS_PAGINA;  if (fi.dataset.fi === "limpar") { FI.tipo = "Todos"; FI.cat = "Todas"; } else if (fi.dataset.fi === "ordem") FI.ordem = fi.dataset.v; else FI[fi.dataset.fi] = FI[fi.dataset.fi] === fi.dataset.v && fi.dataset.v !== "Todos" && fi.dataset.v !== "Todas" ? (fi.dataset.fi === "tipo" ? "Todos" : "Todas") : fi.dataset.v; guardarFI(); return renderIdeias(); }
   const b = e.target.closest("[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
   ancoraClique = b; setTimeout(() => { ancoraClique = null; }, 0);
@@ -3990,6 +4003,8 @@ async function chamar(corpo, comToken = true) {
   return j;
 }
 async function api(corpo) {
+  // Uma ação que muda dados pode ter mexido na tela: a próxima recarga da pauta vem completa. Leituras não contam.
+  if (!/^(pauta|listar\w*|redesConectadas|contasRedes|plano|situacao|eu|verConvite)$/.test(corpo.acao)) pauta.versao = null;
   try { return await chamar(corpo); }
   catch (e) {
     if (e.login) sairLocal("Sua sessão expirou. Entre de novo.");
@@ -4009,7 +4024,7 @@ async function carregarWeb() {
   M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
 }
 function limparDados() {
-  state = { ideias: [], posts: [] }; pauta.carregada = false; pauta.tarefas = [];
+  state = { ideias: [], posts: [] }; pauta.carregada = false; pauta.tarefas = []; pauta.versao = null; pautaAdiantada = null;
   M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null;
   if (typeof PP !== "undefined") PP.redes = null; // a checagem "Instagram conectado" é por organização
 }
@@ -4018,6 +4033,8 @@ async function iniciarWeb() {
   U.tela = "ok"; U.erro = ""; renderAuth();
   M.conexao = "carregando"; M.ocupado = true; renderMarca();
   SIT.dados = null; SIT.popupMostrado = false; desenharAvisoPlano();
+  // A pauta já sai junto com a marca (uma ida e volta a menos até o servidor); só é lida depois da marca, que ela usa.
+  pautaAdiantada = api({ acao: "pauta" }); pautaAdiantada.catch(() => {});
   try {
     await carregarWeb(); M.marcaSuja = false; carregarPauta();
     if (U.organizacao && U.organizacao.onboarding && ["dono", "admin"].includes(U.organizacao.papel) && !document.querySelector(".dlg[open]")) abrirOnboarding();
