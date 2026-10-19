@@ -471,6 +471,10 @@ body.travado .wrap { visibility: hidden; }
 .arow .mini { width: 64px; aspect-ratio: 4 / 5; border-radius: 6px; background: var(--card-soft) center / cover no-repeat; border: 1px solid var(--line); display: grid; place-items: center; font-size: 10px; color: var(--ink-faint); overflow: hidden; }
 .arow .mini video { width: 100%; height: 100%; object-fit: cover; }
 /* Prévia do post na rede (Agendados) */
+.pub-opcoes { display: grid; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.pub-op { display: grid; gap: 6px; }
+.pub-ia { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 13px; }
+.pub-ia input { margin-top: 3px; accent-color: var(--red); width: 16px; height: 16px; flex: none; }
 .mini-btn { position: relative; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 6px; display: block; }
 .mini-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .mini-olho { position: absolute; right: 4px; bottom: 4px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.65); color: #fff; display: grid; place-items: center; }
@@ -502,6 +506,9 @@ body.travado .wrap { visibility: hidden; }
 .pv-linha { padding: 2px 12px; }
 .pv-tag { color: #00376b; }
 .pv-cinza { color: #737373; }
+.pv-ia { font-size: 11px; color: #737373; }
+.pv-tela .pv-ia { color: #fff; opacity: .9; }
+.pv-teste { margin-left: 10px; align-self: center; font-size: 11px; font-weight: 600; background: rgba(0,0,0,.45); border-radius: 99px; padding: 3px 9px; }
 .pv-quando { font-size: 11px; text-transform: uppercase; letter-spacing: .02em; padding-bottom: 12px; }
 .clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .clamp3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -1179,7 +1186,7 @@ function dePost(r) {
   } catch (e) {}
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
-    status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", redes: Array.isArray(r.Redes) && r.Redes.length ? r.Redes.slice() : [nomeSel(r.Rede)].filter(Boolean), links: r.Links || {}, briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
+    status: nomeSel(r.Status) || "Planejado", publicacao: r.Publicacao && typeof r.Publicacao === "object" ? { ...r.Publicacao } : {}, versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", redes: Array.isArray(r.Redes) && r.Redes.length ? r.Redes.slice() : [nomeSel(r.Rede)].filter(Boolean), links: r.Links || {}, briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
     erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } const padraoMao = !/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao ? (M.modelos || []).find(x => x.id === M.modeloPadrao && x.status === "pronto" && x.diag) : null; if (padraoMao) Object.assign(d, diagDoModelo(padraoMao.diag)); else if (!/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao && (M.modelos || []).some(x => x.id === M.modeloPadrao && x.status === "pronto" && x.spec)) { d.modelo = "proprio"; d.proprio = M.modeloPadrao; d.v = 3; const sp = M.modelos.find(x => x.id === M.modeloPadrao).spec; d.alinhar = sp.alinhar; d.posicao = sp.posicao; d.logoPos = sp.logo === "nenhum" ? "te" : sp.logo; if (sp.logo === "nenhum") d.logo = "nenhum"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
@@ -1216,8 +1223,33 @@ function seletorRedes(p) {
   if (p.redes.includes("X")) avisos.push("No X, a legenda é encurtada para 280 caracteres e vão até 4 imagens.");
   if (p.redes.includes("Threads")) avisos.push("No Threads, a legenda é encurtada para 500 caracteres.");
   if (redesOk === null && M.modo === "web") avisos.push("Não consegui ver as redes conectadas. Confira em Integrações › Redes conectadas.");
-  return `<div class="redes-post"><span class="small">Publicar em${ajuda("redes")}</span><div class="redes-lista">${botoes}</div>${avisos.length ? `<p class="small" style="margin:0">${avisos.map(esc).join(" ")}</p>` : ""}</div>`;
+  return `<div class="redes-post"><span class="small">Publicar em${ajuda("redes")}</span><div class="redes-lista">${botoes}</div>${avisos.length ? `<p class="small" style="margin:0">${avisos.map(esc).join(" ")}</p>` : ""}${opcoesPublicacao(p)}</div>`;
 }
+// Opções da publicação: Reels de teste (Instagram) e o selo de conteúdo feito com IA.
+function opcoesPublicacao(p) {
+  if (M.modo !== "web") return "";
+  const pub = p.publicacao || {}, ia = pub.conteudoIa !== false, teste = pub.reelTeste || "";
+  const reelIg = p.formato === "Reels" && p.redes.includes("Instagram");
+  const comSelo = p.redes.some(r => ["Instagram", "TikTok"].includes(r));
+  const op = (v, t) => `<button type="button" data-act="pub-teste" data-id="${p.id}" data-v="${v}" aria-pressed="${teste === v}">${t}</button>`;
+  return `<div class="pub-opcoes">
+    ${reelIg ? `<div class="pub-op"><span class="small">Reels no Instagram</span>
+      <div class="seg" role="group" aria-label="Tipo de Reels">${op("", "Normal")}${op("MANUAL", "Reels de teste")}${op("SS_PERFORMANCE", "Teste + compartilhar se for bem")}</div>
+      <p class="small" style="margin:0">${!teste ? "Aparece para os seus seguidores e no feed, como sempre." : teste === "MANUAL" ? "Reels de teste: aparece primeiro só para quem não segue o perfil. Depois você decide no app do Instagram se compartilha com os seguidores." : "Reels de teste: aparece primeiro só para quem não segue o perfil, e o Instagram compartilha sozinho com os seguidores se ele for bem."}</p></div>` : ""}
+    <label class="pub-ia"><input type="checkbox" data-pub-ia="${p.id}" ${ia ? "checked" : ""}> <span><b>Conteúdo feito com IA</b><br><span class="small">${comSelo ? "Marca o post como gerado com IA (selo de IA no Instagram e no TikTok)." : "Marca o post como gerado com IA nas redes que têm esse selo (Instagram e TikTok)."}</span></span></label>
+  </div>`;
+}
+async function salvarPublicacao(p, campos, ancora) {
+  const antes = { ...(p.publicacao || {}) };
+  p.publicacao = { ...antes, ...campos }; if (!p.publicacao.reelTeste) delete p.publicacao.reelTeste;
+  atualizarCard(p, ancora);
+  try { await api({ acao: "salvarPublicacao", id: p.id, ...campos, reelTeste: campos.reelTeste === undefined ? undefined : campos.reelTeste || "nao" }); }
+  catch (e) { p.publicacao = antes; atualizarCard(p, null); toast("Não deu para salvar: " + textoErro(e)); }
+}
+document.addEventListener("change", e => {
+  const c = e.target.closest("[data-pub-ia]"); if (!c) return;
+  const p = state.posts.find(x => x.id === c.dataset.pubIa); if (p) salvarPublicacao(p, { conteudoIa: c.checked }, null);
+});
 async function mudarRede(p, r) {
   const antes = p.redes.slice(), ancora = ancoraClique;
   p.redes = p.redes.includes(r) ? p.redes.filter(x => x !== r) : REDES_POST.filter(x => x === r || p.redes.includes(x));
@@ -1655,7 +1687,7 @@ const pontosPv = n => n > 1 ? `<div class="pv-pontos" data-pv-pontos>${Array.fro
 const contPv = n => n > 1 ? `<span class="pv-cont" data-pv-cont>1/${n}</span>` : "";
 function instagramPv(p, c, ms, legenda) {
   return `<div class="pv pv-ig claro">
-    <div class="pv-top">${avPv(c, 32, "anel")}<div class="pv-quem"><b>${esc(c.user)}</b></div><span class="pv-dir">${ic("mais", 20)}</span></div>
+    <div class="pv-top">${avPv(c, 32, "anel")}<div class="pv-quem"><b>${esc(c.user)}</b>${(p.publicacao || {}).conteudoIa !== false ? `<span class="pv-ia">Informações de IA</span>` : ""}</div><span class="pv-dir">${ic("mais", 20)}</span></div>
     <div class="pv-midia" style="--ar:4/5">${trilhoPv(ms)}${contPv(ms.length)}</div>
     <div class="pv-acoes">${ic("coracao")}${ic("balao")}${ic("aviao")}${pontosPv(ms.length)}<span class="pv-dir">${ic("salvar")}</span></div>
     <div class="pv-linha"><b>${numPv(p, "c", 120, 2400).toLocaleString("pt-BR")} curtidas</b></div>
@@ -1674,10 +1706,11 @@ function facebookPv(p, c, ms, legenda) {
 function reelPv(p, c, ms, legenda, rede) {
   const ig = rede === "Instagram";
   return `<div class="pv pv-tela">${trilhoPv(ms.slice(0, 1))}
-    <div class="pv-topo-tela"><b>${ig ? "Reels" : "Reels"}</b></div>
+    <div class="pv-topo-tela"><b>Reels</b>${ig && (p.publicacao || {}).reelTeste ? `<span class="pv-teste">Reels de teste · só para quem não segue</span>` : ""}</div>
     <div class="pv-lado">${[["coracao", milPv(numPv(p, "c", 900, 48000))], ["balao", milPv(numPv(p, "m", 20, 900))], ig ? ["repost", milPv(numPv(p, "rp", 5, 300))] : ["compartilhar", milPv(numPv(p, "s", 5, 300))], ig ? ["aviao", milPv(numPv(p, "s", 10, 2000))] : null, ["mais", ""]].filter(Boolean).map(([n, t]) => `<span>${ic(n, 28)}${t ? `<small>${t}</small>` : ""}</span>`).join("")}</div>
     <div class="pv-base">
       <div class="pv-quem-tela">${avPv(c, 30)}<b>${esc(ig ? c.user : c.nome)}</b><span class="pv-seguir">Seguir</span></div>
+      ${ig && (p.publicacao || {}).conteudoIa !== false ? `<span class="pv-ia">Informações de IA</span>` : ""}
       ${legenda ? `<div class="pv-leg clamp" data-pv-leg>${legendaPv(legenda)}</div>` : ""}
       <div class="pv-som">♫ ${esc(ig ? c.user : c.nome)} · Áudio original</div></div></div>`;
 }
@@ -3450,6 +3483,7 @@ document.addEventListener("click", e => {
     return mudarDiagramacao(post, "escalas", escalas);
   }
   if (act === "rede" && post) return mudarRede(post, b.dataset.v);
+  if (act === "pub-teste" && post) return salvarPublicacao(post, { reelTeste: b.dataset.v }, b);
   if (act === "baixar-arte" && post) return baixarArte(post, Number(b.dataset.v));
   if (act === "baixar-tudo" && post) return baixarTudo(post);
   if (act === "trocar-foto" && post) return abrirTrocaFoto(post, Number(b.dataset.v));
