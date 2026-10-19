@@ -476,6 +476,112 @@ body.travado .wrap { visibility: hidden; }
 .arow { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 10px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 9px; }
 .arow .mini { width: 64px; aspect-ratio: 4 / 5; border-radius: 6px; background: var(--card-soft) center / cover no-repeat; border: 1px solid var(--line); display: grid; place-items: center; font-size: 10px; color: var(--ink-faint); overflow: hidden; }
 .arow .mini video { width: 100%; height: 100%; object-fit: cover; }
+/* Prévia do post na rede (Agendados) */
+.mini-btn { position: relative; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 6px; display: block; }
+.mini-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.mini-olho { position: absolute; right: 4px; bottom: 4px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.65); color: #fff; display: grid; place-items: center; }
+.mini-btn:hover .mini { border-color: var(--red); }
+.dlg.dlg-pv { width: min(440px, calc(100vw - 28px)); }
+.pv-redes { margin-bottom: 12px; flex-wrap: wrap; }
+.pv-palco { display: grid; place-items: center; margin-bottom: 14px; }
+.pv { width: min(360px, 100%); border-radius: 14px; overflow: hidden; font: 14px/1.38 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; letter-spacing: 0; text-align: left; }
+.pv.claro { background: #fff; color: #0f1419; }
+.pv b { font-weight: 600; }
+.pv-top { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.pv-quem { display: grid; line-height: 1.2; min-width: 0; }
+.pv-quem .pv-cinza { padding: 0; font-size: 12px; }
+.pv-dir { margin-left: auto; display: inline-flex; gap: 14px; }
+.pv-av { flex: none; border-radius: 50%; overflow: hidden; display: grid; place-items: center; font: 700 12px/1 Poppins, sans-serif; background: linear-gradient(135deg, var(--av2), var(--av)); color: #fff; }
+.pv-av img { width: 100%; height: 100%; object-fit: cover; background: var(--av); }
+.pv-av.anel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #e1306c; margin: 2px; }
+.pv-midia { position: relative; background: #000; }
+.pv-trilho { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.pv-trilho::-webkit-scrollbar { display: none; }
+.pv-item { flex: 0 0 100%; scroll-snap-align: start; aspect-ratio: var(--ar, 4 / 5); background: #000; position: relative; }
+.pv-item img, .pv-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pv-vazio { display: grid; place-items: center; color: #999; font-size: 13px; }
+.pv-cont { position: absolute; top: 10px; right: 10px; background: rgba(18,18,18,.7); color: #fff; border-radius: 99px; font-size: 12px; padding: 3px 9px; }
+.pv-acoes { position: relative; display: flex; align-items: center; gap: 14px; padding: 9px 12px 4px; }
+.pv-pontos { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; }
+.pv-pontos i { width: 6px; height: 6px; border-radius: 50%; background: #c7c7c7; }
+.pv-pontos i.on { background: #0095f6; }
+.pv-linha { padding: 2px 12px; }
+.pv-tag { color: #00376b; }
+.pv-cinza { color: #737373; }
+.pv-quando { font-size: 11px; text-transform: uppercase; letter-spacing: .02em; padding-bottom: 12px; }
+.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp.aberta, .clamp3.aberta { -webkit-line-clamp: unset; display: block; }
+.pv-maisleg { border: 0; background: none; padding: 0 12px; color: #737373; font: inherit; cursor: pointer; }
+/* Facebook */
+.pv-fb .pv-tag { color: #0866ff; }
+.pv-fb .pv-leg { padding: 0 12px 4px; }
+.pv-fb .pv-maisleg { padding: 0 12px 8px; font-weight: 600; color: #65676b; }
+.pv-fb .pv-cinza { color: #65676b; }
+.pv-reacoes { display: flex; justify-content: space-between; gap: 8px; padding: 8px 12px; color: #65676b; font-size: 13px; }
+.pv-emo { font-style: normal; font-size: 13px; margin-right: -3px; }
+.pv-fb-botoes { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #e4e6eb; margin: 0 12px; padding: 4px 0 6px; color: #65676b; font-weight: 600; font-size: 13px; }
+.pv-fb-botoes span { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 0; }
+/* Telas em pé: Reels, Stories e TikTok */
+.pv-tela { position: relative; aspect-ratio: 9 / 16; background: #000; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.pv-tela .pv-trilho { position: absolute; inset: 0; }
+.pv-tela .pv-item { aspect-ratio: auto; height: 100%; }
+.pv-tela::after { content: ""; position: absolute; inset: 55% 0 0; background: linear-gradient(transparent, rgba(0,0,0,.6)); pointer-events: none; }
+.pv-tela::before { content: ""; position: absolute; inset: 0 0 78%; background: linear-gradient(rgba(0,0,0,.5), transparent); pointer-events: none; z-index: 1; }
+.pv-tela svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,.55)); }
+.pv-tela .pv-av { box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.pv-topo-tela { position: absolute; top: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 16px; font-size: 16px; z-index: 1; }
+.pv-ig-r .pv-topo-tela, .pv-tela:not(.pv-tt) .pv-topo-tela { justify-content: flex-start; padding-left: 14px; font-size: 18px; }
+.pv-apagado { opacity: .65; }
+.pv-lado { position: absolute; right: 8px; bottom: 76px; display: grid; gap: 16px; justify-items: center; z-index: 1; }
+.pv-lado > span { display: grid; justify-items: center; gap: 3px; }
+.pv-lado small { font-size: 12px; font-weight: 600; }
+.pv-base { position: absolute; left: 12px; right: 64px; bottom: 14px; display: grid; gap: 6px; font-size: 13px; z-index: 1; }
+.pv-base .pv-tag { color: #fff; font-weight: 600; }
+.pv-quem-tela { display: flex; align-items: center; gap: 8px; }
+.pv-seguir { border: 1px solid rgba(255,255,255,.8); border-radius: 8px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+.pv-som { font-size: 12px; opacity: .95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pv-tt-av { position: relative; margin-bottom: 6px; }
+.pv-tt-av .pv-av { box-shadow: 0 0 0 2px #fff; }
+.pv-tt-av i { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); width: 18px; height: 18px; border-radius: 50%; background: #fe2c55; color: #fff; font: 700 14px/18px sans-serif; text-align: center; font-style: normal; }
+.pv-disco .pv-av { box-shadow: 0 0 0 7px #222; animation: girar 4s linear infinite; }
+@keyframes girar { to { transform: rotate(1turn); } }
+.pv-tt-pontos { position: absolute; left: 0; right: 0; bottom: 6px; z-index: 1; }
+.pv-tt-pontos .pv-pontos { position: static; transform: none; justify-content: center; }
+.pv-tt-pontos .pv-pontos i.on { background: #fff; }
+.pv-tt .pv-base b { font-size: 15px; }
+.pv-story .pv-barras { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; gap: 3px; z-index: 2; }
+.pv-barras i { flex: 1; height: 2.5px; border-radius: 2px; background: rgba(255,255,255,.4); }
+.pv-barras i.on { background: linear-gradient(90deg, #fff 45%, rgba(255,255,255,.4) 45%); }
+.pv-barras i.feito { background: #fff; }
+.pv-story-top { position: absolute; top: 18px; left: 10px; right: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; z-index: 2; }
+.pv-tempo { opacity: .75; }
+.pv-story-base { position: absolute; bottom: 12px; left: 10px; right: 10px; display: flex; align-items: center; gap: 12px; z-index: 2; }
+.pv-msg { flex: 1; border: 1px solid rgba(255,255,255,.75); border-radius: 99px; padding: 9px 14px; font-size: 13px; }
+.pv-nav { position: absolute; top: 50px; bottom: 64px; width: 35%; border: 0; background: none; cursor: pointer; z-index: 2; }
+.pv-nav.ant { left: 0; } .pv-nav.prox { right: 0; }
+/* X e Threads */
+.pv-x, .pv-th { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; padding: 12px 14px 8px; font-size: 15px; }
+.pv-th { grid-template-columns: 36px minmax(0, 1fr); }
+.pv-x .pv-tag { color: #1d9bf0; }
+.pv-th .pv-tag { color: #0095f6; }
+.pv-x-quem { display: flex; align-items: center; gap: 4px; min-width: 0; white-space: nowrap; }
+.pv-x-quem .pv-cinza { color: #536471; overflow: hidden; text-overflow: ellipsis; }
+.pv-x-texto { margin: 2px 0 10px; word-wrap: break-word; }
+.pv-x-grade { display: grid; gap: 2px; border-radius: 16px; overflow: hidden; border: 1px solid #cfd9de; margin-bottom: 8px; }
+.pv-x-grade.n2, .pv-x-grade.n3, .pv-x-grade.n4 { grid-template-columns: 1fr 1fr; }
+.pv-x-grade.n3 > div:first-child { grid-row: span 2; }
+.pv-x-grade > div { aspect-ratio: 1; background: #000; }
+.pv-x-grade.n1 > div { aspect-ratio: 4 / 5; max-height: 420px; }
+.pv-x-grade.n3 > div:first-child { aspect-ratio: auto; }
+.pv-x-grade img, .pv-x-grade video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pv-x-acoes { display: flex; justify-content: space-between; color: #536471; font-size: 13px; padding: 2px 0 4px; }
+.pv-x-acoes span { display: inline-flex; align-items: center; gap: 4px; }
+.pv-th-midias { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -14px 8px 0; padding-right: 14px; }
+.pv-th-midias .pv-item { flex: 0 0 auto; width: 72%; border-radius: 8px; overflow: hidden; }
+.pv-th-midias .pv-item:only-child { width: 100%; }
+.pv-th-acoes { display: flex; gap: 18px; color: #424242; font-size: 13px; padding: 2px 0 4px; }
+.pv-th-acoes span { display: inline-flex; align-items: center; gap: 5px; }
 .arow .at { font-weight: 700; font-size: 14px; }
 .arow .am { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
 .arow .am b { font-family: var(--mono); font-weight: 500; color: #fff; }
@@ -1437,7 +1543,7 @@ function linhaAgend(p) {
   const links = Object.entries(p.links || {}).filter(([, l]) => /^https?:/.test(l));
   if (links.length) botoes += links.map(([r, l]) => `<a class="btn" href="${esc(l)}" target="_blank" rel="noopener">Ver no ${esc(r)}</a>`).join("");
   else if (p.link) botoes += `<a class="btn" href="${esc(p.link)}" target="_blank" rel="noopener">Ver publicado</a>`;
-  return `<div class="arow">${miniatura(p)}
+  return `<div class="arow"><button type="button" class="mini-btn" data-act="previa-rede" data-id="${p.id}" aria-label="Ver a prévia de ${esc(p.titulo)} na rede" title="Ver como fica na rede">${miniatura(p)}<span class="mini-olho" aria-hidden="true">${ic("mais", 14).replace(IC.mais, '<path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/>')}</span></button>
     <div><div class="at">${esc(p.titulo)}</div><div class="am"><b>${fmtData(p.data)}</b> · ${esc(p.redes.join(", "))} · ${esc(p.formato)}</div>
       ${M.modo === "web" && ["Agendado", "Erro"].includes(p.status) ? seletorRedes(p) : ""}
       <div class="meta" style="margin-top:6px">${p.status === "Publicando" ? `<span class="chip warn">Publicando…</span>` : chip(p.status)}${p.status === "Agendado" && !p.artesProntas ? `<span class="chip bad">Sem artes finais</span>` : ""}</div>
@@ -1445,6 +1551,163 @@ function linhaAgend(p) {
       ${M.modo === "web" ? blocoDownload(p) : ""}</div>
     <div class="actions">${botoes}</div></div>`;
 }
+/* ---------- Prévia do post na rede (Agendados) ---------- */
+// Clicar na imagem de um post agendado abre o post como ele vai aparecer em cada rede escolhida:
+// perfil, mídia (carrossel, vídeo ou story), legenda no tamanho daquela rede e a área de curtidas. Os números são só ilustração.
+const PV = { id: null, rede: "" };
+const IC = {
+  coracao: '<path d="M12 20.5s-7.2-4.4-9.2-8.6C1.4 8.8 3.3 5 6.8 5c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.5 0 5.4 3.8 4 6.9-2 4.2-9.2 8.6-9.2 8.6z"/>',
+  balao: '<path d="M20.7 11.6a8.6 8.6 0 0 1-12.5 7.7L3 20.8l1.6-4.9a8.6 8.6 0 1 1 16.1-4.3z"/>',
+  aviao: '<path d="M21.5 3 10.2 13.8"/><path d="M21.5 3 15 21l-4.8-7.2L3 9.4z"/>',
+  salvar: '<path d="M6 3.5h12v17l-6-4.8-6 4.8z"/>',
+  repost: '<path d="M16.5 3 20 6.5 16.5 10"/><path d="M4 11.5V9.8A3.3 3.3 0 0 1 7.3 6.5H20"/><path d="M7.5 21 4 17.5 7.5 14"/><path d="M20 12.5v1.7a3.3 3.3 0 0 1-3.3 3.3H4"/>',
+  visto: '<path d="M4 20V11M10 20V5M16 20v-6M21 20V8"/>',
+  enviar: '<path d="M12 3.5v12"/><path d="M7.5 8 12 3.5 16.5 8"/><path d="M5 14v6h14v-6"/>',
+  mais: '<circle cx="5" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="19" cy="12" r="1.4" fill="currentColor"/>',
+  joinha: '<path d="M7 10.5v9.5H4v-9.5zM7 19.5h9.6a2 2 0 0 0 2-1.6l1.3-6.2a2 2 0 0 0-2-2.4H14l.7-3.6a1.8 1.8 0 0 0-3.3-1.3L7 10.5"/>',
+  compartilhar: '<path d="M14 5l7 6.5-7 6.5v-4c-5 0-8.5 1.5-11 5 1-5 4-9.5 11-10z"/>',
+};
+const ic = (n, t = 24, extra = "") => `<svg viewBox="0 0 24 24" width="${t}" height="${t}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${IC[n]}</svg>`;
+// Números de ilustração, fixos por post (não mudam a cada abertura).
+function numPv(p, k, min, max) { let h = 0; for (const c of p.id + k) h = (h * 31 + c.charCodeAt(0)) >>> 0; return min + (h % (max - min)); }
+const milPv = n => n >= 1000 ? (n / 1000).toFixed(1).replace(".", ",").replace(",0", "") + " mil" : String(n);
+const cortarPv = (t, n) => { t = String(t || "").trim(); if (t.length <= n) return t; const c = t.slice(0, n - 1); const i = c.lastIndexOf(" "); return (i > n * 0.6 ? c.slice(0, i) : c).replace(/[\s.,;:!?-]+$/, "") + "…"; };
+const legendaPv = t => esc(t).replace(/(^|[\s(])([#@][\wÀ-ÿ_.]+)/g, '$1<span class="pv-tag">$2</span>').replace(/\n/g, "<br>");
+function contaPv() {
+  const nome = (M.marca && M.marca.Nome) || "Sua marca";
+  const user = perfilMarca().replace(/^@/, "") || nome.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9._]+/g, "");
+  const cores = coresMarca(), sim = simboloMarca(cores.bg) || logoMarca();
+  return { nome, user: user || "suamarca", sim, cores };
+}
+const avPv = (c, t = 32, cls = "") => `<span class="pv-av ${cls}" style="width:${t}px;height:${t}px;--av:${c.cores.bg};--av2:${c.cores.acc}">${c.sim ? `<img src="${esc(c.sim)}" alt="">` : esc(c.nome.slice(0, 2).toUpperCase())}</span>`;
+function midiasPv(p) {
+  const lista = p.arquivos.length ? p.arquivos : p.fotos;
+  return lista.map(a => ({ url: ehArqVideo(a) ? a.url : urlArq(a), video: ehArqVideo(a) }));
+}
+const itemPv = m => `<div class="pv-item">${m.video ? `<video src="${esc(m.url)}" muted loop playsinline autoplay preload="metadata"></video>` : `<img src="${esc(m.url)}" alt="" loading="lazy">`}</div>`;
+const trilhoPv = ms => `<div class="pv-trilho" data-pv-trilho>${ms.length ? ms.map(itemPv).join("") : `<div class="pv-item pv-vazio">Sem artes finais</div>`}</div>`;
+function abrirPreviaRede(p, rede) {
+  const redes = redesPv(p);
+  PV.id = p.id; PV.rede = rede && redes.includes(rede) ? rede : redes[0];
+  desenharPreviaRede();
+}
+const redesPv = p => { const r = (p.redes && p.redes.length ? p.redes : [p.rede]).filter(x => REDES_POST.includes(x)); return r.length ? r : ["Instagram"]; };
+function desenharPreviaRede() {
+  const p = state.posts.find(x => x.id === PV.id); if (!p) return fecharDlg();
+  const redes = redesPv(p), rede = PV.rede;
+  const abas = redes.length > 1 ? `<div class="seg pv-redes" role="tablist" aria-label="Rede">${redes.map(r => `<button type="button" role="tab" data-pv="rede" data-v="${r}" aria-selected="${r === rede}" aria-pressed="${r === rede}">${r}</button>`).join("")}</div>` : "";
+  abrirDlg(`<h2>Prévia no ${esc(rede)}</h2>
+    <p class="hint">${p.status === "Publicado" ? "Como o post saiu" : "Como o post vai aparecer"} em ${fmtData(p.data)}. Curtidas, comentários e visualizações são só ilustração.</p>
+    ${abas}<div class="pv-palco">${mockPv(p, rede)}</div>
+    <div class="actions"><button class="btn quiet" type="button" data-u="fechar">Fechar</button></div>`);
+  dlg().classList.add("dlg-pv");
+  ligarPv();
+}
+function mockPv(p, rede) {
+  const c = contaPv(), ms = midiasPv(p), legenda = [p.legenda, p.hashtags].filter(Boolean).join("\n\n");
+  const story = p.formato === "Stories", reel = p.formato === "Reels" || (ms.length === 1 && ms[0].video && p.formato !== "Carrossel");
+  if (story && !["Instagram", "Facebook"].includes(rede)) return `<div class="msg">Stories só saem no Instagram e no Facebook.</div>`;
+  if (story) return storyPv(p, c, ms, rede);
+  if (rede === "TikTok") return tiktokPv(p, c, ms, legenda);
+  if (rede === "X") return xPv(p, c, ms, cortarPv(legenda, 280));
+  if (rede === "Threads") return threadsPv(p, c, ms, cortarPv(legenda, 500));
+  if (rede === "Facebook") return reel ? reelPv(p, c, ms, legenda, "Facebook") : facebookPv(p, c, ms, legenda);
+  return reel ? reelPv(p, c, ms, legenda, "Instagram") : instagramPv(p, c, ms, legenda);
+}
+const pontosPv = n => n > 1 ? `<div class="pv-pontos" data-pv-pontos>${Array.from({ length: n }, (_, i) => `<i class="${i ? "" : "on"}"></i>`).join("")}</div>` : "";
+const contPv = n => n > 1 ? `<span class="pv-cont" data-pv-cont>1/${n}</span>` : "";
+function instagramPv(p, c, ms, legenda) {
+  return `<div class="pv pv-ig claro">
+    <div class="pv-top">${avPv(c, 32, "anel")}<div class="pv-quem"><b>${esc(c.user)}</b></div><span class="pv-dir">${ic("mais", 20)}</span></div>
+    <div class="pv-midia" style="--ar:4/5">${trilhoPv(ms)}${contPv(ms.length)}</div>
+    <div class="pv-acoes">${ic("coracao")}${ic("balao")}${ic("aviao")}${pontosPv(ms.length)}<span class="pv-dir">${ic("salvar")}</span></div>
+    <div class="pv-linha"><b>${numPv(p, "c", 120, 2400).toLocaleString("pt-BR")} curtidas</b></div>
+    ${legenda ? `<div class="pv-linha pv-leg clamp" data-pv-leg><b>${esc(c.user)}</b> ${legendaPv(legenda)}</div><button type="button" class="pv-maisleg" data-pv="mais">mais</button>` : ""}
+    <div class="pv-linha pv-cinza">Ver todos os ${numPv(p, "m", 4, 90)} comentários</div>
+    <div class="pv-linha pv-cinza pv-quando">${esc(fmtDataPv(p.data))}</div></div>`;
+}
+function facebookPv(p, c, ms, legenda) {
+  return `<div class="pv pv-fb claro">
+    <div class="pv-top">${avPv(c, 40)}<div class="pv-quem"><b>${esc(c.nome)}</b><span class="pv-cinza">${esc(fmtDataPv(p.data))} · 🌐</span></div><span class="pv-dir">${ic("mais", 20)}</span></div>
+    ${legenda ? `<div class="pv-linha pv-leg clamp3" data-pv-leg>${legendaPv(legenda)}</div><button type="button" class="pv-maisleg" data-pv="mais">Ver mais</button>` : ""}
+    <div class="pv-midia" style="--ar:4/5">${trilhoPv(ms)}${contPv(ms.length)}</div>
+    <div class="pv-reacoes"><span><i class="pv-emo">👍</i><i class="pv-emo">❤️</i> ${numPv(p, "r", 18, 640)}</span><span>${numPv(p, "m", 2, 80)} comentários · ${numPv(p, "s", 1, 40)} compartilhamentos</span></div>
+    <div class="pv-fb-botoes"><span>${ic("joinha", 20)} Curtir</span><span>${ic("balao", 20)} Comentar</span><span>${ic("compartilhar", 20)} Compartilhar</span></div></div>`;
+}
+function reelPv(p, c, ms, legenda, rede) {
+  const ig = rede === "Instagram";
+  return `<div class="pv pv-tela">${trilhoPv(ms.slice(0, 1))}
+    <div class="pv-topo-tela"><b>${ig ? "Reels" : "Reels"}</b></div>
+    <div class="pv-lado">${[["coracao", milPv(numPv(p, "c", 900, 48000))], ["balao", milPv(numPv(p, "m", 20, 900))], ig ? ["repost", milPv(numPv(p, "rp", 5, 300))] : ["compartilhar", milPv(numPv(p, "s", 5, 300))], ig ? ["aviao", milPv(numPv(p, "s", 10, 2000))] : null, ["mais", ""]].filter(Boolean).map(([n, t]) => `<span>${ic(n, 28)}${t ? `<small>${t}</small>` : ""}</span>`).join("")}</div>
+    <div class="pv-base">
+      <div class="pv-quem-tela">${avPv(c, 30)}<b>${esc(ig ? c.user : c.nome)}</b><span class="pv-seguir">Seguir</span></div>
+      ${legenda ? `<div class="pv-leg clamp" data-pv-leg>${legendaPv(legenda)}</div>` : ""}
+      <div class="pv-som">♫ ${esc(ig ? c.user : c.nome)} · Áudio original</div></div></div>`;
+}
+function storyPv(p, c, ms, rede) {
+  return `<div class="pv pv-tela pv-story">${trilhoPv(ms)}
+    <div class="pv-barras" data-pv-barras>${(ms.length ? ms : [0]).map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("")}</div>
+    <div class="pv-story-top">${avPv(c, 30)}<b>${esc(rede === "Instagram" ? c.user : c.nome)}</b><span class="pv-tempo">agora</span><span class="pv-dir">${ic("mais", 22)}</span></div>
+    ${ms.length > 1 ? `<button type="button" class="pv-nav ant" data-pv="ant" aria-label="Story anterior"></button><button type="button" class="pv-nav prox" data-pv="prox" aria-label="Próximo story"></button>` : ""}
+    <div class="pv-story-base"><span class="pv-msg">${rede === "Instagram" ? "Enviar mensagem" : "Responder…"}</span>${ic("coracao", 26)}${ic("aviao", 26)}</div></div>`;
+}
+function tiktokPv(p, c, ms, legenda) {
+  const fotos = !ms.some(m => m.video);
+  const texto = fotos ? [p.titulo, legenda].filter(Boolean).join("\n") : legenda;
+  return `<div class="pv pv-tela pv-tt">${trilhoPv(fotos ? ms : ms.filter(m => m.video).slice(0, 1))}
+    <div class="pv-topo-tela"><span class="pv-apagado">Seguindo</span><b>Para você</b></div>
+    ${fotos && ms.length > 1 ? `<div class="pv-tt-pontos">${pontosPv(ms.length)}</div>` : ""}
+    <div class="pv-lado">
+      <span class="pv-tt-av">${avPv(c, 44)}<i>+</i></span>
+      <span>${ic("coracao", 30, 'fill="currentColor"')}<small>${milPv(numPv(p, "c", 900, 90000))}</small></span>
+      <span>${ic("balao", 30, 'fill="currentColor"')}<small>${milPv(numPv(p, "m", 20, 2000))}</small></span>
+      <span>${ic("salvar", 30, 'fill="currentColor"')}<small>${milPv(numPv(p, "sv", 10, 4000))}</small></span>
+      <span>${ic("compartilhar", 30, 'fill="currentColor"')}<small>${milPv(numPv(p, "s", 10, 3000))}</small></span>
+      <span class="pv-disco">${avPv(c, 30)}</span></div>
+    <div class="pv-base"><b>${esc(c.nome)}</b>
+      ${texto ? `<div class="pv-leg clamp" data-pv-leg>${legendaPv(cortarPv(texto, 2200))}</div>` : ""}
+      <div class="pv-som">♫ som original - ${esc(c.user)}</div></div></div>`;
+}
+function xPv(p, c, ms, texto) {
+  const lista = ms.some(m => m.video) ? ms.filter(m => m.video).slice(0, 1) : ms.slice(0, 4);
+  const grade = lista.length ? `<div class="pv-x-grade n${lista.length}">${lista.map(m => `<div>${m.video ? `<video src="${esc(m.url)}" muted loop playsinline autoplay preload="metadata"></video>` : `<img src="${esc(m.url)}" alt="" loading="lazy">`}</div>`).join("")}</div>` : "";
+  return `<div class="pv pv-x claro"><div class="pv-x-lado">${avPv(c, 40)}</div><div>
+    <div class="pv-x-quem"><b>${esc(c.nome)}</b><span class="pv-cinza">@${esc(c.user)} · ${esc(fmtDataPv(p.data, true))}</span><span class="pv-dir">${ic("mais", 18)}</span></div>
+    ${texto ? `<div class="pv-x-texto">${legendaPv(texto)}</div>` : ""}${grade}
+    <div class="pv-x-acoes"><span>${ic("balao", 18)}${numPv(p, "m", 2, 90)}</span><span>${ic("repost", 18)}${numPv(p, "rp", 1, 60)}</span><span>${ic("coracao", 18)}${numPv(p, "c", 10, 900)}</span><span>${ic("visto", 18)}${milPv(numPv(p, "v", 800, 40000))}</span><span>${ic("salvar", 18)}${ic("enviar", 18)}</span></div></div></div>`;
+}
+function threadsPv(p, c, ms, texto) {
+  const lista = (ms.some(m => !m.video) && ms.some(m => m.video)) ? ms.filter(m => !m.video) : ms;
+  return `<div class="pv pv-th claro"><div class="pv-x-lado">${avPv(c, 36)}</div><div>
+    <div class="pv-x-quem"><b>${esc(c.user)}</b><span class="pv-cinza">${esc(fmtDataPv(p.data, true))}</span><span class="pv-dir">${ic("mais", 18)}</span></div>
+    ${texto ? `<div class="pv-x-texto">${legendaPv(texto)}</div>` : ""}
+    ${lista.length ? `<div class="pv-th-midias">${lista.map(itemPv).join("")}</div>` : ""}
+    <div class="pv-th-acoes"><span>${ic("coracao", 20)}${numPv(p, "c", 5, 400)}</span><span>${ic("balao", 20)}${numPv(p, "m", 1, 60)}</span><span>${ic("repost", 20)}${numPv(p, "rp", 1, 30)}</span><span>${ic("aviao", 20)}</span></div></div></div>`;
+}
+function fmtDataPv(d, curto) {
+  const dt = new Date(d); if (isNaN(dt)) return "";
+  if (curto) return dt.toLocaleDateString("pt-BR", { day: "numeric", month: "short" }).replace(".", "");
+  return dt.toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
+}
+// Carrossel e stories: pontos, contador e barras acompanham a imagem à vista.
+function ligarPv() {
+  const d = dlg(), t = d.querySelector("[data-pv-trilho]"); if (!t) return;
+  const atualizar = () => {
+    const n = t.children.length, i = Math.max(0, Math.min(n - 1, Math.round(t.scrollLeft / Math.max(1, t.clientWidth))));
+    d.querySelectorAll("[data-pv-pontos] i").forEach((el, k) => el.classList.toggle("on", k === i));
+    const cont = d.querySelector("[data-pv-cont]"); if (cont) cont.textContent = `${i + 1}/${n}`;
+    d.querySelectorAll("[data-pv-barras] i").forEach((el, k) => { el.classList.toggle("on", k === i); el.classList.toggle("feito", k < i); });
+  };
+  t.addEventListener("scroll", atualizar, { passive: true });
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-pv]"); if (!b) return;
+  const a = b.dataset.pv, d = dlg();
+  if (a === "rede") { PV.rede = b.dataset.v; return desenharPreviaRede(); }
+  if (a === "mais") { const l = d.querySelector("[data-pv-leg]"); if (!l) return; const aberta = l.classList.toggle("aberta"); b.textContent = PV.rede === "Facebook" ? (aberta ? "Ver menos" : "Ver mais") : (aberta ? "menos" : "mais"); return; }
+  if (a === "ant" || a === "prox") { const t = d.querySelector("[data-pv-trilho]"); if (t) t.scrollBy({ left: (a === "prox" ? 1 : -1) * t.clientWidth, behavior: "smooth" }); }
+});
+document.addEventListener("close", e => { if (e.target && e.target.id === "dlg") e.target.classList.remove("dlg-pv"); }, true);
 function renderAgend() {
   const el = document.getElementById("p-agend"); if (!el) return;
   const head = `<div class="panel-head"><p>Posts aprovados entram aqui. Na hora marcada eles vão para a rede pelo Zernio, ou você publica na hora com "Publicar agora".</p></div>`;
@@ -3092,6 +3355,7 @@ document.addEventListener("click", e => {
   const post = state.posts.find(p => p.id === id);
 
   if (act === "ir-marca") return ir("marca");
+  if (act === "previa-rede" && post) return abrirPreviaRede(post);
   if (act === "gerar-artes" && post) return gerarArtes(post);
   if (act === "diag" && post) return mudarDiagramacao(post, b.dataset.k, b.dataset.v);
   if (act === "diag-perfil" && post) {
