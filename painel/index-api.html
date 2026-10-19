@@ -640,6 +640,41 @@ body.travado .wrap { visibility: hidden; }
 @media (max-width: 520px) { .diag .modelos { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .fontes-titulo { flex-wrap: wrap; }
 .fontes-titulo button { font-size: 13px; letter-spacing: 0; text-transform: none; }
+/* Diagramação: faixas empilhadas (nome em mono à esquerda, dica à direita), barra de destaque na faixa em uso,
+   fontes com amostra grande e opções em pílulas. */
+.diag-v2 { gap: 10px; }
+.dpainel { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), #0E0F15; }
+.dsec { position: relative; display: grid; gap: 10px; padding: 14px 16px 16px; border-top: 1px solid var(--line); transition: background .2s; }
+.dsec:first-child { border-top: 0; }
+.dsec::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--grad); opacity: 0; transition: opacity .2s; }
+.dsec.ativa { background: linear-gradient(90deg, rgba(248,57,90,.10), rgba(248,57,90,0) 70%); }
+.dsec.ativa::before { opacity: 1; }
+.dsec-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.dsec-rot { font: 600 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-body); }
+.dsec.ativa .dsec-rot { color: #fff; }
+.dsec-dica { font: 400 11px/1 var(--mono); letter-spacing: .02em; color: var(--ink-faint); text-align: right; }
+.diag-v2 .seg { gap: 6px; }
+.diag-v2 .seg button { border: 1px solid transparent; background: rgba(255,255,255,.045); color: var(--ink-soft); border-radius: 8px; padding: 8px 12px; font: 500 12px/1.1 var(--mono); letter-spacing: .01em; transition: background .15s, color .15s; }
+.diag-v2 .seg button:hover { background: rgba(255,255,255,.08); color: var(--ink-body); }
+.diag-v2 .seg button[aria-pressed="true"] { background: linear-gradient(135deg, #FFC2CD, var(--pink-soft)); color: #2a0711; font-weight: 600; box-shadow: 0 6px 18px -10px var(--red); }
+.diag-v2 .seg button[aria-pressed="true"] svg { stroke: #2a0711; }
+.diag-v2 .seg button[aria-pressed="true"] .amostra-cor { border-color: rgba(42,7,17,.35); }
+.diag-v2 .modelos button { border: 1px solid transparent; background: rgba(255,255,255,.035); border-radius: 10px; padding: 9px 5px 8px; font: 500 10.5px/1.2 var(--mono); letter-spacing: .02em; color: var(--ink-soft); transition: background .15s, color .15s; }
+.diag-v2 .modelos button:hover { background: rgba(255,255,255,.07); color: var(--ink-body); }
+.diag-v2 .modelos button[aria-pressed="true"] { border-color: rgba(248,57,90,.55); box-shadow: none; color: #fff; background: linear-gradient(180deg, rgba(248,57,90,.18), rgba(248,57,90,.04)); }
+.fontes-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+.fontes-lista button { position: relative; display: grid; gap: 6px; text-align: left; padding: 10px 12px 12px; border: 1px solid transparent; border-radius: 10px; background: rgba(255,255,255,.03); color: var(--ink-soft); cursor: pointer; overflow: hidden; transition: background .15s; }
+.fontes-lista button::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: var(--grad); opacity: 0; }
+.fontes-lista button:hover { background: rgba(255,255,255,.06); }
+.fontes-lista button[aria-pressed="true"] { background: linear-gradient(90deg, rgba(248,57,90,.14), rgba(248,57,90,.02)); border-color: rgba(248,57,90,.25); }
+.fontes-lista button[aria-pressed="true"]::before { opacity: 1; }
+.fo-cab { display: flex; justify-content: space-between; gap: 8px; font: 500 10px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.fo-rot { color: var(--ink-body); white-space: nowrap; }
+.fo-dica { color: var(--ink-faint); letter-spacing: .02em; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fo-amostra { font-size: 27px; line-height: 1.05; color: rgba(255,255,255,.42); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
+.fontes-lista button[aria-pressed="true"] .fo-amostra { background: linear-gradient(90deg, #fff 10%, var(--pink-soft)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fontes-lista button[aria-pressed="true"] .fo-rot { color: #fff; }
+@media (max-width: 520px) { .fontes-lista { grid-template-columns: 1fr 1fr; } .fo-amostra { font-size: 23px; } .fo-dica { display: none; } .dsec { padding: 12px 12px 14px; } }
 /* banco de imagens */
 .bi-zona { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 22px 16px; border: 1.5px dashed var(--line-strong, rgba(255,255,255,.2)); border-radius: 10px; cursor: pointer; margin: 6px 0 14px; }
 .bi-zona:hover, .bi-zona.sobre { border-color: var(--red, #F8395A); background: rgba(248,57,90,.06); }
@@ -2185,6 +2220,9 @@ const FONTES_TITULO = {
   playfair: { nome: "Playfair", css: "'Playfair Display'", peso: 800, upper: false },
   dmserif: { nome: "DM Serif", css: "'DM Serif Display'", peso: 400, upper: false },
 };
+const DICA_FONTE = { poppins: "sans geométrica", anton: "condensada, impacto", bebas: "condensada, caixa alta", archivo: "sans pesada", playfair: "serif clássica", dmserif: "serif display" };
+// Faixa da diagramação que a pessoa está mexendo (ganha a barra de destaque).
+const secDiag = {}, SEC_DA_CHAVE = { modelo: "modelo", fundo: "fundo", fonte: "fonte", alinhar: "texto", posicao: "texto", logo: "logo", logoPos: "logoPos" };
 const FONTE_DO_MODELO = { foto: "poppins", editorial: "poppins", lateral: "poppins", impacto: "anton", minimal: "poppins", manchete: "anton", cinema: "dmserif", video: "poppins" };
 // Fundo de cada modelo quando a escolha é "Do modelo". Claro, escuro e cor da marca valem para todos.
 const FUNDO_DO_MODELO = { foto: "marca", editorial: "claro", lateral: "claro", impacto: "marca", minimal: "claro", manchete: "claro", cinema: "escuro", video: "marca" };
@@ -2830,6 +2868,7 @@ function atualizarCard(p, ancora) {
 }
 let ancoraClique = null;
 function mudarDiagramacao(p, k, v, op = {}) {
+  if (SEC_DA_CHAVE[k] && secDiag[p.id] !== SEC_DA_CHAVE[k]) { secDiag[p.id] = SEC_DA_CHAVE[k]; if (p.diag[k] === v) return atualizarCard(p, op.ancora || ancoraClique); }
   if (p.diag[k] === v) return;
   p.diag[k] = v;
   if (p.artesProntas) refazerDiag[p.id] = true;
@@ -3150,29 +3189,38 @@ function cardRev(p) {
   const vertical = ehVideo || p.formato === "Stories";
   const T = temaFundo(p.diag, cores, ehModeloVideo(p.diag) ? "video" : p.diag.modelo), fundoEscuro = !T.claro;
   const doPerfil = (M.modelos || []).filter(x => x.status === "pronto" && x.spec).map(x => `<button data-act="diag-perfil" data-id="${p.id}" data-v="${x.id}" aria-pressed="${p.diag.modelo === "proprio" && p.diag.proprio === x.id}" title="${esc(x.nome)}">${x.exemplos[0] ? `<img class="mini-perfil" src="${esc(urlArq(x.exemplos[0]))}" alt="">` : MINI_MODELO.foto}<span>${esc(x.nome || "Do meu perfil")}</span></button>`).join("");
-  const segM = `<span class="small">Modelo</span><div class="modelos" role="group" aria-label="Modelo">${doPerfil}${(vertical ? [["video", "Vídeo"]] : []).concat([["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]]).map(([v, t]) =>
+  // Cada grupo é uma faixa: nome à esquerda, dica à direita; a faixa que a pessoa está mexendo ganha a barra de destaque.
+  const ativa = secDiag[p.id] || "modelo";
+  const sec = (k, rotulo, dica, corpo) => `<div class="dsec ${ativa === k ? "ativa" : ""}"><div class="dsec-cab"><span class="dsec-rot">${rotulo}</span><span class="dsec-dica">${dica}</span></div>${corpo}</div>`;
+  const segM = `<div class="modelos" role="group" aria-label="Modelo">${doPerfil}${(vertical ? [["video", "Vídeo"]] : []).concat([["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]]).map(([v, t]) =>
       `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" || v === "video" || MODELOS_NOVOS.includes(v) ? MINI_MODELO[v] : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
 `;
   // Fundo e fonte valem para todos os modelos (e para Reels e Stories); "Do modelo" usa o padrão de cada um.
   const perfilAtual = p.diag.modelo === "proprio" ? modeloDoPerfil(p.diag.proprio) : null;
   const modeloAtual = ehModeloVideo(p.diag) ? "video" : perfilAtual ? perfilAtual.spec.base : p.diag.modelo;
   const fundoModelo = perfilAtual ? "do seu perfil" : { claro: "claro", escuro: "escuro", marca: "da marca" }[FUNDO_DO_MODELO[modeloAtual] || "marca"];
-  const segF = `<span class="small">Fundo</span><div class="seg fundos" role="group" aria-label="Fundo">${[["auto", "Do modelo (" + fundoModelo + ")", perfilAtual ? perfilAtual.spec.fundo : temaFundo({ ...p.diag, fundo: "auto" }, cores, modeloAtual).bg], ["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", "#0E0F14"], ["marca", "Cor da marca", cores.bg]].map(([v, t, c]) =>
+  const segF = `<div class="seg fundos" role="group" aria-label="Fundo">${[["auto", "Do modelo (" + fundoModelo + ")", perfilAtual ? perfilAtual.spec.fundo : temaFundo({ ...p.diag, fundo: "auto" }, cores, modeloAtual).bg], ["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", "#0E0F14"], ["marca", "Cor da marca", cores.bg]].map(([v, t, c]) =>
       `<button data-act="diag" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "auto") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>`;
   const fonteModelo = FONTES_TITULO[perfilAtual ? perfilAtual.spec.fonte : FONTE_DO_MODELO[modeloAtual] || "poppins"].nome;
-  const segFT = `<span class="small">Fonte do título</span><div class="seg fontes-titulo" role="group" aria-label="Fonte do título">${[["auto", "Do modelo (" + fonteModelo + ")", FONTES_TITULO[FONTE_DO_MODELO[modeloAtual] || "poppins"].css]].concat(Object.entries(FONTES_TITULO).map(([k, f]) => [k, f.nome, f.css])).map(([v, t, css]) =>
-        `<button data-act="diag" data-id="${p.id}" data-k="fonte" data-v="${v}" aria-pressed="${(p.diag.fonte || "auto") === v}" style="font-family:${css.replace(/"/g, "'")}, sans-serif">${t}</button>`).join("")}</div>
+  const amostra = (String((slides[0] && slides[0].t) || p.titulo || "").replace(/\*/g, "").trim().split(/\s+/).slice(0, 2).join(" ").slice(0, 16)) || "Seu título";
+  const fontesOp = [["auto", "Do modelo", FONTE_DO_MODELO[modeloAtual] || "poppins", fonteModelo]].concat(Object.entries(FONTES_TITULO).map(([k, f]) => [k, f.nome, k, DICA_FONTE[k] || ""]));
+  const segFT = `<div class="fontes-lista" role="group" aria-label="Fonte do título">${fontesOp.map(([v, t, k, dica]) => { const f = FONTES_TITULO[perfilAtual && v === "auto" ? perfilAtual.spec.fonte : k] || FONTES_TITULO.poppins;
+        return `<button data-act="diag" data-id="${p.id}" data-k="fonte" data-v="${v}" aria-pressed="${(p.diag.fonte || "auto") === v}"><span class="fo-cab"><span class="fo-rot">${esc(t)}</span><span class="fo-dica">${esc(dica)}</span></span><span class="fo-amostra" style="font-family:${f.css.replace(/"/g, "'")}, sans-serif;font-weight:${f.peso};${f.upper ? "text-transform:uppercase;" : ""}">${esc(amostra)}</span></button>`; }).join("")}</div>
         ${ehModeloVideo(p.diag) ? "" : `<p class="small" style="margin:0">Dica: na aba Textos, coloque uma palavra do título entre *asteriscos* para destacar na cor da marca.</p>`}`;
-  const segL = `<span class="small">Logo</span>${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
+  const segL = `${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
   const posicoes = [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
   // A posição do texto vale nos modelos de foto inteira; nos outros o texto fica no lugar do layout.
   const textoLivre = ehModeloVideo(p.diag) || ["foto", "cinema"].includes(modeloAtual);
   const padraoLogo = { impacto: "o cabeçalho de perfil (símbolo, nome e @)", minimal: "o cabeçalho de perfil (símbolo, nome e @)", manchete: "o logo no canto de baixo", cinema: "o logo no topo esquerdo" }[p.diag.modelo];
-  const segLP = `<span class="small">Posição do logo</span>${seg("logoPos", posicoes, "pos-logo")}${!ehVideo && padraoLogo ? `<p class="small" style="margin:0">Neste modelo, Automático + Topo esquerda usa ${padraoLogo}. Escolha outra versão ou posição para trocar.</p>` : ""}`;
-  const diag = p.status === "Ajustes" ? "" : `<div class="diag"><span class="lbl">Diagramação${ajuda("diagramacao")}</span>${segM}${segF}${segFT}<span class="small">Texto</span>
-      <div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
-      ${textoLivre ? `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>` : `<p class="small" style="margin:0">Neste modelo o texto fica no lugar do layout; a posição (topo, meio, base) vale nos modelos Foto de fundo e Cinema.</p>`}
-      ${segL}${segLP}
+  const segLP = `${seg("logoPos", posicoes, "pos-logo")}${!ehVideo && padraoLogo ? `<p class="small" style="margin:0">Neste modelo, Automático + Topo esquerda usa ${padraoLogo}. Escolha outra versão ou posição para trocar.</p>` : ""}`;
+  const diag = p.status === "Ajustes" ? "" : `<div class="diag diag-v2"><span class="lbl">Diagramação${ajuda("diagramacao")}</span><div class="dpainel">
+      ${sec("modelo", "Modelo", "layout das artes", segM)}
+      ${sec("fundo", "Fundo", "atrás do texto", segF)}
+      ${sec("fonte", "Fonte do título", "título em destaque", segFT)}
+      ${sec("texto", "Texto", textoLivre ? "alinhamento e posição" : "alinhamento", `<div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
+        ${textoLivre ? `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>` : `<p class="small" style="margin:0">Neste modelo o texto fica no lugar do layout; a posição (topo, meio, base) vale nos modelos Foto de fundo e Cinema.</p>`}`)}
+      ${sec("logo", "Logo", "versão", segL)}
+      ${sec("logoPos", "Posição do logo", "canto da arte", segLP)}</div>
       <p class="small" style="margin:0">A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.</p></div>`;
   const podeEditar = !ehVideo && p.status !== "Ajustes";
   let textos = "";
