@@ -29,7 +29,8 @@
 .side-pe .quem .av { flex: none; }
 .side-pe a { text-decoration: none; }
 .side-pe [aria-current="page"] { color: var(--red); }
-.home-page { display: grid; gap: 30px; margin-top: 0; }
+.home-page { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 30px; margin-top: 0; }
+.home-page > * { min-width: 0; }
 .home-page h2 { font-size: 21px; font-weight: 700; letter-spacing: -.6px; }
 .home-page p { margin: 0; }
 .home-section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
@@ -165,6 +166,7 @@
 @media (min-width: 1600px) { .home-hero { min-height: 390px; } .home-film { max-width: 230px; } .home-hero-copy { max-width: 620px; } .home-tools { gap: 16px; } .home-create-art { height: 220px; } }
 @media (min-width: 720px) and (max-width: 1080px) { .home-discover { grid-template-columns: 1fr; } .home-tools { grid-template-columns: repeat(3, minmax(0, 1fr)); } .home-hero { padding: 28px; } .home-hero-copy { width: 57%; } .home-hero h2 { font-size: 36px; } .home-film { height: 80%; width: 49%; } .home-create-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .home-stat { padding: 14px 10px; gap: 8px; } .home-stat .home-tool-icon { display: none; } .home-bottom { grid-template-columns: 1fr; } }
 @media (max-width: 719px) {
+  .main > .wrap { width: 100%; min-width: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   .side-toggle { display: none; }
   .home-page { gap: 24px; }
   .home-hero { padding: 27px 24px 210px; border-radius: 15px; }
