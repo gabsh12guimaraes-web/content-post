@@ -1207,7 +1207,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", publicacao: r.Publicacao && typeof r.Publicacao === "object" ? { ...r.Publicacao } : {}, versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", redes: Array.isArray(r.Redes) && r.Redes.length ? r.Redes.slice() : [nomeSel(r.Rede)].filter(Boolean), links: r.Links || {}, briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
-    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } const padraoMao = !/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao ? (M.modelos || []).find(x => x.id === M.modeloPadrao && x.status === "pronto" && x.diag) : null; if (padraoMao) Object.assign(d, diagDoModelo(padraoMao.diag)); else if (!/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao && (M.modelos || []).some(x => x.id === M.modeloPadrao && x.status === "pronto" && x.spec)) { d.modelo = "proprio"; d.proprio = M.modeloPadrao; d.v = 3; const sp = M.modelos.find(x => x.id === M.modeloPadrao).spec; d.alinhar = sp.alinhar; d.posicao = sp.posicao; d.logoPos = sp.logo === "nenhum" ? "te" : sp.logo; if (sp.logo === "nenhum") d.logo = "nenhum"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te", audio: "original" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } const padraoMao = !/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao ? (M.modelos || []).find(x => x.id === M.modeloPadrao && x.status === "pronto" && x.diag) : null; if (padraoMao) Object.assign(d, diagDoModelo(padraoMao.diag)); else if (!/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao && (M.modelos || []).some(x => x.id === M.modeloPadrao && x.status === "pronto" && x.spec)) { d.modelo = "proprio"; d.proprio = M.modeloPadrao; d.v = 3; const sp = M.modelos.find(x => x.id === M.modeloPadrao).spec; d.alinhar = sp.alinhar; d.posicao = sp.posicao; d.logoPos = sp.logo === "nenhum" ? "te" : sp.logo; if (sp.logo === "nenhum") d.logo = "nenhum"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -2322,7 +2322,7 @@ function diagDoModelo(md) {
 const diagIgual = (a, b) => ["modelo", "fundo", "fonte", "alinhar", "posicao", "logo", "logoPos"].every(k => String(a[k] || "") === String(b[k] || "")) && (a.modelo !== "proprio" || a.proprio === b.proprio);
 const DICA_FONTE = { poppins: "sans geométrica", anton: "condensada, impacto", bebas: "condensada, caixa alta", archivo: "sans pesada", playfair: "serif clássica", dmserif: "serif display" };
 // Faixa da diagramação que a pessoa está mexendo (ganha a barra de destaque).
-const secDiag = {}, SEC_DA_CHAVE = { modelo: "modelo", fundo: "fundo", fonte: "fonte", alinhar: "texto", posicao: "texto", logo: "logo", logoPos: "logoPos" };
+const secDiag = {}, SEC_DA_CHAVE = { modelo: "modelo", fundo: "fundo", fonte: "fonte", alinhar: "texto", posicao: "texto", logo: "logo", logoPos: "logoPos", audio: "audio" };
 const FONTE_DO_MODELO = { foto: "poppins", editorial: "poppins", lateral: "poppins", impacto: "anton", minimal: "poppins", manchete: "anton", cinema: "dmserif", video: "poppins" };
 // Fundo de cada modelo quando a escolha é "Do modelo". Claro, escuro e cor da marca valem para todos.
 const FUNDO_DO_MODELO = { foto: "marca", editorial: "claro", lateral: "claro", impacto: "marca", minimal: "claro", manchete: "claro", cinema: "escuro", video: "marca" };
@@ -2720,7 +2720,7 @@ const carregarVideo = url => new Promise((ok, falha) => {
 });
 async function tocar(v, desenhar, maxMs) {
   v.currentTime = 0;
-  await v.play();
+  try { await v.play(); } catch (e) { v.muted = true; await v.play(); }
   const t0 = performance.now();
   await new Promise(ok => {
     const passo = () => {
@@ -2743,8 +2743,8 @@ const URL_MP4MUXER = "https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-mux
 const URL_JSZIP = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
 // Baixa o clipe inteiro antes de gravar: assim nada trava esperando a internet no meio do vídeo.
 async function carregarVideoLocal(url) {
-  try { const r = await fetch(url, { cache: "force-cache" }); if (r.ok) return carregarVideo(URL.createObjectURL(await r.blob())); } catch (e) {}
-  return carregarVideo(url);
+  try { const r = await fetch(url, { cache: "force-cache" }); if (r.ok) { const blob = await r.blob(), v = await carregarVideo(URL.createObjectURL(blob)); v._blob = blob; return v; } } catch (e) {}
+  const v = await carregarVideo(url); v._url = url; return v;
 }
 const irPara = (v, t) => new Promise(ok => {
   const alvo = Math.max(0, Math.min(t, (v.duration || t) - 0.001));
@@ -2756,13 +2756,14 @@ const irPara = (v, t) => new Promise(ok => {
 const CODECS_H264 = ["avc1.640028", "avc1.4d0028", "avc1.42e028", "avc1.42001f"];
 // Grava quadro a quadro com o codificador do navegador (WebCodecs) e monta um MP4 normal, com duração certa.
 // Não depende da aba estar visível nem do computador conseguir tocar em tempo real.
-async function renderizarMp4(cv, { fps = 30, duracao, bps, desenhar, aoAvancar }) {
+async function renderizarMp4(cv, { fps = 30, duracao, bps, desenhar, aoAvancar, audio = null, codecA = null }) {
   await carregarScript(URL_MP4MUXER);
   const W = cv.width, H = cv.height;
   let codec = null;
   for (const c of CODECS_H264) { try { const r = await VideoEncoder.isConfigSupported({ codec: c, width: W, height: H, bitrate: bps, framerate: fps }); if (r.supported) { codec = c; break; } } catch (e) {} }
   if (!codec) throw new Error("este navegador não codifica vídeo H.264 nesse tamanho");
-  const muxer = new Mp4Muxer.Muxer({ target: new Mp4Muxer.ArrayBufferTarget(), video: { codec: "avc", width: W, height: H, frameRate: fps }, fastStart: "in-memory" });
+  const comAudio = !!(audio && codecA);
+  const muxer = new Mp4Muxer.Muxer({ target: new Mp4Muxer.ArrayBufferTarget(), video: { codec: "avc", width: W, height: H, frameRate: fps }, ...(comAudio ? { audio: { codec: codecA.mux, sampleRate: AUDIO_SR, numberOfChannels: 2 } } : {}), fastStart: "in-memory" });
   let erro = null;
   const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => { erro = e; } });
   enc.configure({ codec, width: W, height: H, bitrate: bps, framerate: fps, latencyMode: "quality", avc: { format: "avc" } });
@@ -2780,6 +2781,20 @@ async function renderizarMp4(cv, { fps = 30, duracao, bps, desenhar, aoAvancar }
   }
   await enc.flush(); enc.close();
   if (erro) throw erro;
+  if (comAudio) {
+    const aenc = new AudioEncoder({ output: (chunk, meta) => muxer.addAudioChunk(chunk, meta), error: e => { erro = e; } });
+    aenc.configure({ codec: codecA.codec, sampleRate: AUDIO_SR, numberOfChannels: 2, bitrate: 128000 });
+    const fimA = Math.min(audio.n, Math.round(duracao * AUDIO_SR)), Q = 1024;
+    for (let i = 0; i < fimA; i += Q) {
+      const k = Math.min(Q, fimA - i), dados = new Float32Array(k * 2);
+      dados.set(audio.L.subarray(i, i + k), 0); dados.set(audio.R.subarray(i, i + k), k);
+      const ad = new AudioData({ format: "f32-planar", sampleRate: AUDIO_SR, numberOfFrames: k, numberOfChannels: 2, timestamp: Math.round(i * 1e6 / AUDIO_SR), data: dados });
+      aenc.encode(ad); ad.close();
+      if (aenc.encodeQueueSize > 32) await new Promise(r => setTimeout(r, 2));
+    }
+    await aenc.flush(); aenc.close();
+    if (erro) throw erro;
+  }
   muxer.finalize();
   return Object.assign(new Blob([muxer.target.buffer], { type: "video/mp4" }), { capa });
 }
@@ -2787,17 +2802,63 @@ async function renderizarMp4(cv, { fps = 30, duracao, bps, desenhar, aoAvancar }
 function capaDoCanvas(cv) {
   try { const k = Math.min(1, 720 / Math.max(cv.width, cv.height)), c = document.createElement("canvas"); c.width = Math.round(cv.width * k); c.height = Math.round(cv.height * k); c.getContext("2d").drawImage(cv, 0, 0, c.width, c.height); return c.toDataURL("image/jpeg", 0.78).split(",")[1]; } catch (e) { return undefined; }
 }
+/* ---------- Áudio do vídeo final: o som original de cada clipe, na mesma linha do tempo das cenas ---------- */
+const AUDIO_SR = 48000;
+async function audioDoVideo(v) {
+  try {
+    const blob = v._blob || await (await fetch(v._url || v.currentSrc)).blob();
+    return await new OfflineAudioContext(2, 1, AUDIO_SR).decodeAudioData(await blob.arrayBuffer());
+  } catch (e) { return null; } // sem trilha de áudio (ex.: clipe gerado sem som)
+}
+// partes: [{ v (vídeo ou null para imagem parada), ini (s na linha do tempo), dur (s), de (s no clipe) }]
+async function trilhaDeAudio(partes, total) {
+  const n = Math.max(1, Math.ceil(total * AUDIO_SR)), L = new Float32Array(n), R = new Float32Array(n), F = Math.round(0.012 * AUDIO_SR);
+  let tem = false;
+  for (const p of partes) {
+    if (!p.v) continue;
+    const b = await audioDoVideo(p.v); if (!b) continue;
+    tem = true;
+    const c0 = b.getChannelData(0), c1 = b.numberOfChannels > 1 ? b.getChannelData(1) : c0;
+    const o = Math.round(p.ini * AUDIO_SR), s0 = Math.round((p.de || 0) * AUDIO_SR), m = Math.min(Math.round(p.dur * AUDIO_SR), b.length - s0, n - o);
+    for (let i = 0; i < m; i++) { const g = Math.min(1, i / F, (m - i) / F); L[o + i] = c0[s0 + i] * g; R[o + i] = c1[s0 + i] * g; } // fade curto nas emendas (sem estalo)
+  }
+  return tem ? { L, R, n } : null;
+}
+async function codecAudio() {
+  if (typeof window.AudioEncoder !== "function" || typeof window.AudioData !== "function") return null;
+  for (const [codec, mux] of [["mp4a.40.2", "aac"], ["opus", "opus"]]) {
+    try { const r = await AudioEncoder.isConfigSupported({ codec, sampleRate: AUDIO_SR, numberOfChannels: 2, bitrate: 128000 }); if (r.supported) return { codec, mux }; } catch (e) {}
+  }
+  return null;
+}
+// O MediaRecorder grava junto o som dos vídeos que estão tocando (quando o WebCodecs não codifica áudio).
+const MIME_MP4_AUDIO = (() => { try { return ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1,mp4a.40.2", "video/mp4;codecs=avc1,opus"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || (window.MediaRecorder && MediaRecorder.isTypeSupported("video/mp4") ? "video/mp4" : ""); } catch (e) { return ""; } })();
+const querAudio = diag => !diag || diag.audio !== "mudo";
+// Trilha pronta para o WebCodecs; "gravador" = tem som mas este navegador só grava áudio pelo MediaRecorder.
+async function prepararAudio(partes, total, diag) {
+  if (!querAudio(diag)) return { audio: null, codecA: null, gravador: false };
+  const audio = await trilhaDeAudio(partes, total); if (!audio) return { audio: null, codecA: null, gravador: false };
+  const codecA = await codecAudio();
+  return { audio, codecA, gravador: !codecA && !!MIME_MP4_AUDIO };
+}
 const podeRenderizar = () => typeof window.VideoEncoder === "function" && typeof window.VideoFrame === "function";
-async function gravarCanvas(cv, bps, tocarTudo) {
+async function gravarCanvas(cv, bps, tocarTudo, { audio = [] } = {}) {
   if (!MIME_MP4) throw new Error("este navegador não grava vídeo MP4. Use o Chrome ou o Edge atualizados");
-  const stream = cv.captureStream(30);
-  const rec = new MediaRecorder(stream, { mimeType: MIME_MP4, videoBitsPerSecond: bps });
+  let stream = cv.captureStream(30), actx = null;
+  const comAudio = audio.length && MIME_MP4_AUDIO && window.AudioContext;
+  if (comAudio) {
+    // o som dos vídeos vai só para a gravação (não toca no alto-falante)
+    actx = new AudioContext({ sampleRate: AUDIO_SR }); const dest = actx.createMediaStreamDestination();
+    for (const v of audio) { try { if (!v._fonte) v._fonte = actx.createMediaElementSource(v); v._fonte.connect(dest); v.muted = false; } catch (e) {} }
+    stream = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+  }
+  const rec = new MediaRecorder(stream, { mimeType: comAudio ? MIME_MP4_AUDIO : MIME_MP4, videoBitsPerSecond: bps, ...(comAudio ? { audioBitsPerSecond: 128000 } : {}) });
   const partes = [];
   rec.ondataavailable = e => { if (e.data && e.data.size) partes.push(e.data); };
   const fim = new Promise(r => (rec.onstop = r));
   rec.start(250);
   let capa; const tc = setTimeout(() => { capa = capaDoCanvas(cv); }, 500);
-  try { await tocarTudo(); } finally { clearTimeout(tc); rec.stop(); await fim; stream.getTracks().forEach(t => t.stop()); }
+  try { await tocarTudo(); } finally { clearTimeout(tc); rec.stop(); await fim; stream.getTracks().forEach(t => t.stop()); if (actx) { audio.forEach(v => { v.muted = true; }); actx.close().catch(() => {}); } }
   return Object.assign(new Blob(partes, { type: "video/mp4" }), { capa: capa || capaDoCanvas(cv) });
 }
 const blobBase64 = b => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(b); });
@@ -2853,7 +2914,10 @@ async function gerarVideoFinal(p, logo, cores, nome) {
     const W = 1080, H = 1920, durs = vids.map(v => ehVid(v) ? Math.min(10, v.duration || 5) : 3), total = durs.reduce((a, b) => a + b, 0);
     const bps = Math.round(Math.max(2.5e6, Math.min(8e6, 22 * 1024 * 1024 * 8 / total)));
     const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-    const blob = await renderizarMp4(cv, { duracao: total, bps,
+    let ini = 0; const partes = vids.map((v, k) => { const pt = { v: ehVid(v) ? v : null, ini, dur: durs[k], de: 0 }; ini += durs[k]; return pt; });
+    const a = await prepararAudio(partes, total, p.diag);
+    if (a.gravador) throw new Error("áudio pelo gravador");
+    const blob = await renderizarMp4(cv, { duracao: total, bps, audio: a.audio, codecA: a.codecA,
       aoAvancar: f => toast(`Montando o vídeo final: ${Math.round(f * 100)}%`),
       desenhar: async t => {
         let k = 0, ini = 0;
@@ -2877,7 +2941,7 @@ async function gerarVideoFinal(p, logo, cores, nome) {
       if (ehVid(vids[k])) await tocar(vids[k], pintar, (vids[k].duration || 10) * 1000 + 150);
       else await new Promise(ok => { const t0 = performance.now(); const passo = () => { const t = performance.now() - t0; pintar(t); if (t >= 3000) ok(); else requestAnimationFrame(passo); }; requestAnimationFrame(passo); });
     }
-  });
+  }, { audio: querAudio(p.diag) ? vids.filter(ehVid) : [] });
   const b64 = await blobBase64(blob);
   if (blob.size > 24 * 1024 * 1024) throw new Error("o vídeo passou de 24 MB. Peça um ajuste com cenas mais curtas");
   return [{ tipo: "video/mp4", base64: b64, capa: blob.capa }];
@@ -2885,14 +2949,15 @@ async function gerarVideoFinal(p, logo, cores, nome) {
 async function gravarSlideVideo(sl, i, total, url, logo, cores, nome, diag) {
   const v = await carregarVideoLocal(url);
   const cv = document.createElement("canvas"); cv.width = ARTE_L; cv.height = ARTE_A;
-  if (podeRenderizar()) {
+  const dur = Math.min(10, v.duration || 5), a = podeRenderizar() ? await prepararAudio([{ v, ini: 0, dur, de: 0 }], dur, diag) : null;
+  if (podeRenderizar() && !a.gravador) {
     // 4 Mbps: um carrossel com vários slides em vídeo continua cabendo no envio.
-    const blob = await renderizarMp4(cv, { duracao: Math.min(10, v.duration || 5), bps: 4e6, desenhar: async t => { await irPara(v, t); desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag); } });
+    const blob = await renderizarMp4(cv, { duracao: dur, bps: 4e6, audio: a.audio, codecA: a.codecA, desenhar: async t => { await irPara(v, t); desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag); } });
     if (blob.size > 20 * 1024 * 1024) throw new Error("um slide em vídeo passou de 20 MB");
     return { tipo: "video/mp4", base64: await blobBase64(blob), capa: blob.capa };
   }
   desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag);
-  const blob = await gravarCanvas(cv, 2500000, () => tocar(v, () => desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag), Math.min(10, v.duration || 5) * 1000 + 150));
+  const blob = await gravarCanvas(cv, 2500000, () => tocar(v, () => desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag), dur * 1000 + 150), { audio: querAudio(diag) ? [v] : [] });
   const b64 = await blobBase64(blob);
   if (blob.size > 20 * 1024 * 1024) throw new Error("um slide em vídeo passou de 20 MB");
   return { tipo: "video/mp4", base64: b64, capa: blob.capa };
@@ -2903,9 +2968,10 @@ async function gravarVideoVertical(sl, url, logo, cores, nome, diag) {
   const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920;
   const pintar = t => desenharVertical(sl, v, logo, cores, nome, cv, diag, t);
   let blob = null;
-  if (podeRenderizar()) blob = await renderizarMp4(cv, { duracao: dur, bps: 5e6, desenhar: async t => { await irPara(v, t); pintar(t * 1000); } }).catch(e => { if (!MIME_MP4) throw e; return null; });
-  // Sem codificador H.264 em 1080 × 1920: grava em tempo real, em 720 × 1280.
-  if (!blob) { cv.width = 720; cv.height = 1280; pintar(0); blob = await gravarCanvas(cv, 3000000, () => tocar(v, pintar, dur * 1000 + 150)); }
+  const a = podeRenderizar() ? await prepararAudio([{ v, ini: 0, dur, de: 0 }], dur, diag) : null;
+  if (podeRenderizar() && !a.gravador) blob = await renderizarMp4(cv, { duracao: dur, bps: 5e6, audio: a.audio, codecA: a.codecA, desenhar: async t => { await irPara(v, t); pintar(t * 1000); } }).catch(e => { if (!MIME_MP4) throw e; return null; });
+  // Sem codificador H.264 em 1080 × 1920 (ou áudio só pelo gravador): grava em tempo real, em 720 × 1280.
+  if (!blob) { cv.width = 720; cv.height = 1280; pintar(0); blob = await gravarCanvas(cv, 3000000, () => tocar(v, pintar, dur * 1000 + 150), { audio: querAudio(diag) ? [v] : [] }); }
   if (blob.size > 24 * 1024 * 1024) throw new Error("um story em vídeo passou de 24 MB");
   return { tipo: "video/mp4", base64: await blobBase64(blob), capa: blob.capa };
 }
@@ -3282,7 +3348,8 @@ function htmlDiagramacao(p, { ehVideo = false, cores = coresMarca(), slides = p.
       ${sec("texto", "Texto", textoLivre ? "alinhamento e posição" : "alinhamento", `<div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
         ${textoLivre ? `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>` : `<p class="small" style="margin:0">Neste modelo o texto fica no lugar do layout; a posição (topo, meio, base) vale nos modelos Foto de fundo e Cinema.</p>`}`)}
       ${sec("logo", "Logo", "versão", segL)}
-      ${sec("logoPos", "Posição do logo", "canto da arte", segLP)}</div>
+      ${sec("logoPos", "Posição do logo", "canto da arte", segLP)}
+      ${!editor && (ehVideo || Object.keys(clipesDoPost(p)).length) ? sec("audio", "Áudio", "som do vídeo", `${seg("audio", [["original", "Áudio original do vídeo"], ["mudo", "Sem som"]])}<p class="small" style="margin:0">${(p.diag.audio || "original") === "mudo" ? "O vídeo final sai sem som." : "O vídeo final leva o som dos vídeos usados (os do seu banco e os clipes que tiverem áudio). Clipes gerados pela IA às vezes vêm sem som."}</p>`) : ""}</div>
       <p class="small" style="margin:0">${editor ? "A prévia ao lado muda na hora." : `A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.`}</p></div>`;
 }
 function cardRev(p) {
