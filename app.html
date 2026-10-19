@@ -1397,6 +1397,7 @@ const PERGUNTAS = {
   slides: { titulo: "Quantidade de slides", op: [["auto", "A IA decide"], ["5", "5"], ["7", "7"], ["10", "10"]] },
   duracao: { titulo: "Duração", op: [["15", "15 s"], ["30", "30 s"], ["45", "45 s"]] },
   cenas: { titulo: "Cenas", op: [["auto", "A IA decide"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"]] },
+  cenasReels: { campo: "cenas", titulo: "Cenas", op: [["auto", "A IA decide"], ["1", "1 só (sem cortes)"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"]] },
   textoNaTela: { titulo: "Texto na tela", op: [["sim", "Sim"], ["nao", "Não"]] },
   imagens: { titulo: "Imagens", op: [["ia", "Gerar com IA"], ["banco", "Do meu banco"], ["misto", "Misturar"]] },
   story: { titulo: "Tipo do story", op: [["imagem", "Imagem estática"], ["sequencia", "Sequência de imagens"], ["continuo", "Vídeo contínuo"], ["varios", "Vários vídeos curtos"]] },
@@ -1412,7 +1413,8 @@ function perguntasDo(formato, r) {
     if (t === "continuo") return ["story", "textoNaTela", "objetivo"];
     return ["story", "duracao", "cenas", "textoNaTela", "objetivo"];
   }
-  if (formato === "Reels") return ["duracao", "cenas", "textoNaTela", "objetivo"];
+  // Uma cena só é um clipe único (até 10 s): a duração total não se aplica.
+  if (formato === "Reels") return (r && r.cenas) === "1" ? ["cenasReels", "textoNaTela", "objetivo"] : ["cenasReels", "duracao", "textoNaTela", "objetivo"];
   if (formato === "Estatico") return ["fundoEst", "objetivo"];
   return ["capa", "fundo", "slides", "objetivo"];
 }
@@ -1520,6 +1522,7 @@ document.addEventListener("click", e => {
       if (br.story === "imagem" || br.story === "sequencia") { delete br.duracao; delete br.cenas; delete br.textoNaTela; if (br.story === "imagem") delete br.slides; }
       else { delete br.fundo; if (br.story === "continuo") delete br.cenas; }
     }
+    if (p && p.formato === "Reels" && br.cenas === "1") delete br.duracao;
     for (const k of Object.keys(br)) if (br[k] === "" || br[k] === undefined) delete br[k];
     if (br.observacoes) br.observacoes = br.observacoes.trim();
     if (p) criarPost(p, br);
