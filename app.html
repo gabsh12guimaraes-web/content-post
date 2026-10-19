@@ -1628,7 +1628,7 @@ async function publicarAgora(id) {
 function miniatura(p) {
   const a = (p.arquivos || [])[0] || (p.fotos || [])[0];
   if (!a) return `<div class="mini">sem arte</div>`;
-  if (ehArqVideo(a)) return `<div class="mini"><video src="${esc(a.url)}" muted playsinline preload="metadata"></video></div>`;
+  if (ehArqVideo(a)) return posterDe(a) ? `<div class="mini" style="background-image:${cssUrl(posterDe(a))}"></div>` : `<div class="mini"><video src="${esc(a.url)}#t=0.1" muted playsinline preload="metadata"></video></div>`;
   return `<div class="mini" style="background-image:${cssUrl(urlArq(a))}"></div>`;
 }
 function linhaAgend(p) {
@@ -1679,9 +1679,11 @@ function contaPv() {
 const avPv = (c, t = 32, cls = "") => `<span class="pv-av ${cls}" style="width:${t}px;height:${t}px;--av:${c.cores.bg};--av2:${c.cores.acc}">${c.sim ? `<img src="${esc(c.sim)}" alt="">` : esc(c.nome.slice(0, 2).toUpperCase())}</span>`;
 function midiasPv(p) {
   const lista = p.arquivos.length ? p.arquivos : p.fotos;
-  return lista.map(a => ({ url: ehArqVideo(a) ? a.url : urlArq(a), video: ehArqVideo(a) }));
+  return lista.map(a => ({ url: ehArqVideo(a) ? a.url : urlArq(a), video: ehArqVideo(a), poster: ehArqVideo(a) ? posterDe(a) : "" }));
 }
-const itemPv = m => `<div class="pv-item">${m.video ? `<video src="${esc(m.url)}" muted loop playsinline autoplay preload="metadata"></video>` : `<img src="${esc(m.url)}" alt="" loading="lazy">`}</div>`;
+// Vídeo da prévia: aparece já com a capa; o arquivo só baixa e toca quando aquele item está à vista.
+const videoPv = m => `<video data-pv-src="${esc(m.url)}" ${m.poster ? `poster="${esc(m.poster)}"` : ""} muted loop playsinline preload="none"></video>`;
+const itemPv = m => `<div class="pv-item">${m.video ? videoPv(m) : `<img src="${esc(m.url)}" alt="" loading="lazy">`}</div>`;
 const trilhoPv = ms => `<div class="pv-trilho" data-pv-trilho>${ms.length ? ms.map(itemPv).join("") : `<div class="pv-item pv-vazio">Sem artes finais</div>`}</div>`;
 function abrirPreviaRede(p, rede) {
   const redes = redesPv(p);
@@ -1768,7 +1770,7 @@ function tiktokPv(p, c, ms, legenda) {
 }
 function xPv(p, c, ms, texto) {
   const lista = ms.some(m => m.video) ? ms.filter(m => m.video).slice(0, 1) : ms.slice(0, 4);
-  const grade = lista.length ? `<div class="pv-x-grade n${lista.length}">${lista.map(m => `<div>${m.video ? `<video src="${esc(m.url)}" muted loop playsinline autoplay preload="metadata"></video>` : `<img src="${esc(m.url)}" alt="" loading="lazy">`}</div>`).join("")}</div>` : "";
+  const grade = lista.length ? `<div class="pv-x-grade n${lista.length}">${lista.map(m => `<div>${m.video ? videoPv(m) : `<img src="${esc(m.url)}" alt="" loading="lazy">`}</div>`).join("")}</div>` : "";
   return `<div class="pv pv-x claro"><div class="pv-x-lado">${avPv(c, 40)}</div><div>
     <div class="pv-x-quem"><b>${esc(c.nome)}</b><span class="pv-cinza">@${esc(c.user)} · ${esc(fmtDataPv(p.data, true))}</span><span class="pv-dir">${ic("mais", 18)}</span></div>
     ${texto ? `<div class="pv-x-texto">${legendaPv(texto)}</div>` : ""}${grade}
@@ -1788,13 +1790,20 @@ function fmtDataPv(d, curto) {
   return dt.toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
 }
 // Carrossel e stories: pontos, contador e barras acompanham a imagem à vista.
+function tocarPv(v) { if (!v) return; if (!v.src && v.dataset.pvSrc) { v.preload = "auto"; v.src = v.dataset.pvSrc; } v.play().catch(() => {}); }
 function ligarPv() {
-  const d = dlg(), t = d.querySelector("[data-pv-trilho]"); if (!t) return;
+  const d = dlg(), t = d.querySelector("[data-pv-trilho]");
+  // fora de carrossel (X, Threads), o vídeo já toca
+  d.querySelectorAll("video[data-pv-src]").forEach(v => { if (!v.closest("[data-pv-trilho]")) tocarPv(v); });
+  if (!t) return;
+  const ativar = i => [...t.children].forEach((it, k) => { const v = it.querySelector("video"); if (!v) return; if (k === i) tocarPv(v); else if (!v.paused) v.pause(); });
+  ativar(0);
   const atualizar = () => {
     const n = t.children.length, i = Math.max(0, Math.min(n - 1, Math.round(t.scrollLeft / Math.max(1, t.clientWidth))));
     d.querySelectorAll("[data-pv-pontos] i").forEach((el, k) => el.classList.toggle("on", k === i));
     const cont = d.querySelector("[data-pv-cont]"); if (cont) cont.textContent = `${i + 1}/${n}`;
     d.querySelectorAll("[data-pv-barras] i").forEach((el, k) => { el.classList.toggle("on", k === i); el.classList.toggle("feito", k < i); });
+    ativar(i);
   };
   t.addEventListener("scroll", atualizar, { passive: true });
 }
@@ -2047,7 +2056,8 @@ function renderRev() {
   el.innerHTML = head + (lista.length ? `<div class="review">${lista.map(cardRev).join("")}</div>`
     : `<div class="empty glass"><b>Tudo revisado por aqui.</b><span>Quando a IA terminar um post, ele aparece nesta aba.</span><div class="actions" style="justify-content:center"><button class="btn" data-tab="cal">Ver calendário</button><button class="btn primary" data-tab="ideias">Buscar ideias</button></div></div>`);
 }
-const urlArq = a => (a && a.thumbnails && a.thumbnails.large && a.thumbnails.large.url) || (a && a.url) || "";
+// Versão leve para mostrar (prévia WebP). Vídeo é sempre o próprio vídeo: a capa dele sai por posterDe().
+const urlArq = a => (a && !String(a.type || "").startsWith("video/") && a.thumbnails && a.thumbnails.large && a.thumbnails.large.url) || (a && a.url) || "";
 function coresMarca() {
   const c = lerCores(M.marca && M.marca.Cores);
   return { bg: (c[0] && c[0].hex) || "#0A0C15", acc: (c[1] && c[1].hex) || "#F8395A" };
@@ -2082,7 +2092,7 @@ function imagensDoPost(p) {
   const mapa = {};
   // Artes finais já geradas: uma imagem pronta por slide, em Arquivos.
   if (p.artesProntas && p.arquivos.length) {
-    p.slides.forEach((sl, i) => { if (p.arquivos[i]) mapa[sl.n] = urlArq(p.arquivos[i]); });
+    p.slides.forEach((sl, i) => { const a = p.arquivos[i]; if (a) mapa[sl.n] = ehArqVideo(a) ? posterDe(a) || "" : urlArq(a); });
     return { mapa, prontas: true };
   }
   // Senão, as fotos sem texto: a ordem das chaves de ImagensSlides bate com a ordem de Fotos.
@@ -2090,6 +2100,8 @@ function imagensDoPost(p) {
   Object.keys(p.imagensSlides || {}).map(Number).sort((a, b) => a - b).forEach((n, i) => { if (fotos[i]) mapa[n] = urlArq(fotos[i]); });
   return { mapa, prontas: false };
 }
+// Pôster de um vídeo: a capa guardada junto (prévia leve), quando existe.
+const posterDe = a => (a && a.thumbnails && a.thumbnails.large && a.thumbnails.large.url) || "";
 const urlCheia = a => (a && a.thumbnails && a.thumbnails.full && a.thumbnails.full.url) || (a && a.url) || "";
 function fotosCheias(p) {
   const fotos = p.fotos.length ? p.fotos : p.arquivos;
@@ -2763,9 +2775,11 @@ async function renderizarMp4(cv, { fps = 30, duracao, bps, desenhar, aoAvancar }
   const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => { erro = e; } });
   enc.configure({ codec, width: W, height: H, bitrate: bps, framerate: fps, latencyMode: "quality", avc: { format: "avc" } });
   const total = Math.max(1, Math.round(duracao * fps));
+  let capa;
   for (let i = 0; i < total; i++) {
     if (erro) throw erro;
     await desenhar(i / fps);
+    if (i === Math.min(total - 1, Math.round(fps / 2))) capa = capaDoCanvas(cv);
     const quadro = new VideoFrame(cv, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
     enc.encode(quadro, { keyFrame: i % (fps * 2) === 0 });
     quadro.close();
@@ -2775,7 +2789,11 @@ async function renderizarMp4(cv, { fps = 30, duracao, bps, desenhar, aoAvancar }
   await enc.flush(); enc.close();
   if (erro) throw erro;
   muxer.finalize();
-  return new Blob([muxer.target.buffer], { type: "video/mp4" });
+  return Object.assign(new Blob([muxer.target.buffer], { type: "video/mp4" }), { capa });
+}
+// Capa do vídeo: um quadro do canvas em JPEG leve (até 720 px), enviado junto; vira o pôster e a miniatura.
+function capaDoCanvas(cv) {
+  try { const k = Math.min(1, 720 / Math.max(cv.width, cv.height)), c = document.createElement("canvas"); c.width = Math.round(cv.width * k); c.height = Math.round(cv.height * k); c.getContext("2d").drawImage(cv, 0, 0, c.width, c.height); return c.toDataURL("image/jpeg", 0.78).split(",")[1]; } catch (e) { return undefined; }
 }
 const podeRenderizar = () => typeof window.VideoEncoder === "function" && typeof window.VideoFrame === "function";
 async function gravarCanvas(cv, bps, tocarTudo) {
@@ -2786,8 +2804,9 @@ async function gravarCanvas(cv, bps, tocarTudo) {
   rec.ondataavailable = e => { if (e.data && e.data.size) partes.push(e.data); };
   const fim = new Promise(r => (rec.onstop = r));
   rec.start(250);
-  try { await tocarTudo(); } finally { rec.stop(); await fim; stream.getTracks().forEach(t => t.stop()); }
-  return new Blob(partes, { type: "video/mp4" });
+  let capa; const tc = setTimeout(() => { capa = capaDoCanvas(cv); }, 500);
+  try { await tocarTudo(); } finally { clearTimeout(tc); rec.stop(); await fim; stream.getTracks().forEach(t => t.stop()); }
+  return Object.assign(new Blob(partes, { type: "video/mp4" }), { capa: capa || capaDoCanvas(cv) });
 }
 const blobBase64 = b => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(b); });
 // Uma cena do Reels em 720 × 1280: clipe de fundo, véu, logo e o texto da cena.
@@ -2852,7 +2871,7 @@ async function gerarVideoFinal(p, logo, cores, nome) {
         desenharVertical(cena(k), vids[k], logo, cores, nome, cv, p.diag, local * 1000);
       } });
     if (blob.size > 24 * 1024 * 1024) throw new Error("o vídeo passou de 24 MB. Peça um ajuste com cenas mais curtas");
-    return [{ tipo: "video/mp4", base64: await blobBase64(blob) }];
+    return [{ tipo: "video/mp4", base64: await blobBase64(blob), capa: blob.capa }];
   } catch (e) { if (!MIME_MP4 || /24 MB/.test(e.message)) throw e; }
   const W = 720, H = 1280;
   const total = vids.reduce((soma, v) => soma + (ehVid(v) ? v.duration || 5 : 3), 0);
@@ -2869,7 +2888,7 @@ async function gerarVideoFinal(p, logo, cores, nome) {
   });
   const b64 = await blobBase64(blob);
   if (blob.size > 24 * 1024 * 1024) throw new Error("o vídeo passou de 24 MB. Peça um ajuste com cenas mais curtas");
-  return [{ tipo: "video/mp4", base64: b64 }];
+  return [{ tipo: "video/mp4", base64: b64, capa: blob.capa }];
 }
 async function gravarSlideVideo(sl, i, total, url, logo, cores, nome, diag) {
   const v = await carregarVideoLocal(url);
@@ -2878,13 +2897,13 @@ async function gravarSlideVideo(sl, i, total, url, logo, cores, nome, diag) {
     // 4 Mbps: um carrossel com vários slides em vídeo continua cabendo no envio.
     const blob = await renderizarMp4(cv, { duracao: Math.min(10, v.duration || 5), bps: 4e6, desenhar: async t => { await irPara(v, t); desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag); } });
     if (blob.size > 20 * 1024 * 1024) throw new Error("um slide em vídeo passou de 20 MB");
-    return { tipo: "video/mp4", base64: await blobBase64(blob) };
+    return { tipo: "video/mp4", base64: await blobBase64(blob), capa: blob.capa };
   }
   desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag);
   const blob = await gravarCanvas(cv, 2500000, () => tocar(v, () => desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag), Math.min(10, v.duration || 5) * 1000 + 150));
   const b64 = await blobBase64(blob);
   if (blob.size > 20 * 1024 * 1024) throw new Error("um slide em vídeo passou de 20 MB");
-  return { tipo: "video/mp4", base64: b64 };
+  return { tipo: "video/mp4", base64: b64, capa: blob.capa };
 }
 // Story com vídeo do banco: uma tela 9:16 gravada por cima do clipe (até 10 s).
 async function gravarVideoVertical(sl, url, logo, cores, nome, diag) {
@@ -2896,7 +2915,7 @@ async function gravarVideoVertical(sl, url, logo, cores, nome, diag) {
   // Sem codificador H.264 em 1080 × 1920: grava em tempo real, em 720 × 1280.
   if (!blob) { cv.width = 720; cv.height = 1280; pintar(0); blob = await gravarCanvas(cv, 3000000, () => tocar(v, pintar, dur * 1000 + 150)); }
   if (blob.size > 24 * 1024 * 1024) throw new Error("um story em vídeo passou de 24 MB");
-  return { tipo: "video/mp4", base64: await blobBase64(blob) };
+  return { tipo: "video/mp4", base64: await blobBase64(blob), capa: blob.capa };
 }
 // Baixar as artes finais: uma a uma ou todas num .zip (fotos e vídeos).
 function nomeArquivoArte(p, a, i) {
@@ -3696,6 +3715,17 @@ function versaoOposta(cv, campoOposto) {
   }
   ctx.putImageData(img, 0, 0);
   return out;
+}
+// Capa de um vídeo escolhido no aparelho: o quadro de meio segundo, sem enviar nada a mais.
+function capaDoArquivoVideo(f) {
+  return new Promise(ok => {
+    const url = URL.createObjectURL(f), v = document.createElement("video"), fim = r => { URL.revokeObjectURL(url); ok(r); };
+    v.muted = true; v.playsInline = true; v.preload = "auto";
+    v.onloadeddata = () => { v.currentTime = Math.min(0.5, (v.duration || 1) / 2); };
+    v.onseeked = () => { const c = document.createElement("canvas"); c.width = v.videoWidth; c.height = v.videoHeight; try { c.getContext("2d").drawImage(v, 0, 0); fim(capaDoCanvas(c)); } catch (e) { fim(undefined); } };
+    v.onerror = () => fim(undefined); setTimeout(() => fim(undefined), 8000);
+    v.src = url;
+  });
 }
 const arquivoBase64 = f => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => falha(r.error); r.readAsDataURL(f); });
 document.addEventListener("change", e => { if (e.target.id === "m-tratar") tratarLogos = e.target.checked; });
@@ -4627,7 +4657,7 @@ const FILTROS_BANCO = [["todos", "Todos", () => true], ["envio", "Enviados por v
 const bancoFiltrado = () => BI.lista.filter((FILTROS_BANCO.find(f => f[0] === BI.filtro) || FILTROS_BANCO[0])[2]);
 // Miniatura de foto ou vídeo do banco (vídeo mostra o primeiro quadro).
 const midiaBanco = (x, lazy) => ehVideoBanco(x)
-  ? `<video src="${esc(urlArq(x.arquivo))}#t=0.1" muted playsinline preload="metadata" aria-label="${esc(x.nome || "Vídeo")}"></video>`
+  ? `<video src="${esc(urlArq(x.arquivo))}#t=0.1" ${posterDe(x.arquivo) ? `poster="${esc(posterDe(x.arquivo))}" preload="none"` : `preload="metadata"`} muted playsinline aria-label="${esc(x.nome || "Vídeo")}"></video>`
   : `<img src="${esc(urlArq(x.arquivo))}" alt="${esc(x.nome || "")}" ${lazy ? 'loading="lazy"' : ""}>`;
 let timerBanco = null;
 async function carregarBanco(silencioso) {
@@ -4661,7 +4691,7 @@ async function enviarBanco(arquivos) {
   BI.enviando = fotos.length; BI.total = fotos.length; desenharBanco();
   let falhas = 0;
   for (const f of fotos) {
-    try { const x = f.type === "video/mp4" ? { tipo: f.type, base64: await arquivoBase64(f) } : await prepararFoto(f); await api({ acao: "enviarImagemBanco", tipo: x.tipo, base64: x.base64, nome: f.name, titulo: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60) }); }
+    try { const x = f.type === "video/mp4" ? { tipo: f.type, base64: await arquivoBase64(f), capa: await capaDoArquivoVideo(f) } : await prepararFoto(f); await api({ acao: "enviarImagemBanco", tipo: x.tipo, base64: x.base64, capa: x.capa, nome: f.name, titulo: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60) }); }
     catch (e) { falhas++; toast("Não deu para enviar " + f.name + ": " + textoErro(e)); }
     BI.enviando--; desenharBanco();
   }
