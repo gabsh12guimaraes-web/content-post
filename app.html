@@ -2885,6 +2885,7 @@ async function gravarCanvas(cv, bps, tocarTudo, { audio = [] } = {}) {
     actx = new AudioContext({ sampleRate: AUDIO_SR }); const dest = actx.createMediaStreamDestination();
     for (const v of audio) { try { if (!v._fonte) v._fonte = actx.createMediaElementSource(v); v._fonte.connect(dest); v.muted = false; } catch (e) {} }
     stream = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+    await actx.resume().catch(() => {}); // no iPhone o contexto nasce pausado e a gravação sairia muda
   }
   const rec = new MediaRecorder(stream, { mimeType: comAudio ? MIME_MP4_AUDIO : MIME_MP4, videoBitsPerSecond: bps, ...(comAudio ? { audioBitsPerSecond: 128000 } : {}) });
   const partes = [];
@@ -3383,7 +3384,7 @@ function htmlDiagramacao(p, { ehVideo = false, cores = coresMarca(), slides = p.
         ${textoLivre ? `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>` : `<p class="small" style="margin:0">Neste modelo o texto fica no lugar do layout; a posição (topo, meio, base) vale nos modelos Foto de fundo e Cinema.</p>`}`)}
       ${sec("logo", "Logo", "versão", segL)}
       ${sec("logoPos", "Posição do logo", "canto da arte", segLP)}
-      ${!editor && (ehVideo || Object.keys(clipesDoPost(p)).length) ? sec("audio", "Áudio", "som do vídeo", `${seg("audio", [["original", "Áudio original do vídeo"], ["mudo", "Sem som"]])}<p class="small" style="margin:0">${(p.diag.audio || "original") === "mudo" ? "O vídeo final sai sem som." : "O vídeo final leva o som dos vídeos usados (os do seu banco e os clipes que tiverem áudio). Clipes gerados pela IA às vezes vêm sem som."}</p>`) : ""}</div>
+      ${!editor && (ehVideo || Object.keys(clipesDoPost(p)).length) ? sec("audio", "Áudio", "som do vídeo", `${seg("audio", [["original", "Áudio original do vídeo"], ["mudo", "Sem som"]])}<p class="small" style="margin:0">${(p.diag.audio || "original") === "mudo" ? "O vídeo final sai sem som." : "O vídeo final leva o som dos vídeos usados: os do seu banco e o som ambiente dos clipes gerados pela IA. Clipes gerados antes desta opção vieram sem som; para ter som neles, gere os clipes de novo."}</p>`) : ""}</div>
       <p class="small" style="margin:0">${editor ? "A prévia ao lado muda na hora." : `A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.`}</p></div>`;
 }
 function cardRev(p) {
