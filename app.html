@@ -863,6 +863,16 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .mp-ex { display: flex; gap: 4px; } .mp-ex img { width: 34px; height: 42px; object-fit: cover; border-radius: 4px; }
 .mp-card .actions { gap: 6px; flex-wrap: wrap; } .mp-card .btn { padding: 6px 10px; font-size: 12px; }
 .mp-novo { display: grid; gap: 10px; border: 1px dashed var(--line-strong); border-radius: 10px; padding: 14px; }
+.mp-limite { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; font: 500 12px/1.4 var(--mono); color: var(--ink-soft); margin-bottom: 12px; }
+.mp-limite b { color: #fff; font-weight: 600; }
+.mp-modos { margin-bottom: 4px; }
+.mp-ed-grade { display: grid; grid-template-columns: minmax(200px, 300px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.mp-ed-previa { position: sticky; top: 80px; display: grid; gap: 6px; }
+.mp-ed-previa canvas { width: 100%; aspect-ratio: 4 / 5; border-radius: 10px; display: block; background: #000; box-shadow: 0 18px 40px -24px rgba(248,57,90,.6); }
+.mp-ed-opcoes { display: grid; gap: 12px; min-width: 0; }
+.mp-ed-escala .dsec { border-top: 0; }
+.link-btn { border: 0; background: none; padding: 0; color: var(--pink-soft); font: inherit; text-decoration: underline; cursor: pointer; }
+@media (max-width: 720px) { .mp-ed-grade { grid-template-columns: 1fr; } .mp-ed-previa { position: static; max-width: 280px; margin: 0 auto; } }
 .ad-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
 .ad-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
 .ad-kpi .lbl { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
@@ -1178,7 +1188,7 @@ function dePost(r) {
   return {
     id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", redes: Array.isArray(r.Redes) && r.Redes.length ? r.Redes.slice() : [nomeSel(r.Rede)].filter(Boolean), links: r.Links || {}, briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
-    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } if (!/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao && (M.modelos || []).some(x => x.id === M.modeloPadrao && x.status === "pronto")) { d.modelo = "proprio"; d.proprio = M.modeloPadrao; d.v = 3; const sp = M.modelos.find(x => x.id === M.modeloPadrao).spec; d.alinhar = sp.alinhar; d.posicao = sp.posicao; d.logoPos = sp.logo === "nenhum" ? "te" : sp.logo; if (sp.logo === "nenhum") d.logo = "nenhum"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } const padraoMao = !/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao ? (M.modelos || []).find(x => x.id === M.modeloPadrao && x.status === "pronto" && x.diag) : null; if (padraoMao) Object.assign(d, diagDoModelo(padraoMao.diag)); else if (!/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao && (M.modelos || []).some(x => x.id === M.modeloPadrao && x.status === "pronto" && x.spec)) { d.modelo = "proprio"; d.proprio = M.modeloPadrao; d.v = 3; const sp = M.modelos.find(x => x.id === M.modeloPadrao).spec; d.alinhar = sp.alinhar; d.posicao = sp.posicao; d.logoPos = sp.logo === "nenhum" ? "te" : sp.logo; if (sp.logo === "nenhum") d.logo = "nenhum"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -2228,6 +2238,16 @@ const FONTES_TITULO = {
   playfair: { nome: "Playfair", css: "'Playfair Display'", peso: 800, upper: false },
   dmserif: { nome: "DM Serif", css: "'DM Serif Display'", peso: 400, upper: false },
 };
+// Diagramação de um modelo salvo à mão, pronta para um post: "escala" vira o tamanho do texto de todas as imagens.
+const CHAVES_DIAG = ["modelo", "proprio", "fundo", "fonte", "alinhar", "posicao", "logo", "logoPos"];
+function diagDoModelo(md) {
+  const d = {}; for (const k of CHAVES_DIAG) if (md[k] != null) d[k] = md[k];
+  if (d.modelo !== "proprio") delete d.proprio;
+  const e = Number(md.escala) || 1;
+  d.escalas = e !== 1 ? Object.fromEntries(Array.from({ length: 20 }, (_, i) => [i + 1, e])) : {};
+  d.v = 3; return d;
+}
+const diagIgual = (a, b) => ["modelo", "fundo", "fonte", "alinhar", "posicao", "logo", "logoPos"].every(k => String(a[k] || "") === String(b[k] || "")) && (a.modelo !== "proprio" || a.proprio === b.proprio);
 const DICA_FONTE = { poppins: "sans geométrica", anton: "condensada, impacto", bebas: "condensada, caixa alta", archivo: "sans pesada", playfair: "serif clássica", dmserif: "serif display" };
 // Faixa da diagramação que a pessoa está mexendo (ganha a barra de destaque).
 const secDiag = {}, SEC_DA_CHAVE = { modelo: "modelo", fundo: "fundo", fonte: "fonte", alinhar: "texto", posicao: "texto", logo: "logo", logoPos: "logoPos" };
@@ -2876,8 +2896,8 @@ function atualizarCard(p, ancora) {
 }
 let ancoraClique = null;
 function mudarDiagramacao(p, k, v, op = {}) {
-  if (SEC_DA_CHAVE[k] && secDiag[p.id] !== SEC_DA_CHAVE[k]) { secDiag[p.id] = SEC_DA_CHAVE[k]; if (p.diag[k] === v) return atualizarCard(p, op.ancora || ancoraClique); }
-  if (p.diag[k] === v) return;
+  if (SEC_DA_CHAVE[k] && secDiag[p.id] !== SEC_DA_CHAVE[k]) { secDiag[p.id] = SEC_DA_CHAVE[k]; if (p.diag[k] === v && !op.forcar) return atualizarCard(p, op.ancora || ancoraClique); }
+  if (p.diag[k] === v && !op.forcar) return;
   p.diag[k] = v;
   if (p.artesProntas) refazerDiag[p.id] = true;
   setTimeout(() => pintarPrevias(), 0);
@@ -3139,6 +3159,53 @@ document.addEventListener("change", e => {
   const p = state.posts.find(x => x.id === r.dataset.fonteRange);
   if (p && cardPendente[p.id]) { delete cardPendente[p.id]; atualizarCard(p, null); }
 });
+// Bloco da Diagramação: o mesmo na revisão (act "diag", muda o post) e no editor de modelos da Marca (act "mdiag").
+function htmlDiagramacao(p, { ehVideo = false, cores = coresMarca(), slides = p.slides, act = "diag", editor = false } = {}) {
+  const A = act;
+  const ic = { esquerda: "M4 6h16M4 10h10M4 14h16M4 18h10", centro: "M4 6h16M7 10h10M4 14h16M7 18h10", direita: "M4 6h16M10 10h10M4 14h16M10 18h10" };
+  const segA = ["esquerda", "centro", "direita"].map(a => `<button data-act="${A}" data-id="${p.id}" data-k="alinhar" data-v="${a}" aria-pressed="${p.diag.alinhar === a}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="${ic[a]}"/></svg>${a === "centro" ? "Centro" : a[0].toUpperCase() + a.slice(1)}</button>`).join("");
+  const segP = [["auto", "Automática"], ["topo", "Topo"], ["meio", "Meio"], ["base", "Base"]].map(([v, t]) => `<button data-act="${A}" data-id="${p.id}" data-k="posicao" data-v="${v}" aria-pressed="${p.diag.posicao === v}">${t}</button>`).join("");
+  const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="${A}" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
+  const versoes = urlsLogos(false);
+  const vertical = ehVideo || p.formato === "Stories";
+  const T = temaFundo(p.diag, cores, ehModeloVideo(p.diag) ? "video" : p.diag.modelo), fundoEscuro = !T.claro;
+  const doPerfil = (M.modelos || []).filter(x => x.status === "pronto" && x.spec).map(x => `<button data-act="${A}-perfil" data-id="${p.id}" data-v="${x.id}" aria-pressed="${p.diag.modelo === "proprio" && p.diag.proprio === x.id}" title="${esc(x.nome)}">${x.exemplos[0] ? `<img class="mini-perfil" src="${esc(urlArq(x.exemplos[0]))}" alt="">` : MINI_MODELO.foto}<span>${esc(x.nome || "Do meu perfil")}</span></button>`).join("");
+  // Cada grupo é uma faixa: nome à esquerda, dica à direita; a faixa que a pessoa está mexendo ganha a barra de destaque.
+  const ativa = secDiag[p.id] || "modelo";
+  const sec = (k, rotulo, dica, corpo) => `<div class="dsec ${ativa === k ? "ativa" : ""}"><div class="dsec-cab"><span class="dsec-rot">${rotulo}</span><span class="dsec-dica">${dica}</span></div>${corpo}</div>`;
+  // Modelos montados à mão na Marca: um clique aplica a diagramação inteira deles.
+  const salvos = editor ? "" : (M.modelos || []).filter(x => x.status === "pronto" && x.diag).map(x => `<button data-act="diag-salvo" data-id="${p.id}" data-v="${x.id}" aria-pressed="${diagIgual(p.diag, x.diag)}" title="${esc(x.nome)}">${MINI_MODELO[x.diag.modelo === "proprio" ? "foto" : x.diag.modelo] || MINI_MODELO.foto}<span>${esc(x.nome || "Modelo da marca")}</span></button>`).join("");
+  const segM = `<div class="modelos" role="group" aria-label="Modelo">${salvos}${doPerfil}${(vertical ? [["video", "Vídeo"]] : []).concat([["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]]).map(([v, t]) =>
+      `<button data-act="${A}" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" || v === "video" || MODELOS_NOVOS.includes(v) ? MINI_MODELO[v] : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
+`;
+  // Fundo e fonte valem para todos os modelos (e para Reels e Stories); "Do modelo" usa o padrão de cada um.
+  const perfilAtual = p.diag.modelo === "proprio" ? modeloDoPerfil(p.diag.proprio) : null;
+  const modeloAtual = ehModeloVideo(p.diag) ? "video" : perfilAtual ? perfilAtual.spec.base : p.diag.modelo;
+  const fundoModelo = perfilAtual ? "do seu perfil" : { claro: "claro", escuro: "escuro", marca: "da marca" }[FUNDO_DO_MODELO[modeloAtual] || "marca"];
+  const segF = `<div class="seg fundos" role="group" aria-label="Fundo">${[["auto", "Do modelo (" + fundoModelo + ")", perfilAtual ? perfilAtual.spec.fundo : temaFundo({ ...p.diag, fundo: "auto" }, cores, modeloAtual).bg], ["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", "#0E0F14"], ["marca", "Cor da marca", cores.bg]].map(([v, t, c]) =>
+      `<button data-act="${A}" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "auto") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>`;
+  const fonteModelo = FONTES_TITULO[perfilAtual ? perfilAtual.spec.fonte : FONTE_DO_MODELO[modeloAtual] || "poppins"].nome;
+  const amostra = (String((slides[0] && slides[0].t) || p.titulo || "").replace(/\*/g, "").trim().split(/\s+/).slice(0, 2).join(" ").slice(0, 16)) || "Seu título";
+  const fontesOp = [["auto", "Do modelo", FONTE_DO_MODELO[modeloAtual] || "poppins", fonteModelo]].concat(Object.entries(FONTES_TITULO).map(([k, f]) => [k, f.nome, k, DICA_FONTE[k] || ""]));
+  const segFT = `<div class="fontes-lista" role="group" aria-label="Fonte do título">${fontesOp.map(([v, t, k, dica]) => { const f = FONTES_TITULO[perfilAtual && v === "auto" ? perfilAtual.spec.fonte : k] || FONTES_TITULO.poppins;
+        return `<button data-act="${A}" data-id="${p.id}" data-k="fonte" data-v="${v}" aria-pressed="${(p.diag.fonte || "auto") === v}"><span class="fo-cab"><span class="fo-rot">${esc(t)}</span><span class="fo-dica">${esc(dica)}</span></span><span class="fo-amostra" style="font-family:${f.css.replace(/"/g, "'")}, sans-serif;font-weight:${f.peso};${f.upper ? "text-transform:uppercase;" : ""}">${esc(amostra)}</span></button>`; }).join("")}</div>
+        ${ehModeloVideo(p.diag) ? "" : `<p class="small" style="margin:0">Dica: na aba Textos, coloque uma palavra do título entre *asteriscos* para destacar na cor da marca.</p>`}`;
+  const segL = `${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
+  const posicoes = [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
+  // A posição do texto vale nos modelos de foto inteira; nos outros o texto fica no lugar do layout.
+  const textoLivre = ehModeloVideo(p.diag) || ["foto", "cinema"].includes(modeloAtual);
+  const padraoLogo = { impacto: "o cabeçalho de perfil (símbolo, nome e @)", minimal: "o cabeçalho de perfil (símbolo, nome e @)", manchete: "o logo no canto de baixo", cinema: "o logo no topo esquerdo" }[p.diag.modelo];
+  const segLP = `${seg("logoPos", posicoes, "pos-logo")}${!ehVideo && padraoLogo ? `<p class="small" style="margin:0">Neste modelo, Automático + Topo esquerda usa ${padraoLogo}. Escolha outra versão ou posição para trocar.</p>` : ""}`;
+  return `<div class="diag diag-v2">${editor ? "" : `<span class="lbl">Diagramação${ajuda("diagramacao")}</span>`}<div class="dpainel">
+      ${sec("modelo", "Modelo", "layout das artes", segM)}
+      ${sec("fundo", "Fundo", "atrás do texto", segF)}
+      ${sec("fonte", "Fonte do título", "título em destaque", segFT)}
+      ${sec("texto", "Texto", textoLivre ? "alinhamento e posição" : "alinhamento", `<div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
+        ${textoLivre ? `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>` : `<p class="small" style="margin:0">Neste modelo o texto fica no lugar do layout; a posição (topo, meio, base) vale nos modelos Foto de fundo e Cinema.</p>`}`)}
+      ${sec("logo", "Logo", "versão", segL)}
+      ${sec("logoPos", "Posição do logo", "canto da arte", segLP)}</div>
+      <p class="small" style="margin:0">${editor ? "A prévia ao lado muda na hora." : `A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.`}</p></div>`;
+}
 function cardRev(p) {
   const cores = coresMarca(), logo = logoMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
   const ehVideo = ehVideoFmt(p);
@@ -3189,47 +3256,7 @@ function cardRev(p) {
       <button class="btn" data-act="post-ajustar" data-id="${p.id}" ${revisando ? "disabled" : ""}>Pedir ajuste</button></div>
       <p class="small" style="margin:0">${semClipes ? "Os clipes ainda não chegaram do Magnific. Se não aparecerem, peça um ajuste." : prontas ? "Vai para a fila e publica em " + fmtData(p.data) + "." : "As " + (ehVideo ? "cenas" : "artes") + " são montadas com a diagramação escolhida e o post vai para a fila de " + fmtData(p.data) + "."}</p>`;
   }
-  const ic = { esquerda: "M4 6h16M4 10h10M4 14h16M4 18h10", centro: "M4 6h16M7 10h10M4 14h16M7 18h10", direita: "M4 6h16M10 10h10M4 14h16M10 18h10" };
-  const segA = ["esquerda", "centro", "direita"].map(a => `<button data-act="diag" data-id="${p.id}" data-k="alinhar" data-v="${a}" aria-pressed="${p.diag.alinhar === a}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="${ic[a]}"/></svg>${a === "centro" ? "Centro" : a[0].toUpperCase() + a.slice(1)}</button>`).join("");
-  const segP = [["auto", "Automática"], ["topo", "Topo"], ["meio", "Meio"], ["base", "Base"]].map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="posicao" data-v="${v}" aria-pressed="${p.diag.posicao === v}">${t}</button>`).join("");
-  const seg = (k, lista, extra) => `<div class="seg ${extra || ""}" role="group">${lista.map(([v, t]) => `<button data-act="diag" data-id="${p.id}" data-k="${k}" data-v="${v}" aria-pressed="${String(p.diag[k]) === v}">${t}</button>`).join("")}</div>`;
-  const versoes = urlsLogos(false);
-  const vertical = ehVideo || p.formato === "Stories";
-  const T = temaFundo(p.diag, cores, ehModeloVideo(p.diag) ? "video" : p.diag.modelo), fundoEscuro = !T.claro;
-  const doPerfil = (M.modelos || []).filter(x => x.status === "pronto" && x.spec).map(x => `<button data-act="diag-perfil" data-id="${p.id}" data-v="${x.id}" aria-pressed="${p.diag.modelo === "proprio" && p.diag.proprio === x.id}" title="${esc(x.nome)}">${x.exemplos[0] ? `<img class="mini-perfil" src="${esc(urlArq(x.exemplos[0]))}" alt="">` : MINI_MODELO.foto}<span>${esc(x.nome || "Do meu perfil")}</span></button>`).join("");
-  // Cada grupo é uma faixa: nome à esquerda, dica à direita; a faixa que a pessoa está mexendo ganha a barra de destaque.
-  const ativa = secDiag[p.id] || "modelo";
-  const sec = (k, rotulo, dica, corpo) => `<div class="dsec ${ativa === k ? "ativa" : ""}"><div class="dsec-cab"><span class="dsec-rot">${rotulo}</span><span class="dsec-dica">${dica}</span></div>${corpo}</div>`;
-  const segM = `<div class="modelos" role="group" aria-label="Modelo">${doPerfil}${(vertical ? [["video", "Vídeo"]] : []).concat([["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]]).map(([v, t]) =>
-      `<button data-act="diag" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" || v === "video" || MODELOS_NOVOS.includes(v) ? MINI_MODELO[v] : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
-`;
-  // Fundo e fonte valem para todos os modelos (e para Reels e Stories); "Do modelo" usa o padrão de cada um.
-  const perfilAtual = p.diag.modelo === "proprio" ? modeloDoPerfil(p.diag.proprio) : null;
-  const modeloAtual = ehModeloVideo(p.diag) ? "video" : perfilAtual ? perfilAtual.spec.base : p.diag.modelo;
-  const fundoModelo = perfilAtual ? "do seu perfil" : { claro: "claro", escuro: "escuro", marca: "da marca" }[FUNDO_DO_MODELO[modeloAtual] || "marca"];
-  const segF = `<div class="seg fundos" role="group" aria-label="Fundo">${[["auto", "Do modelo (" + fundoModelo + ")", perfilAtual ? perfilAtual.spec.fundo : temaFundo({ ...p.diag, fundo: "auto" }, cores, modeloAtual).bg], ["claro", "Claro", "#F4F4F6"], ["escuro", "Escuro", "#0E0F14"], ["marca", "Cor da marca", cores.bg]].map(([v, t, c]) =>
-      `<button data-act="diag" data-id="${p.id}" data-k="fundo" data-v="${v}" aria-pressed="${(p.diag.fundo || "auto") === v}"><i class="amostra-cor" style="background:${c}"></i>${t}</button>`).join("")}</div>`;
-  const fonteModelo = FONTES_TITULO[perfilAtual ? perfilAtual.spec.fonte : FONTE_DO_MODELO[modeloAtual] || "poppins"].nome;
-  const amostra = (String((slides[0] && slides[0].t) || p.titulo || "").replace(/\*/g, "").trim().split(/\s+/).slice(0, 2).join(" ").slice(0, 16)) || "Seu título";
-  const fontesOp = [["auto", "Do modelo", FONTE_DO_MODELO[modeloAtual] || "poppins", fonteModelo]].concat(Object.entries(FONTES_TITULO).map(([k, f]) => [k, f.nome, k, DICA_FONTE[k] || ""]));
-  const segFT = `<div class="fontes-lista" role="group" aria-label="Fonte do título">${fontesOp.map(([v, t, k, dica]) => { const f = FONTES_TITULO[perfilAtual && v === "auto" ? perfilAtual.spec.fonte : k] || FONTES_TITULO.poppins;
-        return `<button data-act="diag" data-id="${p.id}" data-k="fonte" data-v="${v}" aria-pressed="${(p.diag.fonte || "auto") === v}"><span class="fo-cab"><span class="fo-rot">${esc(t)}</span><span class="fo-dica">${esc(dica)}</span></span><span class="fo-amostra" style="font-family:${f.css.replace(/"/g, "'")}, sans-serif;font-weight:${f.peso};${f.upper ? "text-transform:uppercase;" : ""}">${esc(amostra)}</span></button>`; }).join("")}</div>
-        ${ehModeloVideo(p.diag) ? "" : `<p class="small" style="margin:0">Dica: na aba Textos, coloque uma palavra do título entre *asteriscos* para destacar na cor da marca.</p>`}`;
-  const segL = `${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
-  const posicoes = [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
-  // A posição do texto vale nos modelos de foto inteira; nos outros o texto fica no lugar do layout.
-  const textoLivre = ehModeloVideo(p.diag) || ["foto", "cinema"].includes(modeloAtual);
-  const padraoLogo = { impacto: "o cabeçalho de perfil (símbolo, nome e @)", minimal: "o cabeçalho de perfil (símbolo, nome e @)", manchete: "o logo no canto de baixo", cinema: "o logo no topo esquerdo" }[p.diag.modelo];
-  const segLP = `${seg("logoPos", posicoes, "pos-logo")}${!ehVideo && padraoLogo ? `<p class="small" style="margin:0">Neste modelo, Automático + Topo esquerda usa ${padraoLogo}. Escolha outra versão ou posição para trocar.</p>` : ""}`;
-  const diag = p.status === "Ajustes" ? "" : `<div class="diag diag-v2"><span class="lbl">Diagramação${ajuda("diagramacao")}</span><div class="dpainel">
-      ${sec("modelo", "Modelo", "layout das artes", segM)}
-      ${sec("fundo", "Fundo", "atrás do texto", segF)}
-      ${sec("fonte", "Fonte do título", "título em destaque", segFT)}
-      ${sec("texto", "Texto", textoLivre ? "alinhamento e posição" : "alinhamento", `<div class="seg" role="group" aria-label="Alinhamento do texto">${segA}</div>
-        ${textoLivre ? `<div class="seg" role="group" aria-label="Posição do texto">${segP}</div>` : `<p class="small" style="margin:0">Neste modelo o texto fica no lugar do layout; a posição (topo, meio, base) vale nos modelos Foto de fundo e Cinema.</p>`}`)}
-      ${sec("logo", "Logo", "versão", segL)}
-      ${sec("logoPos", "Posição do logo", "canto da arte", segLP)}</div>
-      <p class="small" style="margin:0">A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.</p></div>`;
+  const diag = p.status === "Ajustes" ? "" : htmlDiagramacao(p, { ehVideo, cores, slides });
   const podeEditar = !ehVideo && p.status !== "Ajustes";
   let textos = "";
   if (podeEditar && salvandoTexto === p.id) textos = `<div class="working"><span class="dot"></span>Salvando os textos…</div>`;
@@ -3406,6 +3433,14 @@ document.addEventListener("click", e => {
   if (act === "previa-rede" && post) return abrirPreviaRede(post);
   if (act === "gerar-artes" && post) return gerarArtes(post);
   if (act === "diag" && post) return mudarDiagramacao(post, b.dataset.k, b.dataset.v);
+  if (act === "diag-salvo" && post) {
+    const md = (M.modelos || []).find(x => x.id === b.dataset.v && x.diag); if (!md) return;
+    const novo = diagDoModelo(md.diag), modelo = novo.modelo; delete novo.modelo;
+    Object.assign(post.diag, novo); if (modelo !== "proprio") delete post.diag.proprio;
+    return mudarDiagramacao(post, "modelo", modelo, { forcar: true });
+  }
+  if (act === "mdiag") return mudarDiagEditor(b.dataset.k, b.dataset.v, b);
+  if (act === "mdiag-perfil") return perfilNoEditor(b.dataset.v, b);
   if (act === "diag-perfil" && post) {
     const m = modeloDoPerfil(b.dataset.v); if (!m) return;
     const sp = m.spec;
@@ -3774,7 +3809,7 @@ function guardarInfo(r) {
 }
 async function carregarWeb() {
   const j = await api({ acao: "listar" });
-  M.marca = j.marca || null; M.fontes = j.fontes || []; M.modelos = j.modelos || []; M.modeloPadrao = j.modeloPadrao || null;
+  M.marca = j.marca || null; M.fontes = j.fontes || []; M.modelos = j.modelos || []; M.modeloPadrao = j.modeloPadrao || null; M.limiteModelos = j.limiteModelos || null;
   M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
 }
 function limparDados() {
@@ -4154,7 +4189,7 @@ function desenharPlano() {
     const c = p.ciclos.find(k => k.ciclo === PL.ciclo) || p.ciclos[0];
     const meu = s.plano === p.id && s.ciclo === c.ciclo && s.ativo;
     return `<div class="plano-card ${p.id === "profissional" ? "dest" : ""}">
-      <div class="pc-info"><b>${esc(p.nome)}${p.id === "profissional" ? ` <span class="chip acc">Mais escolhido</span>` : ""}</b><span>${p.posts} posts por mês com IA<br>${p.ideias} buscas de ideias</span></div>
+      <div class="pc-info"><b>${esc(p.nome)}${p.id === "profissional" ? ` <span class="chip acc">Mais escolhido</span>` : ""}</b><span>${p.posts} posts por mês com IA<br>${p.ideias} buscas de ideias${p.modelos ? `<br>${p.modelos} modelos da marca` : ""}</span></div>
       <div class="pc-preco">${c.dePorMes > c.porMes ? `<span class="de">de <s>${reais(c.dePorMes)}</s> por</span>` : ""}<span class="preco">${reais(c.porMes)}<small>/mês${c.dePorMes > c.porMes ? "*" : ""}</small></span><span class="small">${c.meses > 1 ? "cobrado " + reais(c.total) + " a cada " + c.meses + " meses" : "cobrado todo mês"}</span></div>
       ${meu ? `<span class="chip ok">Seu plano</span>` : c.checkout ? `<a class="btn ${p.id === "profissional" ? "primary" : ""}" href="${esc(c.checkout)}" target="_blank" rel="noopener">Assinar</a>` : `<span class="small">Checkout ainda não configurado</span>`}
     </div>`;
@@ -4813,34 +4848,108 @@ function renderMarca() {
     <div id="m-modelos"></div></section>` : ""}`;
   renderFontes(); renderStatus(); renderModelosPerfil();
 }
-const MP = { enviando: false, timer: null };
+const MP = { enviando: false, timer: null, modo: "editor" };
+// Editor de modelo da marca: as mesmas opções da Diagramação da revisão, com prévia ao vivo.
+const ED = { aberto: false, id: null, nome: "", padrao: false, diag: null };
+const DIAG_INICIAL = () => ({ modelo: "foto", fundo: "auto", fonte: "auto", alinhar: "esquerda", posicao: "auto", logo: "auto", logoPos: "te", v: 3, escala: 1 });
+const SLIDES_ED = [{ n: 1, t: "Seu título com *destaque*", x: "O texto de apoio aparece assim, com a fonte e o fundo do modelo." }];
+const postEditor = () => ({ id: "editor", diag: { ...ED.diag, escalas: (Number(ED.diag.escala) || 1) !== 1 ? { 1: Number(ED.diag.escala) } : {} }, slides: SLIDES_ED, titulo: "Seu título", formato: "Carrossel", status: "EmRevisao" });
+function abrirEditorModelo(md) {
+  Object.assign(ED, { aberto: true, id: md ? md.id : null, nome: md ? md.nome : "", padrao: md ? M.modeloPadrao === md.id : !M.modeloPadrao, diag: md ? { ...DIAG_INICIAL(), ...md.diag } : DIAG_INICIAL() });
+  MP.modo = "editor"; esquecerFormEditor(); renderModelosPerfil();
+  document.getElementById("mp-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+const esquecerFormEditor = () => ["mp-ed-nome", "mp-ed-padrao"].forEach(id => document.getElementById(id)?.remove());
+function htmlEditorModelo() {
+  const lim = M.limiteModelos, cheio = !ED.id && lim && lim.usados >= lim.maximo;
+  const e = Math.round((Number(ED.diag.escala) || 1) * 100);
+  return `<div class="mp-ed-grade">
+      <div class="mp-ed-previa"><canvas id="mp-ed-cv" width="1080" height="1350" aria-label="Prévia do modelo"></canvas><span class="small">Prévia com as cores e o logo da marca${fotoEditor() ? " e a 1ª imagem do mood board" : ""}.</span></div>
+      <div class="mp-ed-opcoes">
+        <label class="field"><span>Nome do modelo</span><input id="mp-ed-nome" maxlength="40" placeholder="Ex.: Feed de promoções" value="${esc(ED.nome)}"></label>
+        ${htmlDiagramacao(postEditor(), { act: "mdiag", editor: true, slides: SLIDES_ED })}
+        <div class="dpainel mp-ed-escala"><div class="dsec ${secDiag.editor === "escala" ? "ativa" : ""}"><div class="dsec-cab"><span class="dsec-rot">Tamanho do texto</span><span class="dsec-dica">todas as imagens</span></div>
+          <div class="fonte-barra"><span class="a-menor" aria-hidden="true">A</span><input type="range" min="60" max="160" step="5" value="${e}" id="mp-ed-escala" aria-label="Tamanho do texto do modelo"><span class="a-maior" aria-hidden="true">A</span><output id="mp-ed-escala-out">${e}%</output></div></div></div>
+        <label class="check-tratar"><input id="mp-ed-padrao" type="checkbox" ${ED.padrao ? "checked" : ""}> Usar como padrão das imagens dos posts novos</label>
+        ${cheio ? `<div class="msg">O plano ${esc(lim.plano)} guarda até ${lim.maximo} modelo${lim.maximo === 1 ? "" : "s"}. Remova um para salvar outro ou <button type="button" class="link-btn" data-u="plano">veja os planos</button>.</div>` : ""}
+        <div class="actions"><button class="btn primary" data-mp="ed-salvar" ${cheio || MP.enviando ? "disabled" : ""}>${MP.enviando ? "Salvando…" : ED.id ? "Salvar alterações" : "Salvar modelo"}</button><button class="btn quiet" data-mp="ed-cancelar">${ED.id ? "Cancelar edição" : "Limpar"}</button></div>
+      </div></div>`;
+}
+const fotoEditor = () => { const a = ((M.marca && M.marca.MoodBoard) || [])[0]; return a ? urlArq(a) : ""; };
+async function pintarEditorModelo() {
+  const cv = document.getElementById("mp-ed-cv"); if (!cv) return;
+  const logos = await logosDaPrevia(), cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
+  const f = fotoEditor(), foto = f ? await imgCache(f) : null;
+  if (!document.body.contains(cv)) return;
+  desenharSlide(SLIDES_ED[0], 0, 3, foto, logos, cores, nome, cv, postEditor().diag);
+}
+// Redesenha o editor sem pular a tela (o botão clicado fica na mesma altura).
+function redesenharEditor(ancora) {
+  const el = document.getElementById("mp-editor"); if (!el) return;
+  const sel = ancora && ancora.isConnected && ancora.dataset.act ? seletorDe(ancora) : null, topo = sel ? ancora.getBoundingClientRect().top : null;
+  const nomeAtual = document.getElementById("mp-ed-nome"); if (nomeAtual) ED.nome = nomeAtual.value;
+  const pad = document.getElementById("mp-ed-padrao"); if (pad) ED.padrao = pad.checked;
+  const cvVelho = document.getElementById("mp-ed-cv");
+  el.innerHTML = htmlEditorModelo();
+  if (cvVelho) document.getElementById("mp-ed-cv").replaceWith(cvVelho);
+  if (sel) { const n = el.querySelector(sel); if (n) { const d = n.getBoundingClientRect().top - topo; if (Math.abs(d) > 0.5) scrollBy(0, d); } }
+  pintarEditorModelo();
+}
+function mudarDiagEditor(k, v, b) {
+  if (!ED.diag) return;
+  if (SEC_DA_CHAVE[k]) secDiag.editor = SEC_DA_CHAVE[k];
+  if (k === "modelo" && v !== "proprio") delete ED.diag.proprio;
+  ED.diag[k] = v; redesenharEditor(b);
+}
+function perfilNoEditor(id, b) {
+  const m = modeloDoPerfil(id); if (!m) return;
+  const sp = m.spec;
+  Object.assign(ED.diag, { modelo: "proprio", proprio: m.id, fonte: "auto", fundo: "auto", alinhar: sp.alinhar, posicao: sp.posicao, logoPos: sp.logo === "nenhum" ? ED.diag.logoPos : sp.logo, logo: sp.logo === "nenhum" ? "nenhum" : (ED.diag.logo === "nenhum" ? "auto" : ED.diag.logo) });
+  secDiag.editor = "modelo"; redesenharEditor(b);
+}
+document.addEventListener("input", e => {
+  if (e.target.id !== "mp-ed-escala" || !ED.diag) return;
+  ED.diag.escala = Math.round(Number(e.target.value)) / 100;
+  document.getElementById("mp-ed-escala-out").textContent = Math.round(ED.diag.escala * 100) + "%";
+  pintarEditorModelo();
+});
 function renderModelosPerfil() {
   const el = document.getElementById("m-modelos"); if (!el) return;
   const lista = M.modelos || [], perfil = String((M.marca && M.marca.Perfil) || "").trim();
-  el.innerHTML = `${lista.length ? `<div class="mp-lista">${lista.map(x => `<div class="mp-card ${M.modeloPadrao === x.id ? "padrao" : ""}">
+  const lim = M.limiteModelos, cheio = lim && lim.usados >= lim.maximo;
+  if (!ED.diag) ED.diag = DIAG_INICIAL();
+  // a lista se atualiza sozinha enquanto a IA cria um modelo: não perde o que já foi digitado no editor
+  const nomeEd = document.getElementById("mp-ed-nome"); if (nomeEd) ED.nome = nomeEd.value;
+  const padEd = document.getElementById("mp-ed-padrao"); if (padEd) ED.padrao = padEd.checked;
+  el.innerHTML = `${lim ? `<div class="mp-limite"><span>Modelos salvos: <b>${lim.usados} de ${lim.maximo}</b> · plano ${esc(lim.plano)}</span>${cheio ? `<button type="button" class="btn quiet" data-u="plano">Ver planos para salvar mais</button>` : ""}</div>` : ""}
+    ${lista.length ? `<div class="mp-lista">${lista.map(x => `<div class="mp-card ${M.modeloPadrao === x.id ? "padrao" : ""}">
       ${x.status === "pronto" ? `<canvas data-modelo-previa="${x.id}" width="540" height="675" aria-label="Prévia do modelo ${esc(x.nome)}"></canvas>` : x.status === "gerando" ? `<div class="working"><span class="dot"></span>A IA está estudando os seus posts…</div>` : `<div class="msg erro">Não deu para criar: ${esc(x.erro || "erro desconhecido")}</div>`}
-      <b>${esc(x.nome || "Modelo do perfil")}</b>${x.spec && x.spec.descricao ? `<span class="small">${esc(x.spec.descricao)}</span>` : ""}
+      <b>${esc(x.nome || (x.diag ? "Modelo da marca" : "Modelo do perfil"))}</b>${x.diag ? `<span class="small">Montado por você</span>` : x.spec && x.spec.descricao ? `<span class="small">${esc(x.spec.descricao)}</span>` : ""}
       ${x.exemplos.length ? `<div class="mp-ex">${x.exemplos.slice(0, 6).map(a => `<img src="${esc(urlArq(a))}" alt="" loading="lazy">`).join("")}</div>` : ""}
-      <div class="actions">${x.status === "pronto" ? (M.modeloPadrao === x.id ? `<button class="btn" data-mp="padrao" data-v="">Padrão dos posts novos ✓</button>` : `<button class="btn" data-mp="padrao" data-v="${x.id}">Usar como padrão</button>`) : ""}<button class="btn quiet" data-mp="remover" data-v="${x.id}">Remover</button></div>
+      <div class="actions">${x.status === "pronto" ? (M.modeloPadrao === x.id ? `<button class="btn" data-mp="padrao" data-v="">Padrão dos posts novos ✓</button>` : `<button class="btn" data-mp="padrao" data-v="${x.id}">Usar como padrão</button>`) : ""}${x.diag ? `<button class="btn" data-mp="editar" data-v="${x.id}">Editar</button>` : ""}<button class="btn quiet" data-mp="remover" data-v="${x.id}">Remover</button></div>
     </div>`).join("")}</div>` : ""}
-    <div class="mp-novo"><b>Criar um modelo novo</b>
+    <div class="mp-novo"><b>${ED.id ? "Editar o modelo" : "Criar um modelo novo"}</b>
+      ${ED.id ? "" : `<div class="seg mp-modos" role="tablist"><button type="button" role="tab" data-mp="modo" data-v="editor" aria-pressed="${MP.modo === "editor"}">Montar do zero</button><button type="button" role="tab" data-mp="modo" data-v="posts" aria-pressed="${MP.modo === "posts"}">A partir dos seus posts</button></div>`}
+      ${MP.modo === "editor" || ED.id ? `<div id="mp-editor">${htmlEditorModelo()}</div>` : `
       <label class="field"><span>Nome (opcional)</span><input id="mp-nome" maxlength="40" placeholder="Ex.: Feed de promoções"></label>
       <label class="field"><span>Envie de 2 a 8 posts seus (prints ou as imagens dos posts)</span><input id="mp-arquivos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
-      <div class="actions"><button class="btn primary" data-mp="criar" ${MP.enviando ? "disabled" : ""}>${MP.enviando ? "Enviando…" : "Criar com estes posts"}</button>
-        <button class="btn" data-mp="instagram" ${MP.enviando ? "disabled" : ""}>${perfil ? `Buscar os últimos posts de @${esc(perfil.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@+/, ""))}` : "Buscar do meu Instagram"}</button></div>
-      <p class="hint" style="margin:0">${perfil ? "A busca pega os 8 posts mais recentes do perfil (precisa ser público)." : "Para buscar do Instagram, preencha o campo Perfil nas redes (@), acima, e salve a marca."} Leva cerca de 1 minuto.</p></div>`;
-  pintarModelosPerfil();
+      <div class="actions"><button class="btn primary" data-mp="criar" ${MP.enviando || cheio ? "disabled" : ""}>${MP.enviando ? "Enviando…" : "Criar com estes posts"}</button>
+        <button class="btn" data-mp="instagram" ${MP.enviando || cheio ? "disabled" : ""}>${perfil ? `Buscar os últimos posts de @${esc(perfil.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@+/, ""))}` : "Buscar do meu Instagram"}</button></div>
+      <p class="hint" style="margin:0">${perfil ? "A busca pega os 8 posts mais recentes do perfil (precisa ser público)." : "Para buscar do Instagram, preencha o campo Perfil nas redes (@), acima, e salve a marca."} Leva cerca de 1 minuto.</p>`}</div>`;
+  pintarModelosPerfil(); pintarEditorModelo();
   clearTimeout(MP.timer);
   if (lista.some(x => x.status === "gerando")) MP.timer = setTimeout(recarregarModelos, 5000);
 }
 async function recarregarModelos() {
-  try { const j = await api({ acao: "listarModelos" }); M.modelos = j.modelos || []; M.modeloPadrao = j.modeloPadrao || null; } catch (e) { return; }
+  try { const j = await api({ acao: "listarModelos" }); M.modelos = j.modelos || []; M.modeloPadrao = j.modeloPadrao || null; M.limiteModelos = j.limiteModelos || null; } catch (e) { return; }
   renderModelosPerfil();
   if (tab === "rev") render();
 }
 async function pintarModelosPerfil() {
   const logos = await logosDaPrevia(), cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
   for (const cv of document.querySelectorAll("canvas[data-modelo-previa]")) {
+    const md = (M.modelos || []).find(x => x.id === cv.dataset.modeloPrevia && x.diag);
+    if (md) { const f = fotoEditor(); desenharSlide({ n: 1, t: "Seu título com *destaque*", x: "O texto de apoio aparece assim" }, 0, 3, f ? await imgCache(f) : null, logos, cores, nome, cv, diagDoModelo(md.diag)); continue; }
     const m = modeloDoPerfil(cv.dataset.modeloPrevia); if (!m) continue;
     const foto = null; // os exemplos já têm o texto da marca; a prévia mostra só as cores, a fonte e a moldura
     const sp = m.spec;
@@ -4851,6 +4960,20 @@ async function pintarModelosPerfil() {
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-mp]"); if (!b) return;
   const a = b.dataset.mp;
+  if (a === "modo") { MP.modo = b.dataset.v; return renderModelosPerfil(); }
+  if (a === "editar") { const md = (M.modelos || []).find(x => x.id === b.dataset.v && x.diag); return md && abrirEditorModelo(md); }
+  if (a === "ed-cancelar") { Object.assign(ED, { aberto: false, id: null, nome: "", padrao: false, diag: DIAG_INICIAL() }); esquecerFormEditor(); return renderModelosPerfil(); }
+  if (a === "ed-salvar") {
+    const nome = (document.getElementById("mp-ed-nome")?.value || "").trim(), padrao = !!document.getElementById("mp-ed-padrao")?.checked;
+    MP.enviando = true; redesenharEditor(null);
+    try {
+      const r = await api({ acao: "salvarModeloMarca", id: ED.id || undefined, nome, diagramacao: ED.diag, padrao: padrao && !ED.id });
+      if (ED.id && padrao !== (M.modeloPadrao === ED.id)) await api({ acao: "modeloPadrao", id: padrao ? ED.id : null });
+      toast(ED.id ? "Modelo atualizado." : padrao ? "Modelo salvo: os posts novos já saem com ele." : "Modelo salvo. Ele aparece na Diagramação da revisão.");
+      Object.assign(ED, { aberto: false, id: null, nome: "", padrao: false, diag: DIAG_INICIAL() });
+      MP.enviando = false; esquecerFormEditor(); await recarregarModelos(); return;
+    } catch (err) { MP.enviando = false; redesenharEditor(null); return toast("Não deu para salvar: " + textoErro(err)); }
+  }
   if (a === "padrao") {
     try { await api({ acao: "modeloPadrao", id: b.dataset.v || null }); M.modeloPadrao = b.dataset.v || null; toast(b.dataset.v ? "Pronto: os posts novos já saem com este modelo." : "Os posts novos voltam a usar o modelo Foto de fundo."); renderModelosPerfil(); }
     catch (err) { toast("Não deu para salvar: " + textoErro(err)); }
