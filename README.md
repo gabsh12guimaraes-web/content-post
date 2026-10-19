@@ -9,7 +9,8 @@ Plataforma de criação e publicação de posts: **Fontes → Ideias (você esco
 | Caminho | Conteúdo |
 |---|---|
 | `index.html` | O painel, pronto para abrir no navegador ou publicar no GitHub Pages |
-| `painel/` | Código-fonte do painel (`index.html`) e o script que gera a versão do site (`montar-site.js`) |
+| `painel/` | Painel atual (`index-api.html`), painel legado (`index.html`) e gerador do site (`montar-site.js`) |
+| `assets/` | Estilos do espaço de trabalho e mídias otimizadas da Home |
 | `fluxos/` | Os 6 fluxos do n8n em JSON, o gerador e o guia de instalação (`LEIA-ME.md`) |
 | `prompts/` | Os 3 prompts do Claude: ideação, criação do post e ajuste |
 | `base/` | Estrutura das tabelas do Airtable (`esquema.md`) e CSVs de exemplo |
@@ -25,6 +26,8 @@ O painel fala com o fluxo **07 - API do painel** do n8n, que precisa estar ativo
 ```bash
 node painel/montar-site.js .
 ```
+
+O painel atual é publicado em `app.html`. Edite `painel/index-api.html` e `assets/painel.css`, e regenere o site com o comando acima. A Home reúne pacotes, atalhos, criação por formato e indicadores da pauta. No calendário desktop, cada dia mostra um resumo por formato e abre todos os seus posts; no celular, os posts continuam visíveis diretamente. O menu pode ser recolhido no desktop, e a preferência fica salva no navegador.
 
 ## Segredos
 
