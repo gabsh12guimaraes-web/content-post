@@ -979,6 +979,17 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .filters { background: none; border: 0; padding: 0; gap: 6px; border-radius: 0; }
 .filters button { border: 1px solid var(--line); background: var(--card); color: var(--ink-soft); border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 700; }
 .filters button[aria-pressed="true"] { border-color: transparent; background: var(--grad); color: #fff; box-shadow: none; }
+.fi-grupos { display: grid; gap: 10px; margin: 0 0 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #0E0F15; }
+.fi-grupo { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; align-items: center; }
+.fi-rot { font: 600 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+.fi-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.fi-chips::-webkit-scrollbar { display: none; }
+.fi-chips button { flex: none; border: 1px solid transparent; background: rgba(255,255,255,.045); color: var(--ink-soft); border-radius: 8px; padding: 7px 11px; font: 500 12px/1.1 var(--mono); cursor: pointer; white-space: nowrap; }
+.fi-chips button:hover { background: rgba(255,255,255,.08); color: var(--ink-body); }
+.fi-chips button[aria-pressed="true"] { background: linear-gradient(135deg, #FFC2CD, var(--pink-soft)); color: #2a0711; font-weight: 600; }
+.fi-n { opacity: .6; font-size: 11px; margin-left: 2px; }
+.fi-limpar { justify-self: start; font-size: 12px; }
+@media (max-width: 560px) { .fi-grupo { grid-template-columns: 1fr; gap: 6px; } }
 
 /* etiquetas contornadas */
 .chip { background: transparent; border: 1px solid currentColor; color: var(--ink-soft); font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 2px 9px; }
@@ -1158,6 +1169,13 @@ const pauta = { carregada: false, erro: null };
 let tab = "ideias";
 try { tab = localStorage.getItem(KEY + ":tab") || "ideias"; } catch (e) {}
 let filtro = "Sugerida";
+// Filtros das ideias por tipo de post e por categoria (pilar da marca); ficam guardados neste navegador.
+const FI = (() => { try { return JSON.parse(localStorage.getItem("pauta-filtros-ideias") || "{}"); } catch (e) { return {}; } })();
+FI.tipo = FI.tipo || "Todos"; FI.cat = FI.cat || "Todas";
+const guardarFI = () => { try { localStorage.setItem("pauta-filtros-ideias", JSON.stringify({ tipo: FI.tipo, cat: FI.cat })); } catch (e) {} };
+const NOME_FORMATO = { Estatico: "Estático", Reels: "Reels", Carrossel: "Carrossel", Stories: "Stories" };
+const tipoIdeia = i => i.formato || "Outro";
+const catIdeia = i => String(i.pilar || "").split(":")[0].trim() || "Sem categoria";
 let abertoDescarte = null;
 let flashId = null;
 
@@ -1831,10 +1849,25 @@ function renderIdeias() {
   const falhaIdeias = ti && ti.status === "erro" ? `<div class="msg erro" style="margin-bottom:12px">A última busca de ideias falhou: ${esc(ti.erro || "")}</div>` : "";
   const head = `<div class="panel-head"><p>A IA lê as fontes cadastradas e sugere ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>${botao}`;
   if (!pauta.carregada) { el.innerHTML = head + `</div>` + semPauta(); return; }
-  const lista = state.ideias.filter(i => filtro === "Todas" || i.status === filtro).sort((a, b) => b.score - a.score);
-  const contagem = s => state.ideias.filter(i => s === "Todas" || i.status === s).length;
+  // tipo e categoria disponíveis vêm das próprias ideias (o que a IA já gera)
+  const tipos = [...new Set(state.ideias.map(tipoIdeia))].sort((a, b) => ["Reels", "Carrossel", "Estatico", "Stories"].indexOf(a) - ["Reels", "Carrossel", "Estatico", "Stories"].indexOf(b));
+  const cats = [...new Set(state.ideias.map(catIdeia))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  if (FI.tipo !== "Todos" && !tipos.includes(FI.tipo)) FI.tipo = "Todos";
+  if (FI.cat !== "Todas" && !cats.includes(FI.cat)) FI.cat = "Todas";
+  const passaTipo = i => FI.tipo === "Todos" || tipoIdeia(i) === FI.tipo, passaCat = i => FI.cat === "Todas" || catIdeia(i) === FI.cat;
+  const passaStatus = i => filtro === "Todas" || i.status === filtro;
+  const lista = state.ideias.filter(i => passaStatus(i) && passaTipo(i) && passaCat(i)).sort((a, b) => b.score - a.score);
+  const contagem = s => state.ideias.filter(i => (s === "Todas" || i.status === s) && passaTipo(i) && passaCat(i)).length;
+  const nTipo = t => state.ideias.filter(i => passaStatus(i) && passaCat(i) && (t === "Todos" || tipoIdeia(i) === t)).length;
+  const nCat = c => state.ideias.filter(i => passaStatus(i) && passaTipo(i) && (c === "Todas" || catIdeia(i) === c)).length;
+  const chipF = (k, v, label, n) => `<button type="button" data-fi="${k}" data-v="${esc(v)}" aria-pressed="${FI[k] === v}">${esc(label)} <span class="fi-n">${n}</span></button>`;
+  const filtrosExtra = state.ideias.length ? `<div class="fi-grupos">
+      ${tipos.length > 1 ? `<div class="fi-grupo"><span class="fi-rot">Tipo de post</span><div class="fi-chips" role="group" aria-label="Tipo de post">${chipF("tipo", "Todos", "Todos", nTipo("Todos"))}${tipos.map(t => chipF("tipo", t, NOME_FORMATO[t] || t, nTipo(t))).join("")}</div></div>` : ""}
+      ${cats.length > 1 ? `<div class="fi-grupo"><span class="fi-rot">Categoria</span><div class="fi-chips" role="group" aria-label="Categoria">${chipF("cat", "Todas", "Todas", nCat("Todas"))}${cats.map(c => chipF("cat", c, c, nCat(c))).join("")}</div></div>` : ""}
+      ${FI.tipo !== "Todos" || FI.cat !== "Todas" ? `<button type="button" class="link-btn fi-limpar" data-fi="limpar">Limpar filtros</button>` : ""}</div>` : "";
   const fb = (s, label) => `<button aria-pressed="${filtro === s}" data-filtro="${s}">${label} · ${contagem(s)}</button>`;
   el.innerHTML = falhaIdeias + head + `<div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div></div>
+    ${filtrosExtra}
     ${lista.length ? `<div class="ideas">${lista.map(cardIdeia).join("")}</div>`
       : `<div class="empty glass">${state.ideias.length ? "Nenhuma ideia neste filtro." : "Nenhuma ideia ainda. Clique em Buscar ideias novas."}</div>`}`;
 }
@@ -3456,6 +3489,8 @@ async function mudarIdeia(ideia, campos, ok) {
 document.addEventListener("click", e => {
   const tabBtn = e.target.closest(".track button, .kpi, button[data-tab]"); if (tabBtn) return ir(tabBtn.dataset.tab);
   const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; return render(); }
+  const fi = e.target.closest("[data-fi]");
+  if (fi) { if (fi.dataset.fi === "limpar") { FI.tipo = "Todos"; FI.cat = "Todas"; } else FI[fi.dataset.fi] = FI[fi.dataset.fi] === fi.dataset.v && fi.dataset.v !== "Todos" && fi.dataset.v !== "Todas" ? (fi.dataset.fi === "tipo" ? "Todos" : "Todas") : fi.dataset.v; guardarFI(); return renderIdeias(); }
   const b = e.target.closest("[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
   ancoraClique = b; setTimeout(() => { ancoraClique = null; }, 0);
