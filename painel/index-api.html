@@ -1165,8 +1165,15 @@ try { tab = localStorage.getItem(KEY + ":tab") || "ideias"; } catch (e) {}
 let filtro = "Sugerida";
 // Filtros das ideias por tipo de post e por categoria (pilar da marca); ficam guardados neste navegador.
 const FI = (() => { try { return JSON.parse(localStorage.getItem("pauta-filtros-ideias") || "{}"); } catch (e) { return {}; } })();
-FI.tipo = FI.tipo || "Todos"; FI.cat = FI.cat || "Todas";
-const guardarFI = () => { try { localStorage.setItem("pauta-filtros-ideias", JSON.stringify({ tipo: FI.tipo, cat: FI.cat })); } catch (e) {} };
+FI.tipo = FI.tipo || "Todos"; FI.cat = FI.cat || "Todas"; FI.ordem = FI.ordem || "aderencia";
+const guardarFI = () => { try { localStorage.setItem("pauta-filtros-ideias", JSON.stringify({ tipo: FI.tipo, cat: FI.cat, ordem: FI.ordem })); } catch (e) {} };
+// Ordem da lista de ideias (o empate cai no outro critério).
+const ORDENS_IDEIA = {
+  aderencia: ["Mais aderência", (a, b) => b.score - a.score || b.criada - a.criada],
+  aderenciaMenor: ["Menos aderência", (a, b) => a.score - b.score || b.criada - a.criada],
+  recentes: ["Mais recentes", (a, b) => b.criada - a.criada || b.score - a.score],
+  antigas: ["Mais antigas", (a, b) => a.criada - b.criada || b.score - a.score],
+};
 const NOME_FORMATO = { Estatico: "Estático", Reels: "Reels", Carrossel: "Carrossel", Stories: "Stories" };
 const tipoIdeia = i => i.formato || "Outro";
 const catIdeia = i => String(i.pilar || "").split(":")[0].trim() || "Sem categoria";
@@ -1195,7 +1202,7 @@ const nomeSel = v => (v && typeof v === "object") ? v.name : (v ?? "");
 function deIdeia(r) {
   return {
     id: r.id, titulo: r.Titulo || "", resumo: r.Resumo || "", formato: nomeSel(r.Formato), rede: nomeSel(r.Rede), pilar: nomeSel(r.Pilar),
-    score: Number(r.Score) || 0, porQue: r.PorQueFunciona || "", refs: (r.Referencias || []).length,
+    score: Number(r.Score) || 0, porQue: r.PorQueFunciona || "", refs: (r.Referencias || []).length, criada: Date.parse(r.CriadaEm || "") || 0,
     status: nomeSel(r.Status) || "Sugerida", motivo: r.MotivoDescarte || "", posts: (r.Calendario || []).map(x => (x && typeof x === "object") ? x.id : x),
   };
 }
@@ -1859,7 +1866,8 @@ function renderIdeias() {
   if (FI.cat !== "Todas" && !cats.includes(FI.cat)) FI.cat = "Todas";
   const passaTipo = i => FI.tipo === "Todos" || tipoIdeia(i) === FI.tipo, passaCat = i => FI.cat === "Todas" || catIdeia(i) === FI.cat;
   const passaStatus = i => filtro === "Todas" || i.status === filtro;
-  const lista = state.ideias.filter(i => passaStatus(i) && passaTipo(i) && passaCat(i)).sort((a, b) => b.score - a.score);
+  if (!ORDENS_IDEIA[FI.ordem]) FI.ordem = "aderencia";
+  const lista = state.ideias.filter(i => passaStatus(i) && passaTipo(i) && passaCat(i)).sort(ORDENS_IDEIA[FI.ordem][1]);
   const contagem = s => state.ideias.filter(i => (s === "Todas" || i.status === s) && passaTipo(i) && passaCat(i)).length;
   const nTipo = t => state.ideias.filter(i => passaStatus(i) && passaCat(i) && (t === "Todos" || tipoIdeia(i) === t)).length;
   const nCat = c => state.ideias.filter(i => passaStatus(i) && passaTipo(i) && (c === "Todas" || catIdeia(i) === c)).length;
@@ -1867,6 +1875,7 @@ function renderIdeias() {
   const filtrosExtra = state.ideias.length ? `<div class="fi-grupos">
       ${tipos.length > 1 ? `<div class="fi-grupo"><span class="fi-rot">Tipo de post</span><div class="fi-chips" role="group" aria-label="Tipo de post">${chipF("tipo", "Todos", "Todos", nTipo("Todos"))}${tipos.map(t => chipF("tipo", t, NOME_FORMATO[t] || t, nTipo(t))).join("")}</div></div>` : ""}
       ${cats.length > 1 ? `<div class="fi-grupo"><span class="fi-rot">Categoria</span><div class="fi-chips" role="group" aria-label="Categoria">${chipF("cat", "Todas", "Todas", nCat("Todas"))}${cats.map(c => chipF("cat", c, c, nCat(c))).join("")}</div></div>` : ""}
+      <div class="fi-grupo"><span class="fi-rot">Ordenar por</span><div class="fi-chips" role="group" aria-label="Ordenar por">${Object.entries(ORDENS_IDEIA).map(([k, [t]]) => `<button type="button" data-fi="ordem" data-v="${k}" aria-pressed="${FI.ordem === k}">${t}</button>`).join("")}</div></div>
       ${FI.tipo !== "Todos" || FI.cat !== "Todas" ? `<button type="button" class="link-btn fi-limpar" data-fi="limpar">Limpar filtros</button>` : ""}</div>` : "";
   const fb = (s, label) => `<button aria-pressed="${filtro === s}" data-filtro="${s}">${label} · ${contagem(s)}</button>`;
   el.innerHTML = falhaIdeias + head + `<div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div></div>
@@ -3570,7 +3579,7 @@ document.addEventListener("click", e => {
   const tabBtn = e.target.closest(".track button, .kpi, button[data-tab]"); if (tabBtn) return ir(tabBtn.dataset.tab);
   const f = e.target.closest("[data-filtro]"); if (f) { filtro = f.dataset.filtro; return render(); }
   const fi = e.target.closest("[data-fi]");
-  if (fi) { if (fi.dataset.fi === "limpar") { FI.tipo = "Todos"; FI.cat = "Todas"; } else FI[fi.dataset.fi] = FI[fi.dataset.fi] === fi.dataset.v && fi.dataset.v !== "Todos" && fi.dataset.v !== "Todas" ? (fi.dataset.fi === "tipo" ? "Todos" : "Todas") : fi.dataset.v; guardarFI(); return renderIdeias(); }
+  if (fi) { if (fi.dataset.fi === "limpar") { FI.tipo = "Todos"; FI.cat = "Todas"; } else if (fi.dataset.fi === "ordem") FI.ordem = fi.dataset.v; else FI[fi.dataset.fi] = FI[fi.dataset.fi] === fi.dataset.v && fi.dataset.v !== "Todos" && fi.dataset.v !== "Todas" ? (fi.dataset.fi === "tipo" ? "Todos" : "Todas") : fi.dataset.v; guardarFI(); return renderIdeias(); }
   const b = e.target.closest("[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
   ancoraClique = b; setTimeout(() => { ancoraClique = null; }, 0);
