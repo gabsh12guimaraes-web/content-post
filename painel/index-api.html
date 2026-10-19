@@ -1426,7 +1426,7 @@ function abrirBriefing(p) {
   BR.post = p.id;
   BR.r = video ? { duracao: "30", cenas: "auto", textoNaTela: "sim", objetivo: "" } : { capa: "foto", fundo: "fotos", slides: "auto", objetivo: "" };
   if (p.formato === "Stories") Object.assign(BR.r, { story: "varios", fundo: "fotos", slides: "auto" });
-  BR.r.imagens = "ia"; BR.r.banco = []; BR.r.pessoa = ""; BR.motivoIA = ""; BR.escolhendoIA = false;
+  BR.r.imagens = "ia"; BR.r.banco = []; BR.r.pessoa = ""; BR.r.produto = ""; BR.motivoIA = ""; BR.escolhendoIA = false;
   desenharBriefing();
 }
 function desenharBriefing() {
@@ -1437,7 +1437,8 @@ function desenharBriefing() {
   if (comImagem) pergs.splice(p.formato === "Stories" ? 1 : 0, 0, "imagens");
   const r = BR.r;
   const blocoBanco = () => comImagem && ["banco", "misto"].includes(r.imagens) ? `<div class="field"><span>Fotos e vídeos do banco${ajuda("banco")}</span><p class="small" style="margin:0">Escolha as fotos ou vídeos que podem entrar neste post (até 20), inclusive os que a IA já gerou, ou toque em "IA escolhe para este post" para ela marcar as que têm a ver com o tema. Sem escolher, a IA usa os mais recentes, primeiro os que você enviou. ${r.imagens === "banco" ? "Não gasta créditos de imagem." : "Só as imagens novas gastam créditos."}</p><div id="br-banco"></div></div>` : "";
-  const blocoPessoa = () => comImagem && r.imagens !== "banco" && M.modo === "web" ? `<div class="field"><span>Pessoa real nas imagens (opcional)</span><p class="small" style="margin:0">Para posts humanizados: a IA coloca a pessoa da foto em algumas imagens, como a capa ou os bastidores. Use uma foto de rosto nítida, de frente e com boa luz.</p><div id="br-pessoa"></div></div>` : "";
+  const blocoPessoa = () => comImagem && r.imagens !== "banco" && M.modo === "web" ? `<div class="field"><span>Pessoa real nas imagens (opcional)</span><p class="small" style="margin:0">Para posts humanizados: a IA coloca a pessoa da foto em algumas imagens, como a capa ou os bastidores. Use uma foto de rosto nítida, de frente e com boa luz.</p><div id="br-pessoa"></div></div>
+    <div class="field"><span>Produto ou objeto nas imagens (opcional)</span><p class="small" style="margin:0">Para mostrar o seu produto de verdade: a IA coloca o objeto da foto em algumas imagens, como a capa, em uso ou num detalhe. Use uma foto nítida do produto inteiro, de preferência com fundo liso.</p><div id="br-produto"></div></div>` : "";
   const blocos = pergs.map(k => {
     const q = PERGUNTAS[k], campo = q.campo || k;
     return `<div class="field"><span>${esc(q.titulo)}</span><div class="seg" role="group" aria-label="${esc(q.titulo)}">${q.op.map(([v, t]) =>
@@ -1455,51 +1456,59 @@ function desenharBriefing() {
     </form>`);
   desenharEscolhaBanco(); desenharPessoas();
 }
-// Pessoas com foto de rosto (posts humanizados): escolher no briefing ou cadastrar uma nova.
+// Fotos de referência do briefing: pessoas (rosto, posts humanizados) e produtos ou objetos. Escolher ou cadastrar.
+const REF_TXT = {
+  pessoa: { campo: "pessoa", nada: "Ninguém", nova: "Nova pessoa", nomePh: "Ex.: Gabriel, fundador", foto: "Foto de rosto", salvar: "Salvar pessoa", usa: "vai aparecer em algumas imagens.", semNome: "Esta pessoa",
+    salvo: "Pessoa salva. Ela fica disponível para os próximos posts.", removido: "Pessoa removida. Os posts já criados continuam com as imagens.", escolha: "Escolha uma foto de rosto em JPG, PNG ou WEBP." },
+  produto: { campo: "produto", nada: "Nenhum", nova: "Novo produto", nomePh: "Ex.: Pulseira azul", foto: "Foto do produto ou objeto", salvar: "Salvar produto", usa: "vai aparecer em algumas imagens.", semNome: "Este produto",
+    salvo: "Produto salvo. Ele fica disponível para os próximos posts.", removido: "Produto removido. Os posts já criados continuam com as imagens.", escolha: "Escolha uma foto do produto em JPG, PNG ou WEBP." },
+};
+const refsDo = t => PE.lista.filter(x => (x.tipo || "pessoa") === t);
 async function carregarPessoas() {
   try { PE.lista = (await api({ acao: "listarPessoas" })).pessoas || []; } catch (e) { PE.lista = []; }
   PE.carregado = true;
-  if (BR.r.pessoa && !PE.lista.some(x => x.id === BR.r.pessoa)) BR.r.pessoa = "";
+  for (const t of ["pessoa", "produto"]) if (BR.r[t] && !refsDo(t).some(x => x.id === BR.r[t])) BR.r[t] = "";
   desenharPessoas();
 }
-function desenharPessoas() {
-  const el = document.getElementById("br-pessoa"); if (!el) return;
+function desenharPessoas() { desenharRef("pessoa"); desenharRef("produto"); }
+function desenharRef(t) {
+  const el = document.getElementById("br-" + t); if (!el) return;
   if (!PE.carregado) { el.innerHTML = `<div class="esqueleto"><i></i></div>`; return; }
-  const sel = BR.r.pessoa || "", escolhida = PE.lista.find(x => x.id === sel);
+  const X = REF_TXT[t], lista = refsDo(t), sel = BR.r[t] || "", escolhida = lista.find(x => x.id === sel), form = PE.form === t;
   el.innerHTML = `<div class="bi-escolha pe-escolha">
-      <button type="button" class="${sel ? "" : "on"}" data-pe="sel" data-v="" aria-pressed="${!sel}"><span class="pe-nada">–</span><span>Ninguém</span></button>
-      ${PE.lista.map(x => `<button type="button" class="${sel === x.id ? "on" : ""}" data-pe="sel" data-v="${x.id}" aria-pressed="${sel === x.id}" title="${esc(x.nome)}"><img src="${esc(urlArq(x.arquivo))}" alt="" loading="lazy"><span>${esc(x.nome || "Sem nome")}</span></button>`).join("")}
-      ${PE.form ? "" : `<button type="button" data-pe="nova"><span class="pe-nada">+</span><span>Nova pessoa</span></button>`}
+      <button type="button" class="${sel ? "" : "on"}" data-pe="sel" data-t="${t}" data-v="" aria-pressed="${!sel}"><span class="pe-nada">–</span><span>${X.nada}</span></button>
+      ${lista.map(x => `<button type="button" class="${sel === x.id ? "on" : ""}" data-pe="sel" data-t="${t}" data-v="${x.id}" aria-pressed="${sel === x.id}" title="${esc(x.nome)}"><img src="${esc(urlArq(x.arquivo))}" alt="" loading="lazy"><span>${esc(x.nome || "Sem nome")}</span></button>`).join("")}
+      ${form ? "" : `<button type="button" data-pe="nova" data-t="${t}"><span class="pe-nada">+</span><span>${X.nova}</span></button>`}
     </div>
-    ${escolhida && !PE.form ? `<div class="bi-contagem small" style="margin-top:6px"><span>${esc(escolhida.nome || "Esta pessoa")} vai aparecer em algumas imagens.</span><button type="button" class="link" data-pe="remover" data-v="${escolhida.id}">Remover do cadastro</button></div>` : ""}
-    ${PE.form ? `<div class="pe-form">
-      <label class="field"><span>Nome</span><input id="pe-nome" maxlength="60" placeholder="Ex.: Gabriel, fundador"></label>
-      <label class="field"><span>Foto de rosto</span><input id="pe-foto" type="file" accept="image/jpeg,image/png,image/webp"></label>
-      <label class="ok"><input id="pe-ok" type="checkbox"> <span>Tenho autorização desta pessoa para usar a imagem dela nos posts da marca.</span></label>
-      <div class="actions"><button type="button" class="btn quiet" data-pe="cancelar">Cancelar</button><button type="button" class="btn primary" data-pe="enviar" ${PE.enviando ? "disabled" : ""}>${PE.enviando ? "Enviando…" : "Salvar pessoa"}</button></div>
+    ${escolhida && !form ? `<div class="bi-contagem small" style="margin-top:6px"><span>${esc(escolhida.nome || X.semNome)} ${X.usa}</span><button type="button" class="link" data-pe="remover" data-t="${t}" data-v="${escolhida.id}">Remover do cadastro</button></div>` : ""}
+    ${form ? `<div class="pe-form">
+      <label class="field"><span>Nome</span><input id="pe-nome-${t}" maxlength="60" placeholder="${X.nomePh}"></label>
+      <label class="field"><span>${X.foto}</span><input id="pe-foto-${t}" type="file" accept="image/jpeg,image/png,image/webp"></label>
+      ${t === "pessoa" ? `<label class="ok"><input id="pe-ok" type="checkbox"> <span>Tenho autorização desta pessoa para usar a imagem dela nos posts da marca.</span></label>` : ""}
+      <div class="actions"><button type="button" class="btn quiet" data-pe="cancelar" data-t="${t}">Cancelar</button><button type="button" class="btn primary" data-pe="enviar" data-t="${t}" ${PE.enviando ? "disabled" : ""}>${PE.enviando ? "Enviando…" : X.salvar}</button></div>
     </div>` : ""}`;
 }
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-pe]"); if (!b) return;
-  const a = b.dataset.pe;
-  if (a === "sel") { BR.r.pessoa = b.dataset.v; return desenharPessoas(); }
-  if (a === "nova") { PE.form = true; return desenharPessoas(); }
+  const a = b.dataset.pe, t = b.dataset.t === "produto" ? "produto" : "pessoa", X = REF_TXT[t];
+  if (a === "sel") { BR.r[t] = b.dataset.v; return desenharRef(t); }
+  if (a === "nova") { PE.form = t; return desenharPessoas(); }
   if (a === "cancelar") { PE.form = false; return desenharPessoas(); }
   if (a === "remover") {
     if (b.dataset.confirma !== "1") { b.dataset.confirma = "1"; b.textContent = "Remover mesmo?"; setTimeout(() => { b.dataset.confirma = ""; b.textContent = "Remover do cadastro"; }, 3000); return; }
-    try { await api({ acao: "removerPessoa", id: b.dataset.v }); BR.r.pessoa = ""; toast("Pessoa removida. Os posts já criados continuam com as imagens."); carregarPessoas(); }
+    try { await api({ acao: "removerPessoa", id: b.dataset.v }); BR.r[t] = ""; toast(X.removido); carregarPessoas(); }
     catch (err) { toast("Não deu para remover: " + textoErro(err)); }
     return;
   }
   if (a === "enviar") {
-    const f = document.getElementById("pe-foto")?.files[0], nome = (document.getElementById("pe-nome")?.value || "").trim();
-    if (!f || !/^image\//.test(f.type)) return toast("Escolha uma foto de rosto em JPG, PNG ou WEBP.");
-    if (!document.getElementById("pe-ok")?.checked) return toast("Confirme que você tem autorização da pessoa para usar a imagem dela.");
-    PE.enviando = true; desenharPessoas();
+    const f = document.getElementById("pe-foto-" + t)?.files[0], nome = (document.getElementById("pe-nome-" + t)?.value || "").trim();
+    if (!f || !/^image\//.test(f.type)) return toast(X.escolha);
+    if (t === "pessoa" && !document.getElementById("pe-ok")?.checked) return toast("Confirme que você tem autorização da pessoa para usar a imagem dela.");
+    PE.enviando = true; desenharRef(t);
     try {
       const x = await prepararFoto(f);
-      const r = await api({ acao: "enviarPessoa", tipo: x.tipo, base64: x.base64, nome: nome || f.name.replace(/\.[^.]+$/, ""), autorizado: true });
-      PE.form = false; BR.r.pessoa = r.id; toast("Pessoa salva. Ela fica disponível para os próximos posts.");
+      const r = await api({ acao: "enviarPessoa", referencia: t, tipo: x.tipo, base64: x.base64, nome: nome || f.name.replace(/\.[^.]+$/, ""), autorizado: t === "pessoa" });
+      PE.form = false; BR.r[t] = r.id; toast(X.salvo);
       await carregarPessoas();
     } catch (err) { toast("Não deu para salvar: " + textoErro(err)); }
     finally { PE.enviando = false; desenharPessoas(); }
@@ -1516,6 +1525,7 @@ document.addEventListener("click", e => {
     const br = { ...BR.r };
     if (!["banco", "misto"].includes(br.imagens)) delete br.banco; else if (!br.banco.length) delete br.banco;
     if (br.imagens === "banco" || !br.pessoa) delete br.pessoa;
+    if (br.imagens === "banco" || !br.produto) delete br.produto;
     if (br.imagens === "ia") delete br.imagens;
     if (p && p.formato === "Stories") {
       if (br.story === "imagem" || br.story === "sequencia") { delete br.duracao; delete br.cenas; delete br.textoNaTela; if (br.story === "imagem") delete br.slides; }
@@ -2335,7 +2345,7 @@ function desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   return cv;
 }
 /* ===== Modelos novos: Impacto, Minimal, Manchete e Cinema ===== */
-const MODELOS_NOVOS = ["impacto", "minimal", "manchete", "cinema"];
+const MODELOS_NOVOS = ["impacto", "minimal", "manchete", "cinema", "grade"];
 // Fontes do título. "auto" usa a do modelo.
 const FONTES_TITULO = {
   poppins: { nome: "Poppins", css: "Poppins", peso: 800, upper: false },
@@ -2358,9 +2368,9 @@ const diagIgual = (a, b) => ["modelo", "fundo", "fonte", "alinhar", "posicao", "
 const DICA_FONTE = { poppins: "sans geométrica", anton: "condensada, impacto", bebas: "condensada, caixa alta", archivo: "sans pesada", playfair: "serif clássica", dmserif: "serif display" };
 // Faixa da diagramação que a pessoa está mexendo (ganha a barra de destaque).
 const secDiag = {}, SEC_DA_CHAVE = { modelo: "modelo", fundo: "fundo", fonte: "fonte", alinhar: "texto", posicao: "texto", logo: "logo", logoPos: "logoPos", audio: "audio" };
-const FONTE_DO_MODELO = { foto: "poppins", editorial: "poppins", lateral: "poppins", impacto: "anton", minimal: "poppins", manchete: "anton", cinema: "dmserif", video: "poppins" };
+const FONTE_DO_MODELO = { foto: "poppins", editorial: "poppins", lateral: "poppins", impacto: "anton", minimal: "poppins", manchete: "anton", cinema: "dmserif", grade: "poppins", video: "poppins" };
 // Fundo de cada modelo quando a escolha é "Do modelo". Claro, escuro e cor da marca valem para todos.
-const FUNDO_DO_MODELO = { foto: "marca", editorial: "claro", lateral: "claro", impacto: "marca", minimal: "claro", manchete: "claro", cinema: "escuro", video: "marca" };
+const FUNDO_DO_MODELO = { foto: "marca", editorial: "claro", lateral: "claro", impacto: "marca", minimal: "claro", manchete: "claro", cinema: "escuro", grade: "marca", video: "marca" };
 const CLARO_DO_MODELO = { minimal: "#F5F4F0", manchete: "#FFFFFF" };
 function temaFundo(diag, cores, modelo) {
   const m = modelo || (diag && diag.modelo) || "foto";
@@ -2428,7 +2438,8 @@ function linhasRicas(ctx, partes, largura, fonteN, fonteD) {
   ctx.font = fonteN; const espaco = ctx.measureText(" ").width;
   for (const p of partes) {
     ctx.font = p.dest ? fonteD : fonteN; const w = ctx.measureText(p.w).width;
-    if (atual.length && larg + espaco + w > largura) { linhas.push({ itens: atual, larg }); atual = []; larg = 0; }
+    // pontuação colada ("identidade*.") nunca vai sozinha para a linha de baixo
+    if (atual.length && !p.colado && larg + espaco + w > largura) { linhas.push({ itens: atual, larg }); atual = []; larg = 0; }
     atual.push({ ...p, largura: w }); larg += (atual.length > 1 && !p.colado ? espaco : 0) + w;
   }
   if (atual.length) linhas.push({ itens: atual, larg });
@@ -2512,11 +2523,86 @@ function logoDoModelo(diag, padrao) {
 }
 // Escala do texto de cada slide ou cena (barra "Tamanho do texto" na revisão): 0,6 a 1,6; 1 é o tamanho do modelo.
 const escalaTexto = (diag, n) => { const v = Number(((diag && diag.escalas) || {})[n]); return v >= 0.6 && v <= 1.6 ? v : 1; };
+// Grade: foto inteira com linhas finas de grade, símbolo à esquerda e logo à direita no topo, contador e chamadas em
+// fonte mono, título grande de peso médio e letras juntas, e rodapé com o @ e o ano (estilo de estúdio de branding).
+function desenharGrade(ctx, W, H, U, sl, i, total, foto, logos, cores, nome, diag, T, E) {
+  const auto = !diag.fonte || diag.fonte === "auto", F = fonteTitulo(diag), peso = auto ? 500 : F.peso;
+  const al = canvasAl(diag.alinhar), titulo = sl.t || "", texto = sl.x || "", ultimo = i === total - 1 && total > 1;
+  const mono = (tam, p) => `${p || 500} ${tam}px 'IBM Plex Mono', ui-monospace, monospace`;
+  const mx = 11 * U, larg = W - 2 * mx;
+  // no 9:16 (Reels e Stories) o topo e a base ficam longe dos botões do Instagram
+  const vert = H / U > 150, sT = vert ? 9 * U : 0, sB = vert ? 16 * U : 0;
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
+  if (foto) {
+    cobrir(ctx, foto, 0, 0, W, H);
+    // véu leve: topo para o logo e base para o texto, sem esconder a foto
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "rgba(0,0,0,.22)"); g.addColorStop(0.3, "rgba(0,0,0,0)"); g.addColorStop(0.55, "rgba(0,0,0,.08)"); g.addColorStop(1, "rgba(0,0,0,.5)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  const escuro = !!foto || !T.claro, tinta = foto ? "#FFFFFF" : T.tinta, apoio = escuro ? "rgba(255,255,255,.82)" : "rgba(17,17,17,.66)";
+  // grade: três verticais (margens e centro) e duas horizontais (abaixo do topo e acima do rodapé)
+  ctx.strokeStyle = escuro ? "rgba(255,255,255,.17)" : "rgba(17,17,17,.12)"; ctx.lineWidth = Math.max(1, 0.14 * U);
+  ctx.beginPath();
+  for (const x of [mx, W / 2, W - mx]) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for (const y of [14 * U + sT, H - 14 * U - sB]) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
+  // topo: símbolo à esquerda e logo inteiro à direita (Automático); outra escolha usa a versão e a posição pedidas
+  const L = logoDoModelo(diag, "grade"), alt = 4.6 * U, yTopo = 6.4 * U + sT;
+  if (L.tipo === "grade") {
+    const sim = logos && !logos.width ? escolherLogo(logos, !escuro, true) : null;
+    const marca = logos && !logos.width ? escolherLogo(logos, !escuro, false) : logos && logos.width ? logos : null;
+    if (sim && sim !== marca) { const w = Math.min(sim.width * (alt / sim.height), 14 * U); ctx.drawImage(sim, mx, yTopo, w, alt); }
+    if (marca) { const w = Math.min(marca.width * (alt / marca.height), 34 * U); ctx.drawImage(marca, W - mx - w, yTopo, w, alt); }
+    else { ctx.fillStyle = tinta; ctx.font = `700 ${3.6 * U}px Poppins, sans-serif`; ctx.textAlign = "right"; ctx.fillText(nome, W - mx, yTopo + alt * 0.82); ctx.textAlign = "left"; }
+  } else if (L.tipo === "logo") desenharLogo(ctx, W, H, U, logos, nome, { ...diag, logoPos: L.pos }, alt, yTopo, tinta, mx);
+  if (total > 1) { ctx.font = mono(2.1 * U); ctx.fillStyle = apoio; ctx.fillText(`${String(i + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`, mx, yTopo + alt + 4.2 * U); }
+  // título: mede o bloco (título e texto de apoio) para colocar na base, no meio ou no topo
+  const fN = tam => `${peso} ${tam}px ${F.css}, Poppins, sans-serif`, fD = tam => `${peso === 500 ? 600 : peso} ${tam}px ${F.css}, Poppins, sans-serif`;
+  // tamanho grande, encolhendo até caber em 3 linhas (4 só em título muito longo, com tamanho mínimo)
+  let tam = 13.2 * U * E, nL = 1;
+  for (let k = 0; k < 14; k++) { ctx.letterSpacing = `${-0.05 * tam}px`; const ls = linhasRicas(ctx, partesTexto(F.upper ? titulo.toUpperCase() : titulo), larg, fN(tam), fD(tam)).linhas; nL = ls.length;
+    const solta = ls.slice(0, -1).some(l => l.itens.length === 1 && l.itens[0].w.length <= 3); // "é" ou "o" sozinho numa linha
+    if ((nL <= 3 && !solta) || tam <= 7.5 * U * Math.min(1, E)) break; tam *= 0.94; }
+  const tamT = 3.3 * U * E; ctx.letterSpacing = "0px"; ctx.font = `400 ${tamT}px Poppins, sans-serif`;
+  const nT = texto ? Math.min(3, quebrar(ctx, semMarcas(texto), larg * 0.86).length) : 0;
+  const altura = nL * tam * 0.98 + (nT ? 3 * U + nT * tamT * 1.38 : 0);
+  const pos = diag.posicao && diag.posicao !== "auto" ? diag.posicao : "base";
+  const y0 = pos === "topo" ? 24 * U + sT : pos === "meio" ? (H - altura) / 2 : H - 27 * U - sB - altura;
+  ctx.letterSpacing = `${-0.05 * tam}px`;
+  const t = tituloRico(ctx, titulo, { x: mx, y: y0, largura: larg, alturaMax: H, tamanho: tam, minimo: tam, fonte: fN, fonteDestaque: fD, upper: F.upper, cor: tinta, corDestaque: foto ? tinta : cores.acc, alinhar: al, entrelinha: 0.98 });
+  ctx.letterSpacing = "0px";
+  if (texto) textoSimples(ctx, texto, { x: mx, y: t.fim + 3 * U, largura: al === "center" ? larg : larg * 0.86, tam: tamT, fonte: `400 ${tamT}px Poppins, sans-serif`, cor: apoio, alinhar: al, maxLinhas: 3 });
+  // chamada em mono acima do rodapé e seta à direita
+  const yCham = H - 18.5 * U - sB;
+  ctx.font = mono(2.2 * U); ctx.fillStyle = apoio;
+  const cham = ultimo ? (perfilMarca() ? "SIGA " + perfilMarca().toUpperCase() : "SALVE ESTE POST") : total > 1 && i === 0 ? "→   ARRASTE PRO LADO" : "";
+  if (cham) ctx.fillText(cham, mx, yCham);
+  if (total > 1 && !ultimo && i > 0) {
+    const ax = W - mx, ay = yCham - 1.2 * U, r = 3.4 * U;
+    ctx.strokeStyle = tinta; ctx.lineWidth = 0.42 * U; ctx.lineCap = "round"; ctx.beginPath();
+    ctx.moveTo(ax - 2 * r, ay); ctx.lineTo(ax, ay); ctx.moveTo(ax - r * 0.8, ay - r * 0.8); ctx.lineTo(ax, ay); ctx.lineTo(ax - r * 0.8, ay + r * 0.8); ctx.stroke(); ctx.lineCap = "butt";
+  }
+  // rodapé: avatar redondo com o símbolo e o @ (ou o nome) à esquerda; ano à direita
+  if (!L.baixo) {
+    const yR = H - 8.6 * U - sB, raio = 1.5 * U;
+    ctx.save(); ctx.beginPath(); ctx.arc(mx + raio, yR - raio * 0.7, raio, 0, Math.PI * 2); ctx.fillStyle = cores.acc; ctx.fill(); ctx.clip();
+    const simA = logos && !logos.width ? escolherLogo(logos, false, true) : null;
+    if (simA) { const k = Math.min(raio * 1.3 / simA.width, raio * 1.3 / simA.height); ctx.drawImage(simA, mx + raio - simA.width * k / 2, yR - raio * 0.7 - simA.height * k / 2, simA.width * k, simA.height * k); }
+    ctx.restore();
+    ctx.font = `500 ${2.2 * U}px Poppins, sans-serif`; ctx.fillStyle = apoio;
+    ctx.fillText(perfilMarca() || nome, mx + raio * 2 + 1.2 * U, yR);
+    ctx.textAlign = "right"; ctx.fillText(String(new Date().getFullYear()), W - mx, yR); ctx.textAlign = "left";
+  }
+  return ctx.canvas;
+}
 function desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   const cv = alvo || document.createElement("canvas"); if (!alvo) { cv.width = ARTE_L; cv.height = ARTE_A; }
   const W = cv.width, H = cv.height, U = W / 100;
   const ctx = cv.getContext("2d");
   const F = fonteTitulo(diag), m = diag.modelo, E = escalaTexto(diag, sl.n), Em = Math.min(1, E), T = temaFundo(diag, cores);
+  if (m === "grade") return desenharGrade(ctx, W, H, U, sl, i, total, foto, logos, cores, nome, diag, T, E);
   const fT = (peso, it) => tam => `${it ? "italic " : ""}${peso} ${tam}px ${F.css}, Poppins, sans-serif`;
   const serifItalico = tam => `italic 500 ${tam}px 'Playfair Display', Georgia, serif`;
   const titulo = sl.t || "", texto = sl.x || "";
@@ -2635,7 +2721,7 @@ async function pintarPrevias() {
   try {
     const cvs = [...document.querySelectorAll("canvas[data-previa]")].filter(cv => !cv.closest("[hidden]")); // abas escondidas não pintam
     if (cvs.length) {
-      await Promise.all([document.fonts.load(`400 40px Anton`), document.fonts.load(`400 40px 'Bebas Neue'`), document.fonts.load(`400 40px 'Archivo Black'`), document.fonts.load(`800 40px 'Playfair Display'`), document.fonts.load(`italic 500 40px 'Playfair Display'`), document.fonts.load(`400 40px 'DM Serif Display'`), document.fonts.load(`italic 400 40px 'DM Serif Display'`), document.fonts.load(`800 40px Poppins`)]).catch(() => {});
+      await Promise.all([document.fonts.load(`400 40px Anton`), document.fonts.load(`500 40px 'IBM Plex Mono'`), document.fonts.load(`500 40px Poppins`), document.fonts.load(`400 40px 'Bebas Neue'`), document.fonts.load(`400 40px 'Archivo Black'`), document.fonts.load(`800 40px 'Playfair Display'`), document.fonts.load(`italic 500 40px 'Playfair Display'`), document.fonts.load(`400 40px 'DM Serif Display'`), document.fonts.load(`italic 400 40px 'DM Serif Display'`), document.fonts.load(`800 40px Poppins`)]).catch(() => {});
       const logos = await logosDaPrevia(), cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
       for (const cv of cvs) {
         const post = state.posts.find(x => x.id === cv.dataset.previa); if (!post) continue;
@@ -3150,7 +3236,7 @@ async function gerarArtes(p) {
   if (gerandoArtes) return false;
   gerandoArtes = p.id; render();
   try {
-    await Promise.all([document.fonts.load(`700 ${10 * CQ}px Poppins`), document.fonts.load(`400 ${4.4 * CQ}px Poppins`), document.fonts.load(`600 ${3 * CQ}px Poppins`), document.fonts.load(`400 40px Anton`), document.fonts.load(`400 40px 'Bebas Neue'`), document.fonts.load(`400 40px 'Archivo Black'`), document.fonts.load(`800 40px 'Playfair Display'`), document.fonts.load(`italic 500 40px 'Playfair Display'`), document.fonts.load(`400 40px 'DM Serif Display'`), document.fonts.load(`italic 400 40px 'DM Serif Display'`)]).catch(() => {});
+    await Promise.all([document.fonts.load(`700 ${10 * CQ}px Poppins`), document.fonts.load(`400 ${4.4 * CQ}px Poppins`), document.fonts.load(`600 ${3 * CQ}px Poppins`), document.fonts.load(`400 40px Anton`), document.fonts.load(`500 40px 'IBM Plex Mono'`), document.fonts.load(`500 40px Poppins`), document.fonts.load(`400 40px 'Bebas Neue'`), document.fonts.load(`400 40px 'Archivo Black'`), document.fonts.load(`800 40px 'Playfair Display'`), document.fonts.load(`italic 500 40px 'Playfair Display'`), document.fonts.load(`400 40px 'DM Serif Display'`), document.fonts.load(`italic 400 40px 'DM Serif Display'`)]).catch(() => {});
     const cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
     // Carrega as quatro versões do logo; cada arte escolhe a que contrasta com o fundo.
     const urls = urlsLogos(true), logo = {};
@@ -3253,6 +3339,7 @@ MINI_MODELO.video = (() => { const svg = corpo => `<svg viewBox="0 0 40 50" aria
   MINI_MODELO.impacto = svg(`<defs><radialGradient id="mm-i" cx=".8" cy=".15" r=".9"><stop offset="0" stop-color="#F8395A" stop-opacity=".7"/><stop offset="1" stop-color="#12121c" stop-opacity="0"/></radialGradient></defs><rect width="40" height="50" rx="3" fill="#12121c"/><rect width="40" height="50" rx="3" fill="url(#mm-i)"/><rect x="0" y="27" width="40" height="23" fill="#7d4a63" opacity=".55"/><circle cx="5.5" cy="5" r="2" fill="#F8395A"/><rect x="9" y="4" width="9" height="2" rx="1" fill="#fff"/><rect x="4" y="11" width="32" height="5" fill="#f6efe4"/><rect x="4" y="17" width="28" height="5" fill="#f6efe4"/><rect x="4" y="23" width="18" height="5" fill="#F8395A"/>`);
   MINI_MODELO.minimal = svg(`<rect width="40" height="50" rx="3" fill="#F5F4F0"/><circle cx="5.5" cy="5.5" r="2" fill="#111"/><rect x="32" y="3.5" width="4" height="4" rx="1" fill="#F8395A"/><rect x="11" y="12" width="18" height="3.6" rx="1" fill="#111"/><rect x="9" y="17" width="22" height="3.6" rx="1" fill="#111"/><rect x="12" y="22" width="16" height="3.6" rx="1.8" fill="#F8395A"/><path d="M14 50 L16 34 Q20 31 24 34 L26 50 Z" fill="#c9a77d"/>`);
   MINI_MODELO.manchete = svg(`<rect width="40" height="50" rx="3" fill="#fff"/><rect x="3" y="3" width="30" height="4.4" fill="#0b0b0d"/><rect x="3" y="8.2" width="24" height="4.4" fill="#0b0b0d"/><rect x="3" y="13.4" width="27" height="4.4" fill="#0b0b0d"/><circle cx="34" cy="15.5" r="3" fill="#2563eb"/><rect x="3" y="20" width="30" height="1.6" rx=".8" fill="#888"/><rect x="3" y="24" width="34" height="23" rx="2.4" fill="#6f86a6"/>`);
+  MINI_MODELO.grade = svg(`<rect width="40" height="50" rx="3" fill="#4f7fc4"/><ellipse cx="20" cy="15" rx="12" ry="6" fill="#fff" opacity=".85"/><g stroke="#fff" stroke-opacity=".35" stroke-width=".3"><path d="M5 0V50M20 0V50M35 0V50M0 6H40M0 44H40"/></g><path d="M5.5 3.2l1 1.6 1-1.6 1 1.6 1-1.6" stroke="#fff" stroke-width=".7" fill="none"/><rect x="29" y="3" width="6" height="2" rx=".6" fill="#fff"/><rect x="5" y="27" width="22" height="4" rx="1" fill="#fff"/><rect x="5" y="32.5" width="17" height="4" rx="1" fill="#fff"/><rect x="5" y="39" width="10" height="1.2" rx=".6" fill="#fff" opacity=".75"/><circle cx="6" cy="46.5" r=".9" fill="#fff"/><rect x="31" y="46" width="4" height="1.1" rx=".5" fill="#fff" opacity=".75"/>`);
   MINI_MODELO.cinema = svg(`<defs><linearGradient id="mm-c" x1="0" y1="0" x2="0" y2="1"><stop offset=".35" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".85"/></linearGradient></defs><rect width="40" height="50" rx="3" fill="#8a7a66"/><circle cx="20" cy="17" r="8" fill="#5a4a3e"/><rect width="40" height="50" rx="3" fill="url(#mm-c)"/><rect x="4" y="4" width="9" height="2.4" rx="1" fill="#fff"/><rect x="8" y="34" width="24" height="3.4" rx="1" fill="#fff"/><rect x="10" y="38.6" width="20" height="3.4" rx="1" fill="#fff" opacity=".85"/><rect x="12" y="44" width="16" height="1.4" rx=".7" fill="#fff" opacity=".7"/>`);
 }
 function slidePost(sl, i, total, img, prontas, logo, nome, video, diag, semModelo, postId) {
@@ -3357,7 +3444,7 @@ function htmlDiagramacao(p, { ehVideo = false, cores = coresMarca(), slides = p.
   const sec = (k, rotulo, dica, corpo) => `<div class="dsec ${ativa === k ? "ativa" : ""}"><div class="dsec-cab"><span class="dsec-rot">${rotulo}</span><span class="dsec-dica">${dica}</span></div>${corpo}</div>`;
   // Modelos montados à mão na Marca: um clique aplica a diagramação inteira deles.
   const salvos = editor ? "" : (M.modelos || []).filter(x => x.status === "pronto" && x.diag).map(x => `<button data-act="diag-salvo" data-id="${p.id}" data-v="${x.id}" aria-pressed="${diagIgual(p.diag, x.diag)}" title="${esc(x.nome)}">${MINI_MODELO[x.diag.modelo === "proprio" ? "foto" : x.diag.modelo] || MINI_MODELO.foto}<span>${esc(x.nome || "Modelo da marca")}</span></button>`).join("");
-  const segM = `<div class="modelos" role="group" aria-label="Modelo">${salvos}${doPerfil}${(vertical ? [["video", "Vídeo"]] : []).concat([["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"]]).map(([v, t]) =>
+  const segM = `<div class="modelos" role="group" aria-label="Modelo">${salvos}${doPerfil}${(vertical ? [["video", "Vídeo"]] : []).concat([["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"], ["grade", "Grade"]]).map(([v, t]) =>
       `<button data-act="${A}" data-id="${p.id}" data-k="modelo" data-v="${v}" aria-pressed="${p.diag.modelo === v}" title="${t}">${v === "foto" || v === "video" || MODELOS_NOVOS.includes(v) ? MINI_MODELO[v] : MINI_MODELO[v + (fundoEscuro ? "Escuro" : "")]}<span>${t}</span></button>`).join("")}</div>
 `;
   // Fundo e fonte valem para todos os modelos (e para Reels e Stories); "Do modelo" usa o padrão de cada um.
@@ -3375,8 +3462,8 @@ function htmlDiagramacao(p, { ehVideo = false, cores = coresMarca(), slides = p.
   const segL = `${seg("logo", [["auto", "Automático"]].concat([["light", "Light"], ["dark", "Dark"], ["simLight", "Símbolo light"], ["simDark", "Símbolo dark"]].filter(([k]) => versoes[k])).concat([["nenhum", "Sem logo"]]))}`;
   const posicoes = [["te", "Topo esq."], ["tc", "Topo centro"], ["td", "Topo dir."], ["be", "Base esq."], ["bc", "Base centro"], ["bd", "Base dir."]];
   // A posição do texto vale nos modelos de foto inteira; nos outros o texto fica no lugar do layout.
-  const textoLivre = ehModeloVideo(p.diag) || ["foto", "cinema"].includes(modeloAtual);
-  const padraoLogo = { impacto: "o cabeçalho de perfil (símbolo, nome e @)", minimal: "o cabeçalho de perfil (símbolo, nome e @)", manchete: "o logo no canto de baixo", cinema: "o logo no topo esquerdo" }[p.diag.modelo];
+  const textoLivre = ehModeloVideo(p.diag) || ["foto", "cinema", "grade"].includes(modeloAtual);
+  const padraoLogo = { impacto: "o cabeçalho de perfil (símbolo, nome e @)", minimal: "o cabeçalho de perfil (símbolo, nome e @)", manchete: "o logo no canto de baixo", cinema: "o logo no topo esquerdo", grade: "o símbolo à esquerda e o logo à direita, no topo" }[p.diag.modelo];
   const segLP = `${seg("logoPos", posicoes, "pos-logo")}${!ehVideo && padraoLogo ? `<p class="small" style="margin:0">Neste modelo, Automático + Topo esquerda usa ${padraoLogo}. Escolha outra versão ou posição para trocar.</p>` : ""}`;
   return `<div class="diag diag-v2">${editor ? "" : `<span class="lbl">Diagramação${ajuda("diagramacao")}</span>`}<div class="dpainel">
       ${sec("modelo", "Modelo", "layout das artes", segM)}
