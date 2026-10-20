@@ -75,6 +75,8 @@ summary { cursor: pointer; font-weight: 600; } details p { color: var(--soft); m
 footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px 0 32px; }
 @media (max-width: 640px) { .afiliado { grid-template-columns: 1fr; } .hero { padding-top: 32px; } }
 </style>
+<link rel="stylesheet" href="assets/cupons.css?v=20261020-nasten">
+<script src="assets/cupons.js?v=20261020-nasten" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -102,11 +104,12 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px
     <button data-ciclo="anual">Anual</button>
   </div>
   <div class="grade" id="grade"></div>
+  <p class="hint" style="text-align:center">Valores à vista com o cupom indicado. Parcelamento sujeito às condições do checkout.</p>
   <p class="promo">* Promoção por tempo limitado.</p>
   <p class="teste">Quer testar antes? Crie sua conta e ganhe <b>7 dias com 3 posts grátis</b>. <a href="app">Começar agora</a></p>
 
   <section class="afiliado" id="afiliados">
-    <div><h2>Seja afiliado</h2><p>Indique a Content Post e ganhe <strong>13% de comissão</strong> em cada venda que vier do seu link. O cadastro e os pagamentos são feitos pela Kiwify.</p></div>
+    <div><h2>Seja afiliado</h2><p>Indique a Content Post e ganhe <strong>13% de comissão</strong> em cada venda que vier do seu link. O cadastro e os pagamentos são feitos pela Nasten.</p></div>
     <a class="btn primary" id="link-afiliado" href="afiliados">Quero ser afiliado</a>
   </section>
 
@@ -114,18 +117,18 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 48px
   <details><summary>Preciso ter conta no Claude, no Magnific ou em outra ferramenta?</summary><p>Não. A IA está incluída no plano. Se você já tem suas próprias chaves, pode cadastrar em Integrações e usar as suas.</p></details>
   <details><summary>O que conta como um post?</summary><p>Cada post criado pela IA: um carrossel, um Reels ou um estático. Ajustes no mesmo post não contam. Se a criação falhar, o post não conta.</p></details>
   <details><summary>Posso colocar minha equipe?</summary><p>Sim. Convide quantas pessoas quiser para a sua organização, como dono, admin ou editor.</p></details>
-  <details><summary>Como pago?</summary><p>Pela Kiwify, com cartão, Pix ou boleto. O plano é liberado assim que o pagamento é aprovado.</p></details>
+  <details><summary>Como pago?</summary><p>Pela Nasten, com cartão, Pix ou boleto. Use o e-mail da sua conta Content Post para que o plano seja liberado após a confirmação do pagamento.</p></details>
   <details><summary>Posso cancelar?</summary><p>Sim, quando quiser. Você continua usando até o fim do período que já pagou.</p></details>
 
   <footer>Content Post · posts com IA para o Instagram</footer>
 </div>
 <script>
-// Links de checkout da Kiwify (plano:ciclo) e do programa de afiliados. Preencha depois de criar os produtos.
-// O preço é o "de" (o do produto na Kiwify) com o cupom PLANOCICLO, que já vai no link (?coupon=). Igual a content-post-api/src/planos.js.
+// Links de checkout da Nasten (plano:ciclo) e do programa de afiliados. Preencha depois de criar os produtos.
+// O preço é o "de" (o do produto na Nasten) com o cupom PLANOCICLO, que acompanha o link (?coupon=) e fica visível para copiar e aplicar no checkout. Igual a content-post-api/src/planos.js.
 const CHECKOUT = {
-  "essencial:mensal": "https://pay.kiwify.com.br/xqTdun0", "essencial:semestral": "https://pay.kiwify.com.br/AzjShuU", "essencial:anual": "https://pay.kiwify.com.br/CeMO1Jy",
-  "profissional:mensal": "https://pay.kiwify.com.br/UcKEj8c", "profissional:semestral": "https://pay.kiwify.com.br/Al5OS48", "profissional:anual": "https://pay.kiwify.com.br/dJQ5mGY",
-  "agencia:mensal": "https://pay.kiwify.com.br/m0o5fO1", "agencia:semestral": "https://pay.kiwify.com.br/AOdsIi5", "agencia:anual": "https://pay.kiwify.com.br/bRdatlT",
+  "essencial:mensal": "https://app.nasten.com.br/checkout/xk10c2k", "essencial:semestral": "https://app.nasten.com.br/checkout/et20cqs", "essencial:anual": "https://app.nasten.com.br/checkout/6t20djh",
+  "profissional:mensal": "https://app.nasten.com.br/checkout/5d6038k", "profissional:semestral": "https://app.nasten.com.br/checkout/78703pn", "profissional:anual": "https://app.nasten.com.br/checkout/d110wxt",
+  "agencia:mensal": "https://app.nasten.com.br/checkout/g6b03qk", "agencia:semestral": "https://app.nasten.com.br/checkout/wic0399", "agencia:anual": "https://app.nasten.com.br/checkout/6jd030e",
 };
 const AFILIADOS = "afiliados";
 const PLANOS = [
@@ -138,14 +141,14 @@ const reais = v => "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: v 
 const centavos = v => Math.round(v * 100) / 100;
 const totalDo = (p, c) => centavos(p.de[c] * MESES[c] * (100 - p.cupom[c]) / 100);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-// Repassa a origem da campanha (utm_*, src, sck) para o checkout, para a Kiwify mostrar de onde veio a venda.
+// Repassa a origem da campanha (utm_*, src, sck) para o checkout, para a Nasten mostrar de onde veio a venda.
 const daUrl = new URLSearchParams(location.search);
 function comOrigem(link, cupom) {
   if (!link) return "";
   try {
     const u = new URL(link);
     if (cupom) u.searchParams.set("coupon", cupom);
-    for (const [k, v] of daUrl) if (/^(utm_[a-z]+|src|sck)$/.test(k)) u.searchParams.set(k, v);
+    for (const [k, v] of daUrl) if (/^(utm_[a-z]+|src|sck|afid)$/.test(k)) u.searchParams.set(k, v);
     return u.toString();
   } catch (e) { return ""; }
 }
@@ -161,6 +164,7 @@ function desenhar() {
       <div class="preco">${reais(porMes)}<small>/mês*</small></div>
       <div class="cobranca">${m > 1 ? `${reais(total)} a cada ${m} meses` : "cobrado todo mês"}</div>
       <ul><li>${p.posts} posts por mês criados pela IA</li><li>${p.ideias} buscas de ideias por mês</li><li>Fotos e vídeos com IA (Magnific)</li><li>Calendário e publicação automática</li><li>Equipe sem limite de pessoas</li>${p.extra.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+      <div class="cupom-checkout"><span>Use no checkout para obter o valor acima:</span><button type="button" data-cupom="${(p.id + ciclo).toUpperCase()}" aria-label="Copiar cupom ${(p.id + ciclo).toUpperCase()}"><code>${(p.id + ciclo).toUpperCase()}</code> · Copiar</button></div>
       ${link ? `<a class="btn ${p.destaque ? "primary" : ""}" href="${esc(link)}">Assinar ${esc(p.nome)}</a>` : `<a class="btn" href="app">Começar o teste grátis</a>`}
     </div>`;
   }).join("");
