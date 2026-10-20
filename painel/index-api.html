@@ -851,8 +851,6 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 /* conteúdo */
 .wrap { max-width: 1500px; margin: 0; padding: 22px 26px 64px; }
 .pg { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-end; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
-.crumb { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
-.crumb b { color: #fff; font-weight: 600; }
 .pg h1 { font-family: var(--font-body); font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
 .pg p { margin: 4px 0 0; font-size: 12.5px; color: var(--ink-soft); max-width: 72ch; }
 .pg p:empty { display: none; }
@@ -1112,13 +1110,13 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
-<link rel="stylesheet" href="assets/painel.css?v=20261019-agendados">
+<link rel="stylesheet" href="assets/painel.css?v=20261020-redes">
 <div class="app">
   <aside class="side" id="side">
     <div class="side-logo"><button class="side-brand" data-tab="home" aria-label="Content Post · Home"><img class="cp-logo-img" src="marca/content-post-logo-branco.png" alt="Content Post"><img class="side-symbol" src="marca/content-post-simbolo-branco.png" alt=""></button><button class="side-toggle" data-side-collapse aria-label="Recolher menu" aria-expanded="true" title="Recolher menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 7l-5 5 5 5"/></svg></button></div>
     <div class="side-org" id="organizacao"></div>
     <nav class="track home-nav" aria-label="Início"><button id="tab-home" data-tab="home" title="Home"><span class="side-icon" data-nav-icon="home"></span><span class="name">Home</span></button></nav>
-    <div class="grupo">Pautas</div>
+    <div class="grupo grupo-pautas">Pautas</div>
     <nav class="track trilho" role="tablist" aria-label="Etapas">
       <button role="tab" class="t-marca" id="tab-marca" data-tab="marca" title="Marca e fontes"><span class="side-icon" data-nav-icon="marca"></span><span class="name">Marca e fontes</span><span class="count" id="c-marca">–</span></button>
       <button role="tab" class="t-ideias" id="tab-ideias" data-tab="ideias" title="Ideias"><span class="side-icon" data-nav-icon="ideias"></span><span class="name">Ideias</span><span class="count" id="c-ideias">0</span></button>
@@ -1137,7 +1135,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
       <div id="aviso-plano" hidden></div>
       <div id="primeiros-passos" hidden></div>
       <header class="pg">
-        <div><div class="crumb"><span>Pauta</span> / <b id="pg-crumb">Ideias</b></div><h1><span id="pg-titulo">Ideias</span><span id="pg-ajuda"></span></h1><p id="pg-sub"></p></div>
+        <div><h1><span id="pg-titulo">Ideias</span><span id="pg-ajuda"></span></h1><p id="pg-sub"></p></div>
       </header>
       <div class="proximo" id="proximo" hidden></div>
       <div class="kpis" hidden>
@@ -1240,10 +1238,14 @@ function receberPauta(ideias, posts) {
   render();
 }
 // Redes com conta conectada no Zernio (null = ainda não sei ou o Zernio não está configurado).
-let redesOk = null, redesCarregadas = false;
+let redesOk = null, redesCarregadas = false, pedidoRedes = 0;
 async function carregarRedes() {
   if (redesCarregadas) return; redesCarregadas = true;
-  try { redesOk = (await api({ acao: "redesConectadas" })).redes || null; } catch (e) { redesOk = null; }
+  const pedido = ++pedidoRedes, org = U.organizacao?.id, token = U.token;
+  let redes = null;
+  try { redes = (await api({ acao: "redesConectadas" })).redes || null; } catch (e) {}
+  if (pedido !== pedidoRedes || org !== U.organizacao?.id || token !== U.token) return;
+  redesOk = redes;
   render();
 }
 const REDES_POST = ["Instagram", "Facebook", "TikTok", "X", "Threads"];
@@ -3782,7 +3784,6 @@ function sincronizarCasca() {
   sincronizarMenu();
   const [t, sub] = PAGINAS[tab] || PAGINAS.ideias;
   const h = document.getElementById("pg-titulo"); if (h) h.textContent = t;
-  const c = document.getElementById("pg-crumb"); if (c) c.textContent = t;
   const p = document.getElementById("pg-sub"); if (p) p.textContent = sub;
   const pa = document.getElementById("pg-ajuda"), chaveAjuda = { marca: "marcaPagina", ideias: "ideias", cal: "calendario", rev: "revisao", agend: "agendados", banco: "banco" }[tab];
   if (pa && pa.dataset.k !== chaveAjuda) { pa.dataset.k = chaveAjuda; pa.innerHTML = ajuda(chaveAjuda); }
@@ -4296,9 +4297,11 @@ async function carregarWeb() {
 }
 function limparDados() {
   calDiaAberto = null; calAberto = null;
+  pedidoRedes++; redesOk = null; redesCarregadas = false;
+  INT.pedido++; INT.org = null; INT.token = null; INT.dados = null; INT.redes = null; INT.erro = ""; INT.teste = {}; INT.selecao = null;
   state = { ideias: [], posts: [] }; pauta.carregada = false; pauta.tarefas = []; pauta.versao = null; pautaAdiantada = null;
   M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null;
-  if (typeof PP !== "undefined") PP.redes = null; // a checagem "Instagram conectado" é por organização
+  if (typeof PP !== "undefined") { PP.pedido++; PP.redes = null; PP.carregandoRedes = false; }
 }
 async function iniciarWeb() {
   if (!U.organizacao) { U.tela = "semOrg"; renderAuth(); return; }
@@ -4456,6 +4459,7 @@ document.addEventListener("pointerdown", e => { const el = e.target.closest && e
 const seletorDlg = el => el.tagName.toLowerCase() + Object.entries(el.dataset).map(([k, v]) => `[data-${k.replace(/[A-Z]/g, m => "-" + m.toLowerCase())}="${CSS.escape(v)}"]`).join("");
 function abrirDlg(html) {
   const d = dlg(), jaAberto = d.open, topo = d.scrollTop;
+  delete d.dataset.integracoes;
   d.classList.remove("dlg-agend");
   delete d.dataset.agendPost;
   if (d.getAttribute("aria-labelledby") === "ag-post-titulo") d.removeAttribute("aria-labelledby");
@@ -4509,7 +4513,8 @@ function desenharEquipe() {
     </form>` : ""}
     <div class="actions" style="margin-top:14px"><button class="btn quiet" data-u="fechar">Fechar</button></div>`);
 }
-const INT = { dados: null, erro: "", teste: {} };
+const INT = { dados: null, erro: "", teste: {}, redes: null, org: null, token: null, pedido: 0, selecao: null };
+document.addEventListener("close", e => { if (e.target === dlg()) INT.selecao = null; }, true);
 // Plano da organização: uso do mês, troca de plano pelo checkout da Kiwify e link de afiliado.
 const PL = { dados: null, erro: "", ciclo: "anual", aviso: "" };
 const reais = v => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2 });
@@ -4663,13 +4668,18 @@ document.addEventListener("click", e => {
 // Fechar com Esc não conclui: o passo a passo volta no próximo acesso (ou pelo checklist).
 document.addEventListener("close", e => { if (OB.aberto && e.target === dlg()) OB.aberto = false; }, true);
 // Checklist "Primeiros passos" no topo (14 dias depois do cadastro, ou até fechar).
-const PP = { redes: null, carregandoRedes: false };
+const PP = { redes: null, carregandoRedes: false, pedido: 0 };
 function desenharPrimeirosPassos() {
   const el = document.getElementById("primeiros-passos"); if (!el) return;
   const o = U.organizacao, chave = "pauta-passos-oculto:" + (o && o.id);
   let oculto = false; try { oculto = localStorage.getItem(chave) === "1"; } catch (e) {}
   if (tab === "home" || M.modo !== "web" || U.tela !== "ok" || !o || !o.primeirosPassos || oculto || !pauta.carregada || !M.marca) { el.hidden = true; el.innerHTML = ""; return; }
-  if (PP.redes === null && !PP.carregandoRedes) { PP.carregandoRedes = true; api({ acao: "contasRedes" }).then(r => { PP.redes = (r.contas || []).filter(c => c.ativa).length; }).catch(() => { PP.redes = 0; }).finally(() => { PP.carregandoRedes = false; desenharPrimeirosPassos(); }); }
+  if (PP.redes === null && !PP.carregandoRedes) {
+    PP.carregandoRedes = true;
+    const pedido = ++PP.pedido, org = o.id, token = U.token;
+    const atual = () => pedido === PP.pedido && org === U.organizacao?.id && token === U.token;
+    api({ acao: "contasRedes" }).then(r => { if (atual()) PP.redes = (r.contas || []).filter(c => c.ativa).length; }).catch(() => { if (atual()) PP.redes = 0; }).finally(() => { if (atual()) { PP.carregandoRedes = false; desenharPrimeirosPassos(); } });
+  }
   const m = M.marca;
   const itens = [
     ["Contar sobre a marca", !!(m.Nome && m.Posicionamento && m.Publico), "data-ob-abrir"],
@@ -4726,17 +4736,27 @@ function desenharPlano() {
     <div class="actions" style="margin-top:14px"><button class="btn" data-u="fechar">Fechar</button></div>`);
 }
 async function abrirIntegracoes() {
+  const pedido = ++INT.pedido;
+  INT.org = U.organizacao?.id; INT.token = U.token; INT.dados = null; INT.redes = null;
   INT.erro = ""; INT.teste = {}; abrirDlg(`<h2>Integrações</h2><p class="hint">Carregando…</p>`);
+  dlg().dataset.integracoes = String(pedido);
   const [d, r] = await Promise.all([api({ acao: "listarIntegracoes" }).catch(e => e), api({ acao: "contasRedes" }).catch(() => null)]);
+  if (!integracoesAtuais(pedido)) return;
   if (d && d.integracoes) INT.dados = d; else { INT.erro = textoErro(d); INT.dados = { integracoes: [], podeGerir: false }; }
   INT.redes = r;
   desenharIntegracoes();
 }
-// Redes conectadas pela plataforma: cada organização tem um profile próprio no Zernio da Content Post.
+function integracoesAtuais(pedido = INT.pedido) {
+  return pedido === INT.pedido && INT.org === U.organizacao?.id && INT.token === U.token && dlg().open && dlg().dataset.integracoes === String(pedido);
+}
+function botaoVincularRedes(r) {
+  return r.podeVincular ? `<button class="btn" data-u="redes-selecionar">Selecionar redes desta organização</button>` : "";
+}
+// O servidor retorna apenas as contas vinculadas à organização atual.
 function secaoRedes() {
   const r = INT.redes;
   if (!r || r.modo === "propria") return r && r.modo === "propria"
-    ? `<div class="glass box" style="gap:8px"><b>Redes conectadas${ajuda("redesConectadas")}</b><p class="hint" style="margin:0">Esta organização publica pela própria conta do Zernio (chave abaixo). Conecte as redes em zernio.com, ou remova a chave para conectar por aqui.</p>${listaContas(r.contas, false)}</div>` : "";
+    ? `<div class="glass box" style="gap:8px"><b>Redes conectadas${ajuda("redesConectadas")}</b><p class="hint" style="margin:0">Esta organização usa uma chave própria do Zernio. Selecione somente as redes que pertencem a ela. Novas conexões podem ser feitas em zernio.com.</p>${r.aviso ? `<div class="msg erro">${esc(r.aviso)}</div>` : ""}${listaContas(r.contas, false)}${botaoVincularRedes(r)}</div>` : "";
   if (!r.modo) return `<div class="glass box" style="gap:8px"><b>Redes conectadas${ajuda("redesConectadas")}</b><p class="hint" style="margin:0">${esc(r.aviso || "A conexão de redes ainda não está disponível.")}</p></div>`;
   const tem = new Set(r.contas.map(c => c.rede));
   return `<div class="glass box" style="gap:10px">
@@ -4745,6 +4765,7 @@ function secaoRedes() {
     ${listaContas(r.contas, r.podeGerir)}
     ${r.podeGerir ? `<div class="redes-lista">${r.redes.map(n => `<button class="rede-chip ${tem.has(n) ? "on" : ""}" data-u="rede-conectar" data-id="${esc(n)}"><i>${ICONE_REDE[n] || ""}</i>${tem.has(n) ? "Conectar outra conta do " : "Conectar "}${esc(n)}</button>`).join("")}</div>`
       : `<p class="hint" style="margin:0">Só donos e administradores podem conectar redes.</p>`}
+    ${botaoVincularRedes(r)}
   </div>`;
 }
 function listaContas(contas, pode) {
@@ -4766,6 +4787,8 @@ async function voltouDaConexao() {
   return abrirIntegracoes();
 }
 function desenharIntegracoes() {
+  if (!INT.dados || !integracoesAtuais()) return;
+  INT.selecao = null;
   const d = INT.dados;
   const imp = (pauta.tarefas || []).find(t => t.tipo === "importar");
   const impTxt = !imp ? "" : imp.status === "feito"
@@ -4796,6 +4819,24 @@ function desenharIntegracoes() {
       <div class="actions"><button class="btn" data-u="importar">Importar</button></div>
     </form>` : ""}
     <div class="actions" style="margin-top:14px"><button class="btn quiet" data-u="fechar">Fechar</button></div>`);
+  dlg().dataset.integracoes = String(INT.pedido);
+}
+function desenharSelecaoRedes() {
+  const s = INT.selecao; if (!s || !integracoesAtuais()) return;
+  abrirDlg(`<h2>Redes de ${esc(U.organizacao.nome)}</h2>
+    <p class="hint">Marque somente as contas desta organização. Elas serão as únicas usadas para publicar aqui. As conexões no Zernio são mantidas.</p>
+    ${s.erro ? `<div class="msg erro">${esc(s.erro)}</div>` : ""}
+    ${s.contas === null ? `${INT.redes.precisaChave ? `<label class="field"><span>Chave do Zernio desta organização</span><input id="redes-chave" type="password" autocomplete="off" placeholder="Cole a chave para consultar suas redes"></label>` : ""}
+      <button class="btn primary" data-u="redes-consultar">Consultar redes</button>`
+      : `<div class="users redes-selecao">${s.contas.length ? s.contas.map(c => `<label class="urow"><input type="checkbox" data-rede-vinculo value="${esc(c.id)}" ${c.selecionada ? "checked" : ""} ${c.fixa ? "disabled" : ""}><span style="min-width:0;overflow-wrap:anywhere"><b>${esc(c.rede)} · ${esc(c.usuario ? "@" + c.usuario : c.nome || "conta")}</b><small style="display:block">${c.fixa ? "Conectada diretamente nesta organização" : c.ativa ? "Conectada" : "Inativa"}</small></span></label>`).join("") : `<p class="hint">Nenhuma conta disponível. Contas vinculadas a outras organizações não aparecem aqui.</p>`}</div>
+      <button class="btn primary" data-u="redes-vincular">Salvar seleção</button>`}
+    <div class="actions" style="margin-top:14px"><button class="btn quiet" data-u="redes-voltar">Voltar</button></div>`);
+  dlg().dataset.integracoes = String(INT.pedido);
+}
+async function atualizarRedesIntegracoes(pedido) {
+  const r = await api({ acao: "contasRedes" });
+  if (!integracoesAtuais(pedido)) return;
+  INT.redes = r; redesCarregadas = false; PP.pedido++; PP.redes = null; PP.carregandoRedes = false; carregarRedes();
 }
 function abrirNovaOrg(erro) {
   abrirDlg(`<h2>Nova organização</h2>
@@ -4872,32 +4913,81 @@ document.addEventListener("click", async e => {
   if (a === "integracoes") return abrirIntegracoes();
   if (a === "plano") return abrirPlano();
   if (a === "ciclo") { PL.ciclo = b.dataset.v; return desenharPlano(); }
+  if (a === "redes-selecionar") {
+    if (!integracoesAtuais() || !INT.redes?.podeVincular) return;
+    INT.selecao = { contas: null, chave: "", erro: "" };
+    return desenharSelecaoRedes();
+  }
+  if (a === "redes-voltar") return desenharIntegracoes();
+  if (a === "redes-consultar" || a === "redes-vincular") {
+    const s = INT.selecao, pedido = INT.pedido;
+    if (!s || !integracoesAtuais(pedido)) return;
+    s.erro = ""; b.disabled = true;
+    try {
+      if (a === "redes-consultar") {
+        s.chave = (document.getElementById("redes-chave")?.value || "").trim();
+        const r = await api({ acao: "contasParaVincular", chave: s.chave });
+        if (!integracoesAtuais(pedido) || s !== INT.selecao) return;
+        s.contas = r.contas;
+      } else {
+        const contas = [...dlg().querySelectorAll("[data-rede-vinculo]:checked")].map(c => c.value);
+        await api({ acao: "vincularContas", contas, chave: s.chave });
+        if (!integracoesAtuais(pedido) || s !== INT.selecao) return;
+        await atualizarRedesIntegracoes(pedido);
+        if (!integracoesAtuais(pedido) || s !== INT.selecao) return;
+        toast("Redes da organização atualizadas.");
+        return desenharIntegracoes();
+      }
+    } catch (err) { if (!integracoesAtuais(pedido) || s !== INT.selecao) return; s.erro = textoErro(err); }
+    return desenharSelecaoRedes();
+  }
   if (a === "int-salvar") {
+    const pedido = INT.pedido; if (!integracoesAtuais(pedido)) return;
     INT.erro = "";
     const v = (document.getElementById("int-" + id)?.value || "").trim(); if (!v) return;
-    try { await api({ acao: "salvarIntegracao", provedor: id, valor: v }); INT.dados = await api({ acao: "listarIntegracoes" }); INT.teste[id] = await api({ acao: "testarIntegracao", provedor: id }).then(r => r.resultado); }
-    catch (err) { INT.erro = textoErro(err); }
+    b.disabled = true;
+    try {
+      await api({ acao: "salvarIntegracao", provedor: id, valor: v });
+      if (!integracoesAtuais(pedido)) return;
+      const d = await api({ acao: "listarIntegracoes" }); if (!integracoesAtuais(pedido)) return; INT.dados = d;
+      if (id === "zernio") await atualizarRedesIntegracoes(pedido);
+      if (!integracoesAtuais(pedido)) return;
+      const t = await api({ acao: "testarIntegracao", provedor: id }); if (!integracoesAtuais(pedido)) return; INT.teste[id] = t.resultado;
+    } catch (err) { if (!integracoesAtuais(pedido)) return; INT.erro = textoErro(err); }
     return desenharIntegracoes();
   }
   if (a === "rede-conectar") {
+    const pedido = INT.pedido; if (!integracoesAtuais(pedido)) return;
     INT.erro = "";
     b.disabled = true;
-    try { const r = await api({ acao: "conectarRede", rede: id, voltar: location.origin + location.pathname + "?redes=1" }); location.href = r.url; return; }
-    catch (err) { INT.erro = textoErro(err); b.disabled = false; }
+    try { const r = await api({ acao: "conectarRede", rede: id, voltar: location.origin + location.pathname + "?redes=1" }); if (!integracoesAtuais(pedido)) return; location.href = r.url; return; }
+    catch (err) { if (!integracoesAtuais(pedido)) return; INT.erro = textoErro(err); b.disabled = false; }
     return desenharIntegracoes();
   }
   if (a === "rede-desconectar") {
+    const pedido = INT.pedido; if (!integracoesAtuais(pedido)) return;
     INT.erro = "";
     if (!confirm("Desconectar esta conta? Os posts param de sair nela até você conectar de novo.")) return;
-    try { await api({ acao: "desconectarRede", conta: id }); INT.redes = await api({ acao: "contasRedes" }); redesCarregadas = false; PP.redes = null; carregarRedes(); toast("Conta desconectada."); }
-    catch (err) { INT.erro = textoErro(err); }
+    try { await api({ acao: "desconectarRede", conta: id }); if (!integracoesAtuais(pedido)) return; await atualizarRedesIntegracoes(pedido); if (!integracoesAtuais(pedido)) return; toast("Conta desconectada."); }
+    catch (err) { if (!integracoesAtuais(pedido)) return; INT.erro = textoErro(err); }
     return desenharIntegracoes();
   }
-  if (a === "int-testar") { INT.erro = ""; try { INT.teste[id] = (await api({ acao: "testarIntegracao", provedor: id })).resultado; } catch (err) { INT.erro = textoErro(err); } return desenharIntegracoes(); }
+  if (a === "int-testar") {
+    const pedido = INT.pedido; if (!integracoesAtuais(pedido)) return;
+    INT.erro = ""; b.disabled = true;
+    try { const t = await api({ acao: "testarIntegracao", provedor: id }); if (!integracoesAtuais(pedido)) return; INT.teste[id] = t.resultado; }
+    catch (err) { if (!integracoesAtuais(pedido)) return; INT.erro = textoErro(err); }
+    return desenharIntegracoes();
+  }
   if (a === "int-remover") {
+    const pedido = INT.pedido; if (!integracoesAtuais(pedido)) return;
     INT.erro = "";
     if (!confirm("Remover esta chave? As etapas que dependem dela param de funcionar.")) return;
-    try { await api({ acao: "removerIntegracao", provedor: id }); INT.dados = await api({ acao: "listarIntegracoes" }); delete INT.teste[id]; } catch (err) { INT.erro = textoErro(err); }
+    try {
+      await api({ acao: "removerIntegracao", provedor: id }); if (!integracoesAtuais(pedido)) return;
+      const d = await api({ acao: "listarIntegracoes" }); if (!integracoesAtuais(pedido)) return; INT.dados = d; delete INT.teste[id];
+      if (id === "zernio") await atualizarRedesIntegracoes(pedido);
+    } catch (err) { if (!integracoesAtuais(pedido)) return; INT.erro = textoErro(err); }
     return desenharIntegracoes();
   }
   if (a === "importar") {
