@@ -1307,20 +1307,20 @@ async function mudarRede(p, r) {
   try { await api({ acao: "salvarRedes", id: p.id, redes: p.redes }); }
   catch (e) { p.redes = antes; render(); toast("Não deu para salvar as redes: " + textoErro(e)); }
 }
-let pautaAdiantada = null;
+let pautaAdiantada = null, pedidoPauta = 0;
 async function carregarPauta() {
-  const org = U.organizacao?.id, token = U.token;
+  const org = U.organizacao?.id, token = U.token, pedido = ++pedidoPauta;
   try {
     const adiantada = pautaAdiantada; pautaAdiantada = null;
     const j = await (adiantada || api({ acao: "pauta", versao: pauta.versao || undefined }));
-    if (org !== U.organizacao?.id || token !== U.token) return;
+    if (pedido !== pedidoPauta || org !== U.organizacao?.id || token !== U.token) return;
     if (j.igual && pauta.carregada) { carregarRedes(); return; } // nada mudou: não redesenha
     pauta.versao = j.versao || null;
     pauta.tarefas = j.tarefas || [];
     receberPauta(j.ideias || [], j.posts || []);
     carregarRedes();
   } catch (e) {
-    if (org !== U.organizacao?.id || token !== U.token) return;
+    if (pedido !== pedidoPauta || org !== U.organizacao?.id || token !== U.token) return;
     pauta.erro = e; render();
   }
 }
@@ -1734,16 +1734,29 @@ function abrirMudarData(p, erro, valores) {
 }
 async function salvarNovaData(id) {
   const p = state.posts.find(x => x.id === id); if (!p) return fecharDlg();
+  const org = U.organizacao?.id, token = U.token;
+  const atual = () => org === U.organizacao?.id && token === U.token;
+  const botao = document.querySelector('[data-md="salvar"]');
+  if (botao?.disabled) return;
   const data = document.getElementById("md-data").value, hora = document.getElementById("md-hora").value;
   const quando = new Date(data + "T" + hora + ":00");
-  if (!data || !hora || !(quando > new Date(Date.now() + 5 * 60000))) return abrirMudarData(p, "Escolha uma data e um horário no futuro.", { data, hora });
+  if (!data || !hora || !(quando > new Date(Date.now() + 10 * 60000))) return abrirMudarData(p, "Escolha uma data e um horário pelo menos 10 minutos no futuro.", { data, hora });
+  if (botao) { botao.disabled = true; botao.textContent = "Salvando…"; }
+  // Uma recarga iniciada antes ou durante a gravação não pode restaurar a data antiga.
+  pedidoPauta++; pautaAdiantada = null; pauta.versao = null;
   try {
     if (M.modo === "web") await api({ acao: "reagendarPost", id, data: quando.toISOString() });
     else await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.cal.table, records: [{ id, fields: { [AT.cal.f.DataPublicacao]: quando.toISOString() } }] });
-    p.data = quando.toISOString(); fecharDlg(); render();
-    toast("Nova data: " + fmtData(p.data) + ".");
-    if (M.modo === "web") carregarPauta(); else recarregar();
-  } catch (e) { abrirMudarData(p, textoErro(e), { data, hora }); }
+    if (!atual()) return;
+    pedidoPauta++; pauta.versao = null;
+    const post = state.posts.find(x => x.id === id);
+    if (post) post.data = quando.toISOString();
+    calDiaAberto = ymd(quando); mesVisto = new Date(quando.getFullYear(), quando.getMonth(), 1); triVisto = null;
+    fecharDlg(); render();
+    toast("Nova data: " + fmtData(quando.toISOString()) + ".");
+    if (M.modo === "web") await carregarPauta(); else recarregar();
+  } catch (e) { if (atual()) abrirMudarData(state.posts.find(x => x.id === id) || p, textoErro(e), { data, hora }); }
+  finally { if (botao?.isConnected) { botao.disabled = false; botao.textContent = "Salvar data"; } }
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-md]"); if (!b) return;
@@ -4526,7 +4539,7 @@ function limparDados() {
   calDiaAberto = null; calAberto = null;
   pedidoRedes++; redesOk = null; redesCarregadas = false;
   INT.pedido++; INT.org = null; INT.token = null; INT.dados = null; INT.redes = null; INT.erro = ""; INT.teste = {}; INT.selecao = null;
-  state = { ideias: [], posts: [] }; pauta.carregada = false; pauta.tarefas = []; pauta.versao = null; pautaAdiantada = null;
+  pedidoPauta++; state = { ideias: [], posts: [] }; pauta.carregada = false; pauta.tarefas = []; pauta.versao = null; pautaAdiantada = null;
   M.marca = null; M.fontes = []; M.marcaCarregada = M.fontesCarregadas = false; M.erro = null;
   if (typeof PP !== "undefined") { PP.pedido++; PP.redes = null; PP.carregandoRedes = false; }
 }
@@ -4606,6 +4619,14 @@ function marcaDoLogin() {
   return `<div class="auth-marca"><img class="cp-logo-img grande" src="marca/content-post-logo-branco.png" alt="Content Post"></div>`;
 }
 const VIT = { dados: null, em: 0, carregando: false, observer: null, videos: [] };
+// Vídeos enviados e autorizados para a vitrine pública, além dos itens selecionados no banco.
+const MIDIAS_LOGIN_ENVIADAS = [
+  { tipo: "video/mp4", url: "assets/exemplos/ia-respira.mp4", previa: "assets/exemplos/ia-respira.webp" },
+  { tipo: "video/mp4", url: "assets/exemplos/instagram-com-equipe.mp4", previa: "assets/exemplos/instagram-com-equipe.webp" },
+  { tipo: "video/mp4", url: "assets/exemplos/post-aprovado.mp4", previa: "assets/exemplos/post-aprovado.webp" },
+  { tipo: "video/mp4", url: "assets/exemplos/enquete-post-4.mp4", previa: "assets/exemplos/enquete-post-4.webp" },
+  { tipo: "video/mp4", url: "assets/exemplos/enquete-post-3.mp4", previa: "assets/exemplos/enquete-post-3.webp" },
+];
 const MIDIAS_LOGIN_PADRAO = [
   { tipo: "video/mp4", url: "assets/home/toque.mp4", previa: "assets/home/reels.webp" },
   { tipo: "image/webp", url: "assets/home/stories.webp" },
@@ -4618,7 +4639,7 @@ function pararVitrineLogin() { VIT.observer?.disconnect(); VIT.observer = null; 
 function desenharVitrineLogin() {
   const el = document.querySelector("#auth .vitrine"); if (!el || document.getElementById("auth").hidden || !matchMedia("(min-width:900px)").matches) return;
   pararVitrineLogin();
-  let lista = VIT.dados?.length ? VIT.dados : MIDIAS_LOGIN_PADRAO;
+  let lista = [...MIDIAS_LOGIN_ENVIADAS, ...(VIT.dados?.length ? VIT.dados : MIDIAS_LOGIN_PADRAO)];
   if (lista.length < 6) lista = Array.from({ length: 6 }, (_, i) => lista[i % lista.length]);
   const tile = m => `<div class="tile tile-midia">${m.tipo === "video/mp4" ? `<video data-vitrine-src="${esc(m.url)}#t=0.1" ${m.previa ? `poster="${esc(m.previa)}"` : ""} muted loop playsinline preload="none" tabindex="-1"></video>` : `<img src="${esc(m.previa || m.url)}" alt="" loading="lazy" decoding="async">`}<span class="vitrine-ia">${m.tipo === "video/mp4" ? "Vídeo" : "Imagem"} com IA</span></div>`;
   const metade = Math.ceil(lista.length / 2);

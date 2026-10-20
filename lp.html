@@ -124,6 +124,12 @@ h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.025em; line-height: 1.
 .formato .arte.foto::after { display: none; }
 .vitrine-carrossel { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; margin-top: 24px; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
 .vitrine-carrossel img { flex: none; width: min(300px, 74vw); height: auto; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 14px; scroll-snap-align: start; border: 1px solid var(--line); max-width: 100%; }
+.exemplos-titulo { font-size: 22px; margin: 34px 0 8px; letter-spacing: -.03em; }
+.exemplos-videos { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(190px, 1fr); gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
+.exemplo-video { margin: 0; min-width: 0; overflow: hidden; background: var(--card); border: 1px solid var(--line); border-radius: 14px; scroll-snap-align: start; }
+.exemplo-video video { display: block; width: 100%; aspect-ratio: 9 / 16; object-fit: contain; background: #05060b; }
+.exemplo-video figcaption { padding: 12px; font-size: 13px; line-height: 1.5; color: var(--soft); }
+@media (max-width: 760px) { .exemplos-videos { grid-auto-columns: min(260px, 74vw); } }
 .galeria { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
 .galeria img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 12px; display: block; }
 @media (max-width: 760px) { .galeria { grid-template-columns: repeat(2, minmax(0, 1fr)); } .galeria img:nth-child(n+5) { display: none; } }
@@ -227,6 +233,15 @@ footer a { color: var(--soft); }
     <img src="marca/cp/cp-carrossel-4.webp" alt="Slide 4 de um carrossel criado na Content Post" loading="lazy">
     <img src="marca/cp/cp-carrossel-5.webp" alt="Último slide do carrossel, com a chamada final" loading="lazy">
   </div>
+  <h3 class="exemplos-titulo">Posts em movimento</h3>
+  <p class="lead">Vídeos criados na plataforma. Dê o play para ver cada exemplo.</p>
+  <div class="exemplos-videos" tabindex="0" aria-label="Exemplos de vídeos criados na Content Post. Arraste para ver mais.">
+    <figure class="exemplo-video"><video src="assets/exemplos/ia-respira.mp4" poster="assets/exemplos/ia-respira.webp" controls playsinline preload="none" aria-label="Usa IA e ainda se sente atrasado? Respira."></video><figcaption>Usa IA e ainda se sente atrasado? Respira.</figcaption></figure>
+    <figure class="exemplo-video"><video src="assets/exemplos/instagram-com-equipe.mp4" poster="assets/exemplos/instagram-com-equipe.webp" controls playsinline preload="none" aria-label="O que sai da sua lista quando o Instagram tem uma equipe"></video><figcaption>O que sai da sua lista quando o Instagram tem uma equipe.</figcaption></figure>
+    <figure class="exemplo-video"><video src="assets/exemplos/post-aprovado.mp4" poster="assets/exemplos/post-aprovado.webp" controls playsinline preload="none" aria-label="POV: você aprovou o post da semana entre um pedido e outro"></video><figcaption>POV: você aprovou o post da semana entre um pedido e outro.</figcaption></figure>
+    <figure class="exemplo-video"><video src="assets/exemplos/enquete-post-4.mp4" poster="assets/exemplos/enquete-post-4.webp" controls playsinline preload="none" aria-label="Enquete: o que mais trava o seu post? Exemplo 1"></video><figcaption>Enquete: o que mais trava o seu post?</figcaption></figure>
+    <figure class="exemplo-video"><video src="assets/exemplos/enquete-post-3.mp4" poster="assets/exemplos/enquete-post-3.webp" controls playsinline preload="none" aria-label="Enquete: o que mais trava o seu post? Exemplo 2"></video><figcaption>Outra versão da enquete, com movimento.</figcaption></figure>
+  </div>
   <p class="lead" style="margin-top:34px">E outros modelos de diagramação que você escolhe com um clique:</p>
   <div class="galeria">
     <img src="marca/cp/cp-cinema.webp" alt="Modelo Cinema" loading="lazy">
@@ -289,6 +304,14 @@ footer a { color: var(--soft); }
 </div>
 <div class="barra-cta" id="barra-cta"><span>Seu Instagram postando todo dia</span><a class="btn primary" href="#planos" data-cta>Ver planos</a></div>
 <script>
+// Os exemplos só carregam ao dar play. Uma reprodução por vez evita vídeos concorrentes.
+const exemplosVideos = [...document.querySelectorAll('.exemplos-videos video')];
+exemplosVideos.forEach(video => video.addEventListener('play', () => exemplosVideos.forEach(outro => { if (outro !== video) outro.pause(); })));
+if ('IntersectionObserver' in window) {
+  const observadorExemplos = new IntersectionObserver(entradas => entradas.forEach(({ target, isIntersecting }) => { if (!isIntersecting) target.pause(); }), { threshold: 0.1 });
+  exemplosVideos.forEach(video => observadorExemplos.observe(video));
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) exemplosVideos.forEach(video => video.pause()); });
 /* ================= Configuração da campanha ================= */
 // Link do vídeo (YouTube, Vimeo, Panda Video ou arquivo .mp4). Vazio = mostra a demonstração animada.
 // Também aceita um Reel do Instagram. Com um .mp4 do próprio site (ex.: marca/vsl.mp4), a página mostra a capa e o botão de play próprios.
