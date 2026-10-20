@@ -1112,7 +1112,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
-<link rel="stylesheet" href="assets/painel.css?v=20261019-mobile-2">
+<link rel="stylesheet" href="assets/painel.css?v=20261019-agendados">
 <div class="app">
   <aside class="side" id="side">
     <div class="side-logo"><button class="side-brand" data-tab="home" aria-label="Content Post · Home"><img class="cp-logo-img" src="marca/content-post-logo-branco.png" alt="Content Post"><img class="side-symbol" src="marca/content-post-simbolo-branco.png" alt=""></button><button class="side-toggle" data-side-collapse aria-label="Recolher menu" aria-expanded="true" title="Recolher menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 7l-5 5 5 5"/></svg></button></div>
@@ -1686,6 +1686,37 @@ function linhaAgend(p) {
       ${M.modo === "web" ? blocoDownload(p) : ""}</div>
     <div class="actions">${botoes}</div></div>`;
 }
+function cardAgend(p) {
+  const data = new Date(p.data);
+  const quando = `${data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })} · ${data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+  const video = (p.arquivos || [])[0] && ehArqVideo(p.arquivos[0]);
+  const selo = video || p.formato === "Reels" ? iconeMenu("video", 16) : (p.arquivos || []).length > 1 ? iconeMenu("slides", 16) : "";
+  return `<button type="button" class="ag-card" data-act="agend-detalhes" data-id="${p.id}" aria-haspopup="dialog" aria-label="Abrir postagem: ${esc(p.titulo)}, ${esc(quando)}">
+    <span class="ag-cover" aria-hidden="true">${miniatura(p)}${selo ? `<span class="ag-format">${selo}</span>` : ""}</span>
+    <span class="ag-card-info"><b>${esc(p.titulo)}</b><time datetime="${esc(p.data)}">${esc(quando)}</time></span>
+  </button>`;
+}
+function abrirAgendado(p) {
+  const d = dlg(), jaAberto = d.open;
+  const ativo = document.activeElement;
+  const foco = jaAberto && d.contains(ativo) && Object.keys(ativo.dataset || {}).length ? seletorDlg(ativo) : null;
+  d.classList.remove("dlg-pv");
+  abrirDlg(`<header class="ag-modal-head"><div><span class="home-kicker">Detalhes da postagem</span><h2 id="ag-post-titulo">${esc(p.titulo)}</h2></div><button type="button" class="ag-close" data-u="fechar" aria-label="Fechar detalhes da postagem">✕</button></header>
+    <div class="ag-detail">${linhaAgend(p)}${p.legenda || p.hashtags ? `<section class="ag-caption"><h3>Legenda</h3>${p.legenda ? `<p>${esc(p.legenda)}</p>` : ""}${p.hashtags ? `<p class="small">${esc(p.hashtags)}</p>` : ""}</section>` : ""}</div>`);
+  d.classList.add("dlg-agend");
+  d.dataset.agendPost = p.id;
+  d.setAttribute("aria-labelledby", "ag-post-titulo");
+  if (!jaAberto) d.querySelector(".ag-close")?.focus({ preventScroll: true });
+  else if (foco) d.querySelector(foco)?.focus({ preventScroll: true });
+}
+document.addEventListener("close", e => {
+  if (e.target?.id !== "dlg") return;
+  const d = e.target, id = d.dataset.agendPost;
+  d.classList.remove("dlg-agend");
+  delete d.dataset.agendPost;
+  if (d.getAttribute("aria-labelledby") === "ag-post-titulo") d.removeAttribute("aria-labelledby");
+  if (id) document.querySelector(`[data-act="agend-detalhes"][data-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+}, true);
 /* ---------- Prévia do post na rede (Agendados) ---------- */
 // Clicar na imagem de um post agendado abre o post como ele vai aparecer em cada rede escolhida:
 // perfil, mídia (carrossel, vídeo ou story), legenda no tamanho daquela rede e a área de curtidas. Os números são só ilustração.
@@ -1861,11 +1892,15 @@ function renderAgend() {
   const fila = state.posts.filter(p => ["Agendado", "Publicando"].includes(p.status)).sort(porData);
   const feitos = state.posts.filter(p => p.status === "Publicado").sort((a, b) => porData(b, a));
   const falhas = state.posts.filter(p => p.status === "Erro" && p.artesProntas).sort(porData);
-  const grupo = (titulo, lista, vazio) => `<div class="agrupo"><span class="lbl">${titulo} · ${lista.length}</span>${lista.length ? lista.map(linhaAgend).join("") : `<div class="empty glass" style="padding:16px">${vazio}</div>`}</div>`;
+  const grupo = (titulo, lista, vazio) => `<section class="agrupo" aria-label="${titulo}"><span class="lbl">${titulo} · ${lista.length}</span>${lista.length ? `<div class="ag-feed">${lista.map(cardAgend).join("")}</div>` : `<div class="empty glass" style="padding:16px">${vazio}</div>`}</section>`;
   el.innerHTML = head + (M.modo !== "web" ? `<div class="msg" style="margin-bottom:14px">Para publicar na hora ou mudar a data, abra o painel pelo link do GitHub.</div>` : "")
     + grupo("Na fila de publicação", fila, "Nenhum post agendado. Aprove posts na Revisão.")
     + (falhas.length ? grupo("Falhou ao publicar", falhas, "") : "")
     + grupo("Publicados", feitos, "Nada publicado ainda.");
+  if (dlg().open && dlg().dataset.agendPost) {
+    const p = state.posts.find(p => p.id === dlg().dataset.agendPost);
+    if (p) abrirAgendado(p); else fecharDlg();
+  }
 }
 
 function pedirRemocao(p) {
@@ -3739,7 +3774,7 @@ const PAGINAS = {
   ideias: ["Ideias", "Sugestões da IA a partir das fontes. Escolha o que vai para o calendário."],
   cal: ["Calendário", "Posts agendados, mês a mês."],
   rev: ["Revisão", "Posts prontos esperando seu olhar."],
-  agend: ["Agendados", "Posts aprovados na fila de publicação e os já publicados."],
+  agend: ["Agendados", "Suas publicações em um só lugar. Abra um post para ver os detalhes."],
   banco: ["Banco de imagens e vídeos", "Suas fotos e vídeos e tudo que a IA já gerou nos posts, para reutilizar sem gastar créditos."],
   admin: ["Painel admin", "Usuários, assinaturas, receita e o que cada serviço custa para a plataforma. Só você vê esta página."],
 };
@@ -3860,6 +3895,7 @@ document.addEventListener("click", e => {
   const post = state.posts.find(p => p.id === id);
 
   if (act === "ir-marca") return ir("marca");
+  if (act === "agend-detalhes" && post) return abrirAgendado(post);
   if (act === "previa-rede" && post) return abrirPreviaRede(post);
   if (act === "tentar-publicar" && post) return tentarPublicarDeNovo(post);
   if (act === "gerar-artes" && post) return gerarArtes(post);
@@ -4420,6 +4456,9 @@ document.addEventListener("pointerdown", e => { const el = e.target.closest && e
 const seletorDlg = el => el.tagName.toLowerCase() + Object.entries(el.dataset).map(([k, v]) => `[data-${k.replace(/[A-Z]/g, m => "-" + m.toLowerCase())}="${CSS.escape(v)}"]`).join("");
 function abrirDlg(html) {
   const d = dlg(), jaAberto = d.open, topo = d.scrollTop;
+  d.classList.remove("dlg-agend");
+  delete d.dataset.agendPost;
+  if (d.getAttribute("aria-labelledby") === "ag-post-titulo") d.removeAttribute("aria-labelledby");
   const ancora = jaAberto && toqueDlg && d.contains(toqueDlg) && Object.keys(toqueDlg.dataset).length ? { sel: seletorDlg(toqueDlg), y: toqueDlg.getBoundingClientRect().top } : null;
   d.innerHTML = html;
   if (!jaAberto) d.showModal(); else d.scrollTop = topo;
