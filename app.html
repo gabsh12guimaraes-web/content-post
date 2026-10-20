@@ -1116,7 +1116,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
-<link rel="stylesheet" href="assets/painel.css?v=20261020-redes">
+<link rel="stylesheet" href="assets/painel.css?v=20261020-entrada">
 <div class="app">
   <aside class="side" id="side">
     <div class="side-logo"><button class="side-brand" data-tab="home" aria-label="Content Post · Home"><img class="cp-logo-img" src="marca/content-post-logo-branco.png" alt="Content Post"><img class="side-symbol" src="marca/content-post-simbolo-branco.png" alt=""></button><button class="side-toggle" data-side-collapse aria-label="Recolher menu" aria-expanded="true" title="Recolher menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 7l-5 5 5 5"/></svg></button></div>
@@ -1230,7 +1230,7 @@ function dePost(r) {
     slides = JSON.parse(r.Slides || "[]").map((s, i) => ({ n: Number(s.n) || i + 1, t: s.titulo || s.visual || "", x: s.texto || s.fala_ou_texto || "", img: !!s.usa_imagem }));
   } catch (e) {}
   return {
-    id: r.id, titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
+    id: r.id, origem: r.Origem || "ia", titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", publicacao: r.Publicacao && typeof r.Publicacao === "object" ? { ...r.Publicacao } : {}, versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", redes: Array.isArray(r.Redes) && r.Redes.length ? r.Redes.slice() : [nomeSel(r.Rede)].filter(Boolean), links: r.Links || {}, briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
     erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te", audio: "original" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } const padraoMao = !/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao ? (M.modelos || []).find(x => x.id === M.modeloPadrao && x.status === "pronto" && x.diag) : null; if (padraoMao) Object.assign(d, diagDoModelo(padraoMao.diag)); else if (!/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao && (M.modelos || []).some(x => x.id === M.modeloPadrao && x.status === "pronto" && x.spec)) { d.modelo = "proprio"; d.proprio = M.modeloPadrao; d.v = 3; const sp = M.modelos.find(x => x.id === M.modeloPadrao).spec; d.alinhar = sp.alinhar; d.posicao = sp.posicao; d.logoPos = sp.logo === "nenhum" ? "te" : sp.logo; if (sp.logo === "nenhum") d.logo = "nenhum"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
@@ -1309,15 +1309,18 @@ async function mudarRede(p, r) {
 }
 let pautaAdiantada = null;
 async function carregarPauta() {
+  const org = U.organizacao?.id, token = U.token;
   try {
     const adiantada = pautaAdiantada; pautaAdiantada = null;
     const j = await (adiantada || api({ acao: "pauta", versao: pauta.versao || undefined }));
+    if (org !== U.organizacao?.id || token !== U.token) return;
     if (j.igual && pauta.carregada) { carregarRedes(); return; } // nada mudou: não redesenha
     pauta.versao = j.versao || null;
     pauta.tarefas = j.tarefas || [];
     receberPauta(j.ideias || [], j.posts || []);
     carregarRedes();
   } catch (e) {
+    if (org !== U.organizacao?.id || token !== U.token) return;
     pauta.erro = e; render();
   }
 }
@@ -1369,6 +1372,108 @@ async function disparar(corpo, aoComecar) {
     toast("Não deu para começar: " + textoErro(e));
   }
 }
+/* ---------- envio de uma publicação que já está pronta ---------- */
+const UP = { d: null };
+function descartarPostPronto() { if (UP.d) UP.d.arquivos.forEach(a => URL.revokeObjectURL(a.url)); UP.d = null; }
+function contextoPostPronto(d) { return UP.d === d && d.org === U.organizacao?.id && d.token === U.token; }
+function opcoesModelosEnvio(valor = "original") {
+  const op = [["original", "Sem diagramação · manter como enviei"], ["foto", "Foto de fundo"], ["editorial", "Editorial"], ["lateral", "Imagem lateral"], ["impacto", "Impacto"], ["minimal", "Minimal"], ["manchete", "Manchete"], ["cinema", "Cinema"], ["grade", "Grade"]];
+  for (const m of (M.modelos || []).filter(m => m.status === "pronto" && (m.diag || m.spec))) op.push(["salvo:" + m.id, m.nome || "Modelo da marca"]);
+  return op.map(([v, t]) => `<option value="${esc(v)}" ${valor === v ? "selected" : ""}>${esc(t)}</option>`).join("");
+}
+function diagEnvio(valor) {
+  if (valor.startsWith("salvo:")) { const m = (M.modelos || []).find(m => m.id === valor.slice(6)); if (m?.diag) return diagDoModelo(m.diag); if (m?.spec) return { modelo: "proprio", proprio: m.id, logo: "auto", v: 3 }; }
+  return { modelo: valor, logo: valor === "original" ? "nenhum" : "auto", v: 3 };
+}
+function abrirPostPronto() {
+  if (M.modo !== "web" || !U.organizacao) return;
+  descartarPostPronto();
+  const data = new Date(); data.setDate(data.getDate() + 1); data.setHours(18, 0, 0, 0);
+  UP.d = { org: U.organizacao.id, token: U.token, pedido: crypto.randomUUID(), arquivos: [], titulo: "", contexto: "", data: ymd(data), hora: "18:00", formato: "", modelo: "original", redes: ["Instagram"], objetivo: "engajar", ocupado: false, erro: "", progresso: "" };
+  desenharPostPronto();
+}
+function lerPostPronto() {
+  const d = UP.d; if (!d) return;
+  for (const k of ["titulo", "contexto", "data", "hora", "formato", "modelo", "objetivo"]) { const e = document.getElementById("up-" + k); if (e) d[k] = e.value; }
+  if (document.querySelector("[data-up-rede]")) d.redes = [...document.querySelectorAll("[data-up-rede]:checked")].map(e => e.value);
+}
+function desenharPostPronto() {
+  const d = UP.d; if (!d || !contextoPostPronto(d)) return;
+  abrirDlg(`<div class="post-pronto"><span class="home-kicker">Seu conteúdo, pronto para publicar</span><h2>Enviar post pronto</h2>
+    <p class="hint">Envie as mídias e conte um pouco sobre o post. A IA prepara a legenda e as hashtags para você revisar.</p>
+    ${d.erro ? `<div class="msg erro" role="alert">${esc(d.erro)}</div>` : ""}
+    ${d.ocupado ? `<div class="working" role="status"><span class="dot"></span>${esc(d.progresso)}</div>` : `<form onsubmit="return false">
+      <label class="up-drop field"><b>Qual conteúdo vamos publicar?</b><span class="small">Escolha imagens ou vídeos. Até 10 arquivos, na ordem da publicação.</span><input id="up-arquivos" type="file" accept="image/jpeg,image/png,image/webp,video/*,.mov,.heic,.heif" multiple></label>
+      ${d.arquivos.length ? `<ol class="up-arquivos">${d.arquivos.map((a, i) => `<li><span class="up-thumb">${a.video ? `<video src="${esc(a.url)}" muted playsinline preload="metadata"></video><i>▶</i>` : `<img src="${esc(a.url)}" alt="">`}</span><span><b>${i + 1}. ${esc(a.file.name)}</b><small>${a.video ? "Vídeo" : "Imagem"}</small></span><div class="actions"><button type="button" class="btn quiet" data-up="anterior" data-i="${i}" ${i === 0 ? "disabled" : ""} aria-label="Mover arquivo ${i + 1} para antes">↑</button><button type="button" class="btn quiet" data-up="proximo" data-i="${i}" ${i === d.arquivos.length - 1 ? "disabled" : ""} aria-label="Mover arquivo ${i + 1} para depois">↓</button><button type="button" class="btn quiet" data-up="remover" data-i="${i}" aria-label="Remover arquivo ${i + 1}">×</button></div></li>`).join("")}</ol>` : ""}
+      <label class="field"><span>Como você quer identificar este post?</span><input id="up-titulo" maxlength="300" value="${esc(d.titulo)}" placeholder="Ex.: Bastidores do lançamento"></label>
+      <label class="field"><span>Qual é o formato?</span><select id="up-formato"><option value="">Escolha o formato</option>${[["Reels", "Reels · um vídeo"], ["Estatico", "Post estático · uma imagem"], ["Carrossel", "Carrossel · duas ou mais mídias"], ["Stories", "Stories · imagens ou vídeos"]].map(([v,t])=>`<option value="${v}" ${d.formato === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <div class="fgrid"><label class="field"><span>Para qual data?</span><input id="up-data" type="date" min="${ymd(new Date())}" value="${esc(d.data)}"></label><label class="field"><span>Em qual horário?</span><input id="up-hora" type="time" value="${esc(d.hora)}"></label></div>
+      <div class="field"><span>Em quais redes?</span><div class="up-redes">${REDES_POST.map(r => `<label class="check-tratar"><input type="checkbox" data-up-rede value="${r}" ${d.redes.includes(r) ? "checked" : ""}>${r}</label>`).join("")}</div></div>
+      <label class="field"><span>O que você quer alcançar?</span><select id="up-objetivo">${[["engajar","Gerar conversa"],["educar","Informar ou ensinar"],["vender","Apresentar uma oferta"],["institucional","Fortalecer a marca"]].map(([v,t])=>`<option value="${v}" ${d.objetivo === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="field"><span>O que a legenda precisa contar? (opcional)</span><textarea id="up-contexto" rows="3" maxlength="1500" placeholder="Conte o contexto, os detalhes importantes, a mensagem do vídeo ou a chamada que você quer fazer.">${esc(d.contexto)}</textarea></label>
+      <label class="field"><span>Quer aplicar uma diagramação?</span><select id="up-modelo">${opcoesModelosEnvio(d.modelo)}</select><small>Sem diagramação mantém a arte como foi enviada. Você também pode escolher ou mudar o modelo na revisão.</small></label>
+      <p class="small">Os arquivos também ficam no seu banco de imagens. A publicação só será agendada depois da sua aprovação.</p>
+      <div class="actions"><button type="button" class="btn quiet" data-up="cancelar">Cancelar</button><button type="button" class="btn primary" data-up="enviar">Gerar legenda e revisar →</button></div>
+    </form>`}</div>`);
+}
+document.addEventListener("click", e => { if (e.target.closest("[data-post-pronto]")) return abrirPostPronto(); });
+document.addEventListener("change", e => {
+  if (e.target.id !== "up-arquivos" || !UP.d || UP.d.ocupado) return;
+  lerPostPronto(); const d = UP.d;
+  for (const file of e.target.files) {
+    if (d.arquivos.length >= 10) { d.erro = "Envie no máximo 10 arquivos por publicação."; break; }
+    if (!/^image\//.test(file.type) && !ehVideoArq(file) && !/\.(heic|heif)$/i.test(file.name)) { d.erro = "Escolha apenas imagens ou vídeos."; continue; }
+    d.arquivos.push({ file, video: ehVideoArq(file), url: URL.createObjectURL(file), banco: null });
+  }
+  if (!d.formato) d.formato = d.arquivos.length > 1 ? "Carrossel" : d.arquivos[0]?.video ? "Reels" : "Estatico";
+  if (!d.titulo && d.arquivos[0]) d.titulo = d.arquivos[0].file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 300);
+  desenharPostPronto();
+});
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-up]"); if (!b || !UP.d || UP.d.ocupado) return;
+  lerPostPronto(); const d = UP.d, i = Number(b.dataset.i);
+  if (b.dataset.up === "cancelar") { descartarPostPronto(); return fecharDlg(); }
+  if (b.dataset.up === "remover") { URL.revokeObjectURL(d.arquivos[i].url); d.arquivos.splice(i, 1); return desenharPostPronto(); }
+  if (["anterior", "proximo"].includes(b.dataset.up)) { const j = i + (b.dataset.up === "anterior" ? -1 : 1); [d.arquivos[i], d.arquivos[j]] = [d.arquivos[j], d.arquivos[i]]; return desenharPostPronto(); }
+  if (b.dataset.up !== "enviar") return;
+  const data = new Date(`${d.data}T${d.hora}`);
+  if (!d.arquivos.length || !d.titulo.trim() || !d.formato || !d.redes.length || !Number.isFinite(data.getTime()) || data.getTime() < Date.now() + 600000) { d.erro = "Escolha os arquivos, o título, o formato, as redes e uma data pelo menos 10 minutos no futuro."; return desenharPostPronto(); }
+  if (d.formato === "Reels" && (d.arquivos.length !== 1 || !d.arquivos[0].video) || d.formato === "Estatico" && (d.arquivos.length !== 1 || d.arquivos[0].video) || d.formato === "Carrossel" && d.arquivos.length < 2) { d.erro = "Os arquivos não correspondem ao formato escolhido. Confira a seleção."; return desenharPostPronto(); }
+  d.ocupado = true; d.erro = "";
+  try {
+    for (const [n, a] of d.arquivos.entries()) {
+      if (!contextoPostPronto(d)) return;
+      if (a.banco) continue;
+      d.progresso = `Preparando arquivo ${n + 1} de ${d.arquivos.length}…`; desenharPostPronto();
+      let x;
+      if (a.video) {
+        let arq = a.file;
+        if (!(arq.type === "video/mp4" && arq.size <= LIMITE_VIDEO)) arq = await converterVideo(arq, f => { if (contextoPostPronto(d)) { d.progresso = `Preparando vídeo ${n + 1}: ${Math.round(f * 100)}%`; desenharPostPronto(); } });
+        x = { tipo: "video/mp4", base64: await arquivoBase64(arq), capa: await capaDoArquivoVideo(arq) };
+      } else x = await prepararFoto(a.file);
+      if (!contextoPostPronto(d)) return;
+      const r = await api({ acao: "enviarImagemBanco", ...x, nome: a.file.name, titulo: d.titulo, descrever: false });
+      if (!contextoPostPronto(d)) return; a.banco = r.id;
+    }
+    if (!contextoPostPronto(d)) return;
+    d.progresso = "Enviando para a IA preparar a legenda e as hashtags…"; desenharPostPronto();
+    const r = await api({ acao: "criarPostPronto", pedido: d.pedido, banco: d.arquivos.map(a => a.banco), titulo: d.titulo, data: data.toISOString(), formato: d.formato, redes: d.redes, contexto: d.contexto, objetivo: d.objetivo, diagramacao: diagEnvio(d.modelo) });
+    if (!contextoPostPronto(d)) return;
+    disparos.posts[r.id] = { em: Date.now() }; salvarDisparos(); descartarPostPronto(); fecharDlg();
+    BI.carregado = false; await carregarPauta(); if (d.org !== U.organizacao?.id || d.token !== U.token) return;
+    revAberto = r.id; ir("rev"); carregarSituacao(); acompanharPostPronto(r.id, d.org, d.token); toast("A IA está preparando a legenda. O post aparece na revisão assim que ficar pronto.");
+  } catch (err) { if (!contextoPostPronto(d)) return; d.ocupado = false; d.erro = motivoEnvio(err); desenharPostPronto(); }
+});
+document.addEventListener("close", e => { if (e.target === dlg() && UP.d) descartarPostPronto(); }, true);
+function acompanharPostPronto(id, org, token, tentativa = 0) {
+  const p = state.posts.find(p => p.id === id);
+  if (tentativa >= 180 || org !== U.organizacao?.id || token !== U.token || (p && p.status !== "EmCriacao")) return;
+  setTimeout(async () => {
+    if (org !== U.organizacao?.id || token !== U.token) return;
+    await carregarPauta(); acompanharPostPronto(id, org, token, tentativa + 1);
+  }, 3000);
+}
+
 const PI = { tema: "", quantidade: "10", formatos: [] };
 function abrirPedidoIdeias() {
   const FORM = [["Reels", "Reels"], ["Carrossel", "Carrossel"], ["Estatico", "Estático"], ["Stories", "Stories"]];
@@ -1434,6 +1539,7 @@ function perguntasDo(formato, r) {
   return ["capa", "fundo", "slides", "objetivo"];
 }
 function abrirBriefing(p) {
+  if (p.origem === "envio") return criarPost(p);
   BI.filtroEscolha = "todos";
   if (M.modo === "web") carregarBanco(true).then(() => document.getElementById("br-banco") && desenharEscolhaBanco());
   if (M.modo === "web") carregarPessoas();
@@ -2027,7 +2133,7 @@ document.addEventListener("click", e => {
 });
 function renderCal() {
   const el = document.getElementById("p-cal");
-  const head = `<div class="panel-head"><p>Posts que vêm das ideias aprovadas. Clique em um post para ver os detalhes, mandar a IA criar ou tirar do calendário.</p></div>`;
+  const head = `<div class="panel-head"><p>Organize as próximas publicações ou envie um conteúdo que já está pronto.</p><button class="btn primary" data-post-pronto>↑ Enviar post pronto</button></div>`;
   if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   const ano = mesVisto.getFullYear(), mes = mesVisto.getMonth();
@@ -3114,7 +3220,7 @@ async function gerarVideoFinal(p, logo, cores, nome) {
   const ehVid = m => m instanceof HTMLVideoElement;
   const cena = k => ({ n: cenas[k].n, t: cenas[k].x || cenas[k].t });
   if (podeRenderizar()) try {
-    const W = 1080, H = 1920, durs = vids.map(v => ehVid(v) ? Math.min(10, v.duration || 5) : 3), total = durs.reduce((a, b) => a + b, 0);
+    const W = 1080, H = 1920, durs = vids.map(v => ehVid(v) ? (p.origem === "envio" ? v.duration : Math.min(10, v.duration || 5)) : 3), total = durs.reduce((a, b) => a + b, 0);
     const bps = Math.round(Math.max(2.5e6, Math.min(8e6, 22 * 1024 * 1024 * 8 / total)));
     const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
     let ini = 0; const partes = vids.map((v, k) => { const pt = { v: ehVid(v) ? v : null, ini, dur: durs[k], de: 0 }; ini += durs[k]; return pt; });
@@ -3149,10 +3255,10 @@ async function gerarVideoFinal(p, logo, cores, nome) {
   if (blob.size > 24 * 1024 * 1024) throw new Error("o vídeo passou de 24 MB. Peça um ajuste com cenas mais curtas");
   return [{ tipo: "video/mp4", base64: b64, capa: blob.capa }];
 }
-async function gravarSlideVideo(sl, i, total, url, logo, cores, nome, diag) {
+async function gravarSlideVideo(sl, i, total, url, logo, cores, nome, diag, completo = false) {
   const v = await carregarVideoLocal(url);
   const cv = document.createElement("canvas"); cv.width = ARTE_L; cv.height = ARTE_A;
-  const dur = Math.min(10, v.duration || 5), a = podeRenderizar() ? await prepararAudio([{ v, ini: 0, dur, de: 0 }], dur, diag) : null;
+  const dur = completo ? v.duration : Math.min(10, v.duration || 5), a = podeRenderizar() ? await prepararAudio([{ v, ini: 0, dur, de: 0 }], dur, diag) : null;
   if (podeRenderizar() && !a.gravador) {
     // 4 Mbps: um carrossel com vários slides em vídeo continua cabendo no envio.
     const blob = await renderizarMp4(cv, { duracao: dur, bps: 4e6, audio: a.audio, codecA: a.codecA, desenhar: async t => { await irPara(v, t); desenharSlide(sl, i, total, v, logo, cores, nome, cv, diag); } });
@@ -3166,8 +3272,8 @@ async function gravarSlideVideo(sl, i, total, url, logo, cores, nome, diag) {
   return { tipo: "video/mp4", base64: b64, capa: blob.capa };
 }
 // Story com vídeo do banco: uma tela 9:16 gravada por cima do clipe (até 10 s).
-async function gravarVideoVertical(sl, url, logo, cores, nome, diag) {
-  const v = await carregarVideoLocal(url), dur = Math.min(10, v.duration || 5);
+async function gravarVideoVertical(sl, url, logo, cores, nome, diag, completo = false) {
+  const v = await carregarVideoLocal(url), dur = completo ? v.duration : Math.min(10, v.duration || 5);
   const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920;
   const pintar = t => desenharVertical(sl, v, logo, cores, nome, cv, diag, t);
   let blob = null;
@@ -3316,6 +3422,10 @@ async function gerarArtes(p) {
   if (gerandoArtes) return false;
   gerandoArtes = p.id; render();
   try {
+    if (p.origem === "envio" && p.diag.modelo === "original") {
+      await api({ acao: "salvarDiagramacao", id: p.id, diagramacao: { modelo: "original" } });
+      gerandoArtes = null; await carregarPauta(); return true;
+    }
     await Promise.all([document.fonts.load(`700 ${10 * CQ}px Poppins`), document.fonts.load(`400 ${4.4 * CQ}px Poppins`), document.fonts.load(`600 ${3 * CQ}px Poppins`), document.fonts.load(`400 40px Anton`), document.fonts.load(`500 40px 'IBM Plex Mono'`), document.fonts.load(`500 40px Poppins`), document.fonts.load(`400 40px 'Bebas Neue'`), document.fonts.load(`400 40px 'Archivo Black'`), document.fonts.load(`800 40px 'Playfair Display'`), document.fonts.load(`italic 500 40px 'Playfair Display'`), document.fonts.load(`400 40px 'DM Serif Display'`), document.fonts.load(`italic 400 40px 'DM Serif Display'`)]).catch(() => {});
     const cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
     // Carrega as quatro versões do logo; cada arte escolhe a que contrasta com o fundo.
@@ -3329,7 +3439,7 @@ async function gerarArtes(p) {
         // Tela com vídeo do banco: grava o story em vídeo (9:16) com o texto e o logo por cima.
         if (clipes[sl.n]) {
           toast(telas.length > 1 ? `Gravando o story ${k + 1} de ${telas.length} (vídeo). Deixe esta aba aberta.` : "Gravando o story em vídeo. Deixe esta aba aberta.");
-          artes.push(await gravarVideoVertical(sl, clipes[sl.n], logo, cores, nome, p.diag));
+          artes.push(await gravarVideoVertical(sl, clipes[sl.n], logo, cores, nome, p.diag, p.origem === "envio"));
           continue;
         }
         toast(telas.length > 1 ? `Gerando o story ${k + 1} de ${telas.length}…` : "Gerando a arte do story…");
@@ -3345,7 +3455,7 @@ async function gerarArtes(p) {
       for (let i = 0; i < slides.length; i++) {
         if (clipes[slides[i].n]) {
           toast(`Gravando o slide ${i + 1} de ${slides.length} (vídeo). Deixe esta aba aberta.`);
-          artes.push(await gravarSlideVideo(slides[i], i, slides.length, clipes[slides[i].n], logo, cores, nome, p.diag));
+          artes.push(await gravarSlideVideo(slides[i], i, slides.length, clipes[slides[i].n], logo, cores, nome, p.diag, p.origem === "envio"));
           continue;
         }
         toast(`Gerando arte ${i + 1} de ${slides.length}…`);
@@ -3556,7 +3666,61 @@ function htmlDiagramacao(p, { ehVideo = false, cores = coresMarca(), slides = p.
       ${!editor && (ehVideo || Object.keys(clipesDoPost(p)).length) ? sec("audio", "Áudio", "som do vídeo", `${seg("audio", [["original", "Áudio original do vídeo"], ["mudo", "Sem som"]])}<p class="small" style="margin:0">${(p.diag.audio || "original") === "mudo" ? "O vídeo final sai sem som." : "O vídeo final leva o som dos vídeos usados: os do seu banco e o som ambiente dos clipes gerados pela IA. Clipes gerados antes desta opção vieram sem som; para ter som neles, gere os clipes de novo."}</p>`) : ""}</div>
       <p class="small" style="margin:0">${editor ? "A prévia ao lado muda na hora." : `A prévia muda na hora. Depois gere ${ehVideo ? "o vídeo final" : "as artes finais"} para aplicar.`}</p></div>`;
 }
+function cardRevPronto(p) {
+  const original = p.diag.modelo === "original", cores = coresMarca(), nome = M.marca?.Nome || "Sua marca";
+  const { mapa, prontas } = imagensDoPost(p), clipes = clipesDoPost(p), slides = p.slides.length ? p.slides : [{ n: 1, t: "", x: "" }];
+  const html = slides.map((sl, i) => {
+    const arte = p.artesProntas ? p.arquivos[i] : null;
+    if (original || arte) {
+      const video = arte ? ehArqVideo(arte) && arte.url : clipes[sl.n], url = arte?.url || mapa[sl.n];
+      return `<div class="ig-slide pronto-midia">${video ? `<video src="${esc(video)}" controls playsinline preload="metadata"></video>` : `<img src="${esc(url || "")}" alt="Mídia ${i + 1} da publicação" loading="lazy">`}</div>`;
+    }
+    return slidePost(sl, i, slides.length, mapa[sl.n], false, logoMarca(), nome, clipes[sl.n], p.diag, p.formato === "Stories" || ehVideoFmt(p), p.id);
+  }).join("");
+  return `<article class="rcard glass" id="rev-${p.id}"><div class="ig ${p.formato === "Stories" || ehVideoFmt(p) ? "vertical" : ""}">
+      <div class="ig-top"><b>${esc(nome)}</b><span class="small">${esc(p.formato)} · ${slides.length} mídia${slides.length > 1 ? "s" : ""}</span></div>
+      <div class="ig-trilho" data-trilho="${p.id}" tabindex="0" aria-label="Mídias enviadas">${html}</div>
+      <p class="ig-aviso">${original ? "Sem diagramação: a publicação usa os arquivos enviados." : "A diagramação é aplicada sobre suas mídias. A IA não gera novas imagens ou vídeos."}</p>
+    </div><div class="rside"><div class="meta">${chip(p.status)}<span class="chip plain">Post enviado</span></div><h3>${esc(p.titulo)}</h3><div class="small">Publicação: <b>${fmtData(p.data)}</b></div>
+      ${p.erro ? `<div class="msg erro">${esc(p.erro)}</div>` : ""}
+      <label class="field"><span>Legenda (descrição do post)</span><textarea id="pronto-leg-${p.id}" rows="5" maxlength="2200">${esc(p.legenda)}</textarea></label>
+      <label class="field"><span>Hashtags</span><input id="pronto-tags-${p.id}" maxlength="600" value="${esc(p.hashtags)}"></label>
+      <div class="actions"><button class="btn quiet" data-pronto-salvar="${p.id}">Salvar legenda</button></div>
+      ${original ? `<label class="field"><span>Diagramação (opcional)</span><select data-pronto-modelo="${p.id}">${opcoesModelosEnvio()}</select></label>` : `<button class="btn quiet" data-pronto-original="${p.id}">Voltar aos arquivos sem diagramação</button>${htmlDiagramacao(p, { ehVideo: ehVideoFmt(p), cores, slides })}`}
+      ${seletorRedes(p)}${blocoDownload(p)}
+      <div class="barra-decisao"><button class="btn primary" data-pronto-aprovar="${p.id}" ${gerandoArtes || revisando ? "disabled" : ""}>${p.artesProntas ? "Aprovar e agendar" : "Aplicar diagramação e aprovar"}</button><p class="small">${p.artesProntas ? "A legenda é salva e a publicação entra na fila após sua aprovação." : "Revise a prévia. A diagramação será aplicada antes de agendar."}</p></div>
+    </div></article>`;
+}
+document.addEventListener("change", async e => {
+  const id = e.target.dataset.prontoModelo; if (!id || e.target.value === "original") return;
+  const p = state.posts.find(p => p.id === id); if (!p) return;
+  const diag = diagEnvio(e.target.value);
+  try { await api({ acao: "salvarDiagramacao", id, diagramacao: diag, refazer: true }); Object.assign(p.diag, diag); p.artesProntas = false; atualizarCard(p, null); }
+  catch (err) { toast(textoErro(err)); }
+});
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-pronto-salvar], [data-pronto-aprovar], [data-pronto-original]"); if (!b || b.disabled) return;
+  const id = b.dataset.prontoSalvar || b.dataset.prontoAprovar || b.dataset.prontoOriginal, p = state.posts.find(p => p.id === id); if (!p) return;
+  b.disabled = true;
+  const org = U.organizacao?.id, token = U.token, atual = () => org === U.organizacao?.id && token === U.token;
+  try {
+    const legenda = document.getElementById("pronto-leg-" + id).value.trim(), hashtags = document.getElementById("pronto-tags-" + id).value.trim();
+    await api({ acao: "salvarLegendaPost", id, legenda, hashtags }); if (!atual()) return;
+    p.legenda = legenda; p.hashtags = hashtags;
+    if (b.dataset.prontoOriginal) { clearTimeout(timersDiag[id]); delete timersDiag[id]; delete refazerDiag[id]; await api({ acao: "salvarDiagramacao", id, diagramacao: { modelo: "original" } }); if (atual()) await carregarPauta(); }
+    else if (b.dataset.prontoAprovar) {
+      if (timersDiag[id]) {
+        clearTimeout(timersDiag[id]); delete timersDiag[id]; delete refazerDiag[id];
+        await api({ acao: "salvarDiagramacao", id, diagramacao: p.diag, refazer: !p.artesProntas }); if (!atual()) return;
+      }
+      await aprovarDeUmaVez(p);
+    }
+    else toast("Legenda e hashtags salvas. Suas mídias foram mantidas.");
+  } catch (err) { if (atual()) toast("Não deu para salvar: " + textoErro(err)); }
+  finally { b.disabled = false; }
+});
 function cardRev(p) {
+  if (p.origem === "envio") return cardRevPronto(p);
   const cores = coresMarca(), logo = logoMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
   const ehVideo = ehVideoFmt(p);
   const clipes = clipesDoPost(p);
@@ -3694,6 +3858,7 @@ function renderHome() {
       <div class="home-tools">${ferramentas.map(([t, nome, desc]) => `<button class="home-tool" data-tab="${t}"><span class="home-tool-icon">${iconeMenu(t)}</span><b>${nome}</b><small>${desc}</small></button>`).join("")}</div>
     </section>
     <section id="home-criar" aria-labelledby="home-criar-title"><div class="home-section-head"><div><h2 id="home-criar-title">O que vamos criar hoje?</h2><p>Escolha o formato. A próxima boa ideia é sua.</p></div><span class="home-kicker">Da ideia ao post</span></div>
+      <div class="home-ready"><span class="home-tool-icon" aria-hidden="true">↑</span><div><b>Já tem um conteúdo pronto?</b><p>Envie suas imagens ou vídeos. A IA cuida da legenda e das hashtags.</p></div><button class="btn" data-post-pronto>Enviar post pronto ${iconeMenu("seta", 15)}</button></div>
       <div class="home-create-grid">${formatos.map(([f, icone, rotulo, arte, desc]) => `<button class="home-create" data-home-formato="${f}"><div class="home-create-art ${f === "Carrossel" ? "home-art-slides" : f === "Estatico" ? "home-art-static" : ""}"><span class="home-format">${rotulo}</span>${arte}</div><div class="home-create-text"><b>Criar ${f === "Estatico" ? "post estático" : NOME_FORMATO[f]}</b><span>${iconeMenu(icone, 18)}</span><small>${desc}</small></div></button>`).join("")}</div>
     </section>
     <section aria-labelledby="home-overview-title"><div class="home-section-head"><div><h2 id="home-overview-title">Sua criação em movimento</h2><p>Um olhar rápido para o que está acontecendo na sua pauta.</p></div><button class="btn quiet" data-tab="cal">Ver calendário →</button></div><div class="home-overview">${[["ideias", "Ideias para explorar"], ["rev", "Para revisar"], ["agend", "Na fila de publicação"], ["publicados", "Publicados no mês"]].map(([k, t]) => `<button class="home-stat" data-tab="${k === "publicados" ? "agend" : k}"><span class="home-tool-icon">${iconeMenu(k === "publicados" ? "cal" : k)}</span><span><strong data-home-stat="${k}">–</strong><small>${t}</small></span></button>`).join("")}</div></section>
@@ -4299,11 +4464,15 @@ function guardarInfo(r) {
   if ("organizacao" in r) U.organizacao = r.organizacao;
 }
 async function carregarWeb() {
+  const org = U.organizacao?.id, token = U.token;
   const j = await api({ acao: "listar" });
+  if (org !== U.organizacao?.id || token !== U.token) return;
   M.marca = j.marca || null; M.fontes = j.fontes || []; M.modelos = j.modelos || []; M.modeloPadrao = j.modeloPadrao || null; M.limiteModelos = j.limiteModelos || null;
   M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
 }
 function limparDados() {
+  clearTimeout(OB.timer); OB.versao++; OB.aberto = false; OB.analise = false;
+  if (UP.d) descartarPostPronto();
   calDiaAberto = null; calAberto = null;
   pedidoRedes++; redesOk = null; redesCarregadas = false;
   INT.pedido++; INT.org = null; INT.token = null; INT.dados = null; INT.redes = null; INT.erro = ""; INT.teste = {}; INT.selecao = null;
@@ -4563,18 +4732,20 @@ function desenharAvisoPlano() {
     <button class="btn primary" data-u="plano">${!s.ativo && !teste ? "Renovar plano" : "Ver planos"}</button></div>`;
 }
 /* ---------- onboarding do primeiro acesso ---------- */
-const OB = { aberto: false, passo: 0, d: {}, salvando: false, estilo: "", buscar: true };
+const OB = { aberto: false, passo: 0, d: {}, salvando: false, estilo: "", buscar: true, modo: "ia", analise: false, erro: "", avisos: [], versao: 0, timer: null };
 const TONS = [["descontraído e próximo", "Descontraído"], ["profissional e confiável", "Profissional"], ["inspirador e acolhedor", "Inspirador"], ["divertido e cheio de energia", "Divertido"], ["sofisticado e elegante", "Sofisticado"]];
 function abrirOnboarding() {
   const m = M.marca || {}, c = lerCores(m.Cores);
-  OB.aberto = true; OB.passo = 0; OB.estilo = ""; OB.buscar = true;
+  clearTimeout(OB.timer); OB.versao++; OB.org = U.organizacao?.id; OB.token = U.token;
+  OB.aberto = true; OB.passo = 0; OB.estilo = ""; OB.buscar = true; OB.modo = "ia"; OB.analise = false; OB.analisada = false; OB.erro = ""; OB.avisos = []; OB.salvando = false;
   OB.d = { nome: m.Nome || (U.organizacao && U.organizacao.nome) || "", perfil: String(m.Perfil || "").replace(/^@+/, ""), faz: m.Posicionamento || "", publico: m.Publico || "", tom: m.TomDeVoz || "",
+    site: m.Site || "", pilares: (m.Pilares || []).join(", "), evitar: m.Evitar || "", exemplos: m.ExemplosBons || "", idioma: m.Idioma || "Português (Brasil)",
     cor1: (c[0] && c[0].hex) || "#1B2A4A", cor2: (c[1] && c[1].hex) || "#F8395A", temas: "", concorrente: "" };
   desenharOnboarding();
 }
 function lerOnboarding() {
   const v = id => { const e = document.getElementById(id); return e ? e.value.trim() : null; };
-  for (const [k, id] of [["nome", "ob-nome"], ["perfil", "ob-perfil"], ["faz", "ob-faz"], ["publico", "ob-publico"], ["cor1", "ob-cor1"], ["cor2", "ob-cor2"], ["temas", "ob-temas"], ["concorrente", "ob-conc"]]) { const x = v(id); if (x !== null) OB.d[k] = x; }
+  for (const [k, id] of [["nome", "ob-nome"], ["perfil", "ob-perfil"], ["site", "ob-site"], ["faz", "ob-faz"], ["publico", "ob-publico"], ["tom", "ob-tom"], ["pilares", "ob-pilares"], ["evitar", "ob-evitar"], ["exemplos", "ob-exemplos"], ["idioma", "ob-idioma"], ["cor1", "ob-cor1"], ["cor2", "ob-cor2"], ["temas", "ob-temas"], ["concorrente", "ob-conc"]]) { const x = v(id); if (x !== null) OB.d[k] = x; }
   OB.d.perfil = OB.d.perfil.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@+/, "");
 }
 function desenharOnboarding() {
@@ -4583,17 +4754,27 @@ function desenharOnboarding() {
   const barra = `<div class="onb-passos" aria-label="Passo ${P + 1} de ${total}">${Array.from({ length: total }, (_, i) => `<i class="${i <= P ? "on" : ""}"></i>`).join("")}</div>`;
   const nav = (proximo, extra) => `<div class="actions" style="justify-content:space-between">${P ? `<button class="btn quiet" data-ob="voltar">Voltar</button>` : `<button class="btn quiet" data-ob="depois">Fazer depois</button>`}<span style="display:flex;gap:8px">${extra || ""}<button class="btn primary" data-ob="avancar" ${OB.salvando ? "disabled" : ""}>${OB.salvando ? "Salvando…" : proximo}</button></span></div>`;
   const telas = [
-    () => `<h2>Boas-vindas à Content Post${U.usuario && U.usuario.nome ? ", " + esc(U.usuario.nome.split(" ")[0]) : ""}!</h2>
-      <p class="hint">Em 4 passos rápidos a IA aprende sobre a sua marca e já sugere as primeiras ideias de post.</p>
-      <ul class="onb-lista"><li><i>1</i><span><b>Sua marca:</b> o que você faz e para quem fala.</span></li><li><i>2</i><span><b>Visual:</b> logo e cores.</span></li>
-      <li><i>3</i><span><b>Seu estilo:</b> se você já posta no Instagram, a IA copia o seu jeito.</span></li><li><i>4</i><span><b>Primeiras ideias:</b> os temas que você quer abordar.</span></li></ul>
-      <p class="small" style="margin:0">Leva uns 3 minutos. Dá para mudar tudo depois em Marca e fontes.</p>${nav("Começar")}`,
-    () => `<h2>Sua marca</h2><p class="hint">A IA usa isso em todas as ideias, textos e legendas.</p>
+    () => `<h2>Vamos conhecer sua marca${U.usuario && U.usuario.nome ? ", " + esc(U.usuario.nome.split(" ")[0]) : ""}?</h2>
+      <p class="hint">A IA pode analisar suas páginas públicas e preparar as informações da marca. Você revisa e edita tudo antes de salvar.</p>
+      <div class="seg" role="group" aria-label="Como preencher a marca"><button data-ob="modo" data-v="ia" aria-pressed="${OB.modo === "ia"}">Analisar com IA</button><button data-ob="modo" data-v="manual" aria-pressed="${OB.modo === "manual"}">Preencher manualmente</button></div>
+      ${OB.modo === "ia" ? `<label class="field"><span>Instagram (opcional)</span><input id="ob-perfil" maxlength="200" value="${esc(d.perfil ? "@" + d.perfil : "")}" placeholder="@suamarca ou link do perfil" ${OB.analise ? "disabled" : ""}></label>
+        <label class="field"><span>Site (opcional)</span><input id="ob-site" type="url" inputmode="url" maxlength="1000" value="${esc(d.site)}" placeholder="https://suamarca.com.br" ${OB.analise ? "disabled" : ""}></label>
+        <p class="small">Informe pelo menos um dos dois. Depois seguimos com logo, cores, estilo e primeiras ideias.</p>` : `<p class="hint">Você preenche os dados da marca e continua com os mesmos passos de visual, estilo e ideias.</p>`}
+      ${OB.erro ? `<div class="msg erro" role="alert">${esc(OB.erro)}</div>` : ""}
+      ${OB.analise ? `<div class="working" role="status"><span class="dot"></span>Analisando suas páginas… Pode levar alguns minutos.</div><button class="btn quiet" data-ob="modo" data-v="manual">Prefiro preencher manualmente</button>` : nav(OB.modo === "ia" ? "Analisar minha marca" : "Preencher minha marca")}`,
+    () => `<h2>${OB.analisada ? "Revise as informações da marca" : "Sua marca"}</h2><p class="hint">${OB.analisada ? "Confira o que a IA encontrou. Complete o que faltar e edite qualquer informação antes de continuar." : "A IA usa isso em todas as ideias, textos e legendas."}</p>
+      ${OB.avisos.map(a => `<p class="msg">${esc(a)}</p>`).join("")}
       <label class="field"><span>Nome da marca</span><input id="ob-nome" maxlength="100" value="${esc(d.nome)}" placeholder="Ex.: Bar do Zé"></label>
       <label class="field"><span>Instagram (@)</span><input id="ob-perfil" maxlength="60" value="${esc(d.perfil ? "@" + d.perfil : "")}" placeholder="@suamarca"></label>
+      <label class="field"><span>Site (opcional)</span><input id="ob-site" maxlength="1000" value="${esc(d.site)}" placeholder="https://suamarca.com.br"></label>
       <label class="field"><span>O que a marca faz</span><textarea id="ob-faz" rows="2" maxlength="600" placeholder="Ex.: Bar com chope artesanal e música ao vivo na Vila Madalena">${esc(d.faz)}</textarea></label>
       <label class="field"><span>Para quem ela fala</span><input id="ob-publico" maxlength="300" value="${esc(d.publico)}" placeholder="Ex.: jovens de 25 a 40 anos que saem depois do trabalho"></label>
       <div class="field"><span>Jeito de falar</span><div class="seg" role="group" aria-label="Tom de voz">${TONS.map(([v, t]) => `<button type="button" data-ob="tom" data-v="${esc(v)}" aria-pressed="${d.tom === v}">${t}</button>`).join("")}</div></div>
+      <label class="field"><span>Tom de voz (editável)</span><textarea id="ob-tom" rows="2" maxlength="500">${esc(d.tom)}</textarea></label>
+      <label class="field"><span>Pilares de conteúdo (separados por vírgula)</span><input id="ob-pilares" maxlength="1000" value="${esc(d.pilares)}"></label>
+      <label class="field"><span>O que evitar (opcional)</span><textarea id="ob-evitar" rows="2" maxlength="1000">${esc(d.evitar)}</textarea></label>
+      <label class="field"><span>Exemplos de linguagem (opcional)</span><textarea id="ob-exemplos" rows="2" maxlength="1000">${esc(d.exemplos)}</textarea></label>
+      <label class="field"><span>Idioma das postagens</span><input id="ob-idioma" maxlength="100" value="${esc(d.idioma)}"></label>
       ${nav("Continuar")}`,
     () => `<h2>Visual da marca</h2><p class="hint">O logo e as cores entram nas artes de todos os posts.</p>
       <div class="field"><span>Logo</span><div class="onb-logo"><span class="amostra">${logo ? `<img src="${esc(urlArq(logo))}" alt="Logo">` : `<span class="small">sem logo</span>`}</span>
@@ -4617,47 +4798,82 @@ function desenharOnboarding() {
   ];
   abrirDlg(`<div class="onb">${barra}${telas[P]()}</div>`);
 }
+function onboardingAtual(versao) {
+  return OB.aberto && versao === OB.versao && OB.org === U.organizacao?.id && OB.token === U.token && !!document.querySelector("#dlg[open] .onb");
+}
+async function analisarMarcaOnboarding() {
+  if (!OB.d.perfil && !OB.d.site) { OB.erro = "Informe o Instagram ou o site, ou escolha preencher manualmente."; return desenharOnboarding(); }
+  OB.analise = true; OB.erro = ""; const versao = ++OB.versao; desenharOnboarding();
+  const falhou = e => { if (!onboardingAtual(versao)) return; OB.analise = false; OB.erro = textoErro(e); desenharOnboarding(); };
+  try {
+    const { id } = await api({ acao: "analisarMarca", instagram: OB.d.perfil, site: OB.d.site });
+    const consultar = async () => {
+      if (!onboardingAtual(versao)) return;
+      try {
+        const r = await api({ acao: "analiseMarca", id }); if (!onboardingAtual(versao)) return;
+        if (r.status === "erro") throw { message: r.erro || "Não consegui analisar as páginas. Você pode preencher manualmente." };
+        if (r.status !== "feito") { OB.timer = setTimeout(consultar, 2000); return; }
+        const c = r.resultado?.campos || {}, cores = lerCores(c.Cores);
+        Object.assign(OB.d, { nome: c.Nome || OB.d.nome, perfil: c.Perfil || OB.d.perfil, site: c.Site || OB.d.site, faz: c.Posicionamento || "", publico: c.Publico || "", tom: c.TomDeVoz || "", pilares: (c.Pilares || []).join(", "), evitar: c.Evitar || "", exemplos: c.ExemplosBons || "", idioma: c.Idioma || "Português (Brasil)" });
+        if (cores[0]) OB.d.cor1 = cores[0].hex; if (cores[1]) OB.d.cor2 = cores[1].hex;
+        OB.d.temas = OB.d.pilares; OB.avisos = [...(r.resultado?.avisos || []), r.resultado?.observacoes].filter(Boolean);
+        OB.analise = false; OB.analisada = true; OB.passo = 1; desenharOnboarding();
+      } catch (e) { falhou(e); }
+    };
+    await consultar();
+  } catch (e) { falhou(e); }
+}
 async function avancarOnboarding() {
+  if (OB.salvando || OB.analise) return;
   lerOnboarding();
   const d = OB.d, P = OB.passo;
-  const salvar = async campos => { await api({ acao: "salvarMarca", id: M.marca ? M.marca.id : null, campos }); await carregarWeb(); };
+  const versao = OB.versao, org = U.organizacao?.id, token = U.token;
+  const conferir = () => { if (!onboardingAtual(versao)) throw new Error("Onboarding encerrado."); };
+  const pedir = async corpo => { conferir(); const r = await api(corpo); conferir(); return r; };
+  const arquivosEstilo = [...(document.getElementById("ob-posts")?.files || [])].slice(0, 8);
+  if (P === 4) OB.buscar = !!document.getElementById("ob-buscar")?.checked;
+  if (P === 0 && OB.modo === "ia") return analisarMarcaOnboarding();
+  const salvar = async campos => { await pedir({ acao: "salvarMarca", id: M.marca ? M.marca.id : null, campos }); await carregarWeb(); conferir(); };
   OB.salvando = true; desenharOnboarding();
   try {
     if (P === 1) {
       if (!d.nome) { OB.salvando = false; desenharOnboarding(); return toast("Dê um nome para a marca."); }
-      await salvar({ Nome: d.nome, Perfil: d.perfil, Posicionamento: d.faz, Publico: d.publico, ...(d.tom ? { TomDeVoz: d.tom } : {}), Redes: (M.marca && M.marca.Redes && M.marca.Redes.length) ? M.marca.Redes : ["Instagram"] });
+      await salvar({ Nome: d.nome, Perfil: d.perfil, Site: d.site, Posicionamento: d.faz, Publico: d.publico, TomDeVoz: d.tom, Pilares: d.pilares.split(/[,;\n]/).map(x => x.trim()).filter(Boolean), Evitar: d.evitar, ExemplosBons: d.exemplos, Idioma: d.idioma, Redes: (M.marca && M.marca.Redes && M.marca.Redes.length) ? M.marca.Redes : ["Instagram"] });
     }
     if (P === 2) {
       const outras = lerCores(M.marca && M.marca.Cores).slice(2);
       await salvar({ Cores: [`${d.cor1.toUpperCase()} Principal`, `${d.cor2.toUpperCase()} Destaque`, ...outras.map(c => `${c.hex} ${c.nome}`.trim())].join("\n") });
     }
     if (P === 3 && OB.estilo === "instagram") {
-      await api({ acao: "criarModelo", instagram: true, nome: "Meu Instagram" }); toast("A IA está estudando os seus posts. O modelo fica pronto em cerca de 1 minuto.");
+      await pedir({ acao: "criarModelo", instagram: true, nome: "Meu Instagram" }); toast("A IA está estudando os seus posts. O modelo fica pronto em cerca de 1 minuto.");
     }
     if (P === 3 && OB.estilo === "enviar") {
-      const arquivos = [...(document.getElementById("ob-posts")?.files || [])].filter(f => /^image\//.test(f.type)).slice(0, 8);
+      const arquivos = arquivosEstilo.filter(f => /^image\//.test(f.type));
       if (arquivos.length < 2) { OB.salvando = false; desenharOnboarding(); return toast("Escolha pelo menos 2 imagens de posts seus, ou outra opção."); }
       const imagens = []; for (const f of arquivos) { const x = await prepararFoto(f); imagens.push({ tipo: x.tipo, base64: x.base64 }); }
-      await api({ acao: "criarModelo", imagens, nome: "Meu estilo" }); toast("A IA está estudando os seus posts. O modelo fica pronto em cerca de 1 minuto.");
+      await pedir({ acao: "criarModelo", imagens, nome: "Meu estilo" }); toast("A IA está estudando os seus posts. O modelo fica pronto em cerca de 1 minuto.");
     }
     if (P === 4) {
-      OB.buscar = !!document.getElementById("ob-buscar")?.checked;
+      const buscar = OB.buscar;
       const ja = new Set((M.fontes || []).map(f => (f.nome || f.Nome || "").toLowerCase()));
-      for (const t of d.temas.split(/[,;\n]/).map(x => x.trim()).filter(Boolean).slice(0, 8)) if (!ja.has(t.toLowerCase())) await api({ acao: "salvarFonte", id: null, campos: { Nome: t, Tipo: "Tema", Ativa: true, Peso: 3 } });
+      for (const t of d.temas.split(/[,;\n]/).map(x => x.trim()).filter(Boolean).slice(0, 8)) if (!ja.has(t.toLowerCase())) await pedir({ acao: "salvarFonte", id: null, campos: { Nome: t, Tipo: "Tema", Ativa: true, Peso: 3 } });
       const conc = d.concorrente.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@+/, "");
-      if (conc) await api({ acao: "salvarFonte", id: null, campos: { Nome: "@" + conc, Tipo: "Perfil", Rede: "Instagram", URL: "https://instagram.com/" + conc, Ativa: true, Peso: 4 } });
+      if (conc) await pedir({ acao: "salvarFonte", id: null, campos: { Nome: "@" + conc, Tipo: "Perfil", Rede: "Instagram", URL: "https://instagram.com/" + conc, Ativa: true, Peso: 4 } });
       await concluirOnboarding();
+      if (org !== U.organizacao?.id || token !== U.token || OB.versao !== versao + 1) return;
       await carregarWeb(); renderMarca();
+      if (org !== U.organizacao?.id || token !== U.token || OB.versao !== versao + 1) return;
       ir("ideias");
-      if (OB.buscar && (d.temas || conc)) buscarIdeias({ quantidade: 10 });
+      if (buscar && (d.temas || conc)) buscarIdeias({ quantidade: 10 });
       else toast("Tudo pronto! Clique em Buscar ideias novas quando quiser.");
       return;
     }
     OB.passo++;
-  } catch (err) { toast("Não deu para salvar: " + textoErro(err)); }
+  } catch (err) { if (!onboardingAtual(versao)) return; toast("Não deu para salvar: " + textoErro(err)); }
   OB.salvando = false; desenharOnboarding();
 }
 async function concluirOnboarding() {
+  clearTimeout(OB.timer); OB.versao++;
   OB.aberto = false; OB.salvando = false; fecharDlg();
   if (U.organizacao) U.organizacao.onboarding = false;
   try { await api({ acao: "concluirOnboarding" }); } catch (e) {}
@@ -4670,11 +4886,12 @@ document.addEventListener("click", e => {
   if (a === "avancar") return avancarOnboarding();
   if (a === "voltar") { lerOnboarding(); OB.passo = Math.max(0, OB.passo - 1); return desenharOnboarding(); }
   if (a === "depois") { toast("Tudo bem. Os primeiros passos ficam no topo da página para quando quiser."); return concluirOnboarding(); }
+  if (a === "modo") { clearTimeout(OB.timer); OB.versao++; OB.analise = false; OB.erro = ""; OB.modo = b.dataset.v; return desenharOnboarding(); }
   if (a === "tom") { OB.d.tom = b.dataset.v; return desenharOnboarding(); }
   if (a === "estilo") { OB.estilo = b.dataset.v; return desenharOnboarding(); }
 });
 // Fechar com Esc não conclui: o passo a passo volta no próximo acesso (ou pelo checklist).
-document.addEventListener("close", e => { if (OB.aberto && e.target === dlg()) OB.aberto = false; }, true);
+document.addEventListener("close", e => { if (OB.aberto && e.target === dlg()) { OB.aberto = false; OB.versao++; clearTimeout(OB.timer); } }, true);
 // Checklist "Primeiros passos" no topo (14 dias depois do cadastro, ou até fechar).
 const PP = { redes: null, carregandoRedes: false, pedido: 0 };
 function desenharPrimeirosPassos() {
@@ -5051,7 +5268,7 @@ async function executar(op, dados, ok) {
 
 const v = id => (document.getElementById(id)?.value ?? "").trim();
 async function salvarMarca() {
-  const f = { Perfil: "Perfil", Nome: "Nome", Posicionamento: "Posicionamento", Publico: "Publico", TomDeVoz: "TomDeVoz", Evitar: "Evitar", ExemplosBons: "ExemplosBons", Pilares: "Pilares", Redes: "Redes", FrequenciaSemanal: "FrequenciaSemanal", Idioma: "Idioma", Cores: "Cores", Logo: "Logo" };
+  const f = { Perfil: "Perfil", Nome: "Nome", Posicionamento: "Posicionamento", Publico: "Publico", TomDeVoz: "TomDeVoz", Evitar: "Evitar", ExemplosBons: "ExemplosBons", Pilares: "Pilares", Redes: "Redes", FrequenciaSemanal: "FrequenciaSemanal", Idioma: "Idioma", Cores: "Cores", Logo: "Logo", Site: "Site" };
   const pilares = [...document.querySelectorAll('#m-pilares [aria-pressed="true"]')].map(b => b.dataset.valor);
   const redes = [...document.querySelectorAll('#m-redes [aria-pressed="true"]')].map(b => b.dataset.valor);
   if (!v("m-nome")) { M.aviso = { tipo: "erro", texto: "Preencha pelo menos o nome da marca." }; return renderStatus(); }
@@ -5062,6 +5279,7 @@ async function salvarMarca() {
     [f.FrequenciaSemanal]: Number.isFinite(freq) ? freq : null,
     [f.Idioma]: v("m-idioma") || null,
     [f.Perfil]: v("m-perfil").replace(/^@+/, "") || null,
+    ...(M.modo === "web" ? { [f.Site]: v("m-site") } : {}),
     [f.Cores]: [...document.querySelectorAll("#m-cores .cor")].map(r => {
       const hex = r.querySelector(".hex").value.trim().toUpperCase();
       return /^#[0-9A-F]{6}$/.test(hex) ? (hex + " " + r.querySelector(".nome").value.trim()).trim() : null;
@@ -5552,6 +5770,7 @@ function renderMarca() {
           <span class="actions"><input id="m-novo-pilar" placeholder="Novo pilar" style="max-width:220px"><button type="button" class="btn quiet" data-m="add-pilar">+ Adicionar</button></span></div>
         <div class="field full"><span>Redes onde publica</span>${toggles("m-redes", OPC.Redes, red)}</div>
         <label class="field"><span>Perfil nas redes (@)</span><input id="m-perfil" placeholder="@suamarca" value="${esc(m.Perfil ? "@" + String(m.Perfil).replace(/^@+/, "") : "")}"></label>
+        ${M.modo === "web" ? `<label class="field"><span>Site da marca</span><input id="m-site" inputmode="url" maxlength="1000" placeholder="https://suamarca.com.br" value="${esc(m.Site || "")}"></label>` : ""}
         <label class="field"><span>Idioma das postagens</span><select id="m-idioma">${opcoes(OPC.Idioma, selNome(m.Idioma) || "Português (Brasil)")}</select></label>
         <div class="field full"><span>Cores da marca${ajuda("cores")}</span>
           <div class="paleta" id="m-paleta" aria-hidden="true">${lerCores(m.Cores).map(c => `<i style="background:${c.hex}"></i>`).join("")}</div>
