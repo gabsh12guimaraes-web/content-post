@@ -1110,7 +1110,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
-<link rel="stylesheet" href="assets/painel.css?v=20261020-entrada">
+<link rel="stylesheet" href="assets/painel.css?v=20261020-ideias-vitrine">
 <div class="app">
   <aside class="side" id="side">
     <div class="side-logo"><button class="side-brand" data-tab="home" aria-label="Content Post · Home"><img class="cp-logo-img" src="marca/content-post-logo-branco.png" alt="Content Post"><img class="side-symbol" src="marca/content-post-simbolo-branco.png" alt=""></button><button class="side-toggle" data-side-collapse aria-label="Recolher menu" aria-expanded="true" title="Recolher menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 7l-5 5 5 5"/></svg></button></div>
@@ -2068,6 +2068,11 @@ function renderIdeias() {
 // A lista de ideias vem em páginas de 30: com centenas de cartões o celular travava a cada redesenho.
 const IDEIAS_PAGINA = 30;
 let ideiasVisiveis = IDEIAS_PAGINA;
+const ideiasAbertas = new Set();
+document.addEventListener("toggle", e => {
+  const d = e.target; if (!d.matches?.("details[data-ideia-detalhes]")) return;
+  if (d.open) ideiasAbertas.add(d.dataset.ideiaDetalhes); else ideiasAbertas.delete(d.dataset.ideiaDetalhes);
+}, true);
 function cardIdeia(i) {
   let rodape;
   if (i.status === "Sugerida" || i.status === "Guardada") {
@@ -2087,13 +2092,56 @@ function cardIdeia(i) {
   return `<article class="idea glass ${i.status === "Descartada" ? "dim" : ""}">
     <div class="score"><span class="pill ${i.score < 6 ? "low" : ""}">aderência <strong>${i.score}</strong>/10</span><span class="bar" aria-hidden="true"><i style="width:${i.score * 10}%"></i></span></div>
     <h3>${esc(i.titulo)}</h3>
-    <div class="meta"><span class="chip acc">${esc(i.formato)}</span><span class="chip plain">${esc(i.rede)}</span><span class="chip plain">${esc(i.pilar.split(":")[0])}</span></div>
-    <p>${esc(i.resumo)}</p>
-    ${i.porQue ? `<p class="why">${esc(i.porQue)}</p>` : ""}
-    ${i.refs ? `<div class="src">baseada em ${i.refs} post${i.refs > 1 ? "s" : ""} de referência</div>` : ""}
-    ${rodape}
+    <div class="meta"><span class="chip acc">${esc(NOME_FORMATO[i.formato] || i.formato)}</span><span class="chip plain">${esc(i.rede)}</span>${i.pilar ? `<span class="chip plain">${esc(i.pilar.split(":")[0])}</span>` : ""}</div>
+    <div class="idea-perfil">Para <b>${esc(perfilMarca() || M.marca?.Nome || U.organizacao?.nome || "Sua marca")}</b></div>
+    <details class="idea-detalhes" data-ideia-detalhes="${esc(i.id)}" ${ideiasAbertas.has(i.id) ? "open" : ""}>
+      <summary><span class="ver-mais">Ver mais</span><span class="ver-menos">Ver menos</span><span aria-hidden="true">⌄</span></summary>
+      <div class="idea-corpo">${i.resumo ? `<p>${esc(i.resumo)}</p>` : ""}${i.porQue ? `<p class="why">${esc(i.porQue)}</p>` : ""}${i.refs ? `<div class="src">Baseada em ${i.refs} post${i.refs > 1 ? "s" : ""} de referência.</div>` : ""}${rodape}</div>
+    </details>
+    ${M.modo === "web" ? `<button class="btn quiet idea-exemplos" data-ideia-exemplos="${esc(i.id)}">Ver exemplos ↗</button>` : ""}
   </article>`;
 }
+const EX = { pedido: 0, org: null, token: null, ideia: null, exemplos: [], aviso: "", erro: "", buscando: false, timer: null };
+function exemplosAtuais(pedido) { return EX.pedido === pedido && EX.org === U.organizacao?.id && EX.token === U.token && dlg().open && dlg().dataset.exemplos === String(pedido); }
+function desenharExemplos() {
+  const pedido = EX.pedido; if (!exemplosAtuais(pedido)) return;
+  abrirDlg(`<div class="exemplos-ideia"><header><div><span class="home-kicker">Referências para inspirar</span><h2 id="exemplos-titulo">${esc(EX.ideia.titulo)}</h2></div><button class="btn quiet" data-u="fechar" aria-label="Fechar exemplos">✕</button></header>
+    <p class="exemplos-nota">As referências apresentam temas ou formatos semelhantes e servem como inspiração. Elas não representam a execução exata desta ideia.</p>
+    ${EX.buscando ? `<div class="working" role="status"><span class="dot"></span>Buscando posts relacionados… Isso pode levar alguns minutos.</div>` : ""}
+    ${EX.erro ? `<div class="msg erro" role="alert">${esc(EX.erro)}</div>` : ""}${EX.aviso ? `<p class="hint">${esc(EX.aviso)}</p>` : ""}
+    ${EX.exemplos.length ? `<div class="exemplos-grade">${EX.exemplos.map((p, i) => `<article><div class="exemplos-label">Referência ${i + 1}<span>${esc(p.rede)}</span></div><iframe src="${esc(p.embed)}" title="Referência ${i + 1} no ${esc(p.rede)}" loading="lazy" allow="fullscreen; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe><a class="btn quiet" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Abrir publicação original ↗</a></article>`).join("")}</div><p class="small">Se a rede não carregar a incorporação, abra a publicação original pelo botão abaixo dela.</p>` : !EX.buscando && !EX.erro && !EX.aviso ? `<p class="hint">Nenhuma referência disponível no momento.</p>` : ""}
+    ${!EX.buscando ? `<div class="actions"><button class="btn quiet" data-exemplos-atualizar>Buscar novas referências</button><button class="btn" data-u="fechar">Fechar</button></div>` : ""}</div>`);
+  dlg().dataset.exemplos = String(pedido); dlg().classList.add("dlg-exemplos");
+}
+async function abrirExemplosIdeia(i, atualizar = false) {
+  clearTimeout(EX.timer); const pedido = ++EX.pedido;
+  Object.assign(EX, { org: U.organizacao?.id, token: U.token, ideia: i, exemplos: [], aviso: "", erro: "", buscando: true });
+  abrirDlg(`<h2>Referências para inspirar</h2><p class="hint">Buscando posts relacionados…</p>`); dlg().dataset.exemplos = String(pedido); desenharExemplos();
+  const concluir = r => {
+    EX.buscando = false;
+    EX.exemplos = (r.resultado?.exemplos || []).filter(p => { try { const u = new URL(p.embed), original = new URL(p.url); return ["www.instagram.com", "www.tiktok.com"].includes(u.hostname) && u.protocol === "https:" && ["www.instagram.com", "www.tiktok.com"].includes(original.hostname) && original.protocol === "https:"; } catch { return false; } }).slice(0, 3);
+    EX.aviso = r.resultado?.aviso || ""; desenharExemplos();
+  };
+  const falhou = e => { if (!exemplosAtuais(pedido)) return; EX.buscando = false; EX.erro = textoErro(e); desenharExemplos(); };
+  try {
+    const r = await api({ acao: "exemplosIdeia", id: i.id, atualizar }); if (!exemplosAtuais(pedido)) return;
+    if (r.status === "feito") return concluir(r);
+    const consultar = async () => {
+      if (!exemplosAtuais(pedido)) return;
+      try { const t = await api({ acao: "resultadoExemplos", id: r.id }); if (!exemplosAtuais(pedido)) return;
+        if (t.status === "feito") return concluir(t);
+        if (t.status === "erro") throw new Error(t.erro || "Não foi possível buscar referências agora.");
+        EX.timer = setTimeout(consultar, 2000);
+      } catch (e) { falhou(e); }
+    };
+    await consultar();
+  } catch (e) { falhou(e); }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-ideia-exemplos]"); if (b) { const i = state.ideias.find(i => i.id === b.dataset.ideiaExemplos); if (i) return abrirExemplosIdeia(i); }
+  if (e.target.closest("[data-exemplos-atualizar]") && EX.ideia) return abrirExemplosIdeia(EX.ideia, true);
+});
+document.addEventListener("close", e => { if (e.target === dlg()) { clearTimeout(EX.timer); EX.pedido++; } }, true);
 
 /* ---------- Calendário ---------- */
 const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
@@ -4463,6 +4511,8 @@ async function carregarWeb() {
   M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
 }
 function limparDados() {
+  ideiasAbertas.clear(); clearTimeout(EX.timer); EX.pedido++; EX.exemplos = []; EX.ideia = null;
+  clearTimeout(timerBanco); BI.pedido++; BI.lista = []; BI.carregado = false; BI.carregando = false; BI.editando = null; BI.podeVitrine = false;
   clearTimeout(OB.timer); OB.versao++; OB.aberto = false; OB.analise = false;
   if (UP.d) descartarPostPronto();
   calDiaAberto = null; calAberto = null;
@@ -4547,6 +4597,48 @@ const iniciais = n => String(n || "?").split(/\s+/).filter(Boolean).slice(0, 2).
 function marcaDoLogin() {
   return `<div class="auth-marca"><img class="cp-logo-img grande" src="marca/content-post-logo-branco.png" alt="Content Post"></div>`;
 }
+const VIT = { dados: null, em: 0, carregando: false, observer: null, videos: [] };
+const MIDIAS_LOGIN_PADRAO = [
+  { tipo: "video/mp4", url: "assets/home/toque.mp4", previa: "assets/home/reels.webp" },
+  { tipo: "image/webp", url: "assets/home/stories.webp" },
+  { tipo: "video/mp4", url: "assets/home/conexao.mp4", previa: "assets/home/conexao.webp" },
+  { tipo: "image/webp", url: "assets/home/reels.webp" },
+  { tipo: "image/webp", url: "assets/home/conexao.webp" },
+  { tipo: "image/webp", url: "assets/home/stories.webp" },
+];
+function pararVitrineLogin() { VIT.observer?.disconnect(); VIT.observer = null; VIT.videos.forEach(v => v.pause()); VIT.videos = []; }
+function desenharVitrineLogin() {
+  const el = document.querySelector("#auth .vitrine"); if (!el || document.getElementById("auth").hidden || !matchMedia("(min-width:900px)").matches) return;
+  pararVitrineLogin();
+  let lista = VIT.dados?.length ? VIT.dados : MIDIAS_LOGIN_PADRAO;
+  if (lista.length < 6) lista = Array.from({ length: 6 }, (_, i) => lista[i % lista.length]);
+  const tile = m => `<div class="tile tile-midia">${m.tipo === "video/mp4" ? `<video data-vitrine-src="${esc(m.url)}#t=0.1" ${m.previa ? `poster="${esc(m.previa)}"` : ""} muted loop playsinline preload="none" tabindex="-1"></video>` : `<img src="${esc(m.previa || m.url)}" alt="" loading="lazy" decoding="async">`}<span class="vitrine-ia">${m.tipo === "video/mp4" ? "Vídeo" : "Imagem"} com IA</span></div>`;
+  const metade = Math.ceil(lista.length / 2);
+  el.innerHTML = [0, 1].map(col => { const itens = col ? lista.slice(metade) : lista.slice(0, metade); return `<div class="col ${col ? "b" : "a"}">${itens.concat(itens).map(tile).join("")}</div>`; }).join("");
+  const animar = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const atualizar = (v, visivel) => {
+    if (visivel && !v.getAttribute("src")) { v.src = v.dataset.vitrineSrc; v.addEventListener("loadedmetadata", () => { if (v.paused && v.duration > 0.1) v.currentTime = 0.1; }, { once: true }); }
+    if (visivel && animar && !document.hidden && !document.getElementById("auth").hidden) v.play().catch(() => {}); else v.pause();
+  };
+  VIT.videos = [...el.querySelectorAll("video")];
+  if ("IntersectionObserver" in window) { VIT.observer = new IntersectionObserver(es => es.forEach(e => atualizar(e.target, e.isIntersecting)), { root: el, threshold: 0.1 }); VIT.videos.forEach(v => VIT.observer.observe(v)); }
+  else VIT.videos.forEach(v => atualizar(v, true));
+}
+async function carregarVitrineLogin() {
+  if (!matchMedia("(min-width:900px)").matches || document.getElementById("auth").hidden) return;
+  desenharVitrineLogin();
+  if (!API || VIT.carregando || Date.now() - VIT.em < 60000) return;
+  VIT.carregando = true;
+  try {
+    const r = await chamar({ acao: "vitrineLogin" }, false);
+    VIT.dados = (r.midias || []).filter(m => ["image/jpeg", "image/png", "image/webp", "video/mp4"].includes(m.tipo) && /^https?:\/\//.test(m.url)); VIT.em = Date.now();
+    desenharVitrineLogin();
+  } catch (e) { VIT.em = Date.now(); }
+  finally { VIT.carregando = false; }
+}
+matchMedia("(min-width:900px)").addEventListener("change", e => { if (e.matches) carregarVitrineLogin(); else pararVitrineLogin(); });
+matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", desenharVitrineLogin);
+document.addEventListener("visibilitychange", () => { if (document.hidden) VIT.videos.forEach(v => v.pause()); else desenharVitrineLogin(); });
 function renderAuth() {
   const el = document.getElementById("auth"), quem = document.getElementById("usuario");
   const web = M.modo === "web";
@@ -4564,12 +4656,9 @@ function renderAuth() {
   const aberto = web && U.tela !== "ok";
   sincronizarMenu();
   el.hidden = !aberto; document.body.classList.toggle("travado", aberto);
-  if (!aberto) return;
+  if (!aberto) { pararVitrineLogin(); return; }
   const erro = U.erro ? `<div class="msg erro">${esc(U.erro)}</div>` : "";
-  const tiles = ["Carrossel|5 erros ao dividir a conta", "Reels|Bastidores do evento", "Estático|Pague em 3 cliques", "Carrossel|Guia do primeiro rolê", "Reels|Fila zero no bar", "Stories|Enquete da semana"];
-  const coluna = (lista, cls) => `<div class="col ${cls}">${lista.concat(lista).map(t => { const [a, b] = t.split("|"); return `<div class="tile"><span>${a}</span><b>${b}</b></div>`; }).join("")}</div>`;
-  const vitrine = `<div class="vitrine" aria-hidden="true">${coluna(tiles.slice(0, 3), "a")}${coluna(tiles.slice(3), "b")}</div>`;
-  const casca = form => `<div class="auth-wrap"><div class="auth-form">${form}</div>${vitrine}</div>`;
+  const casca = form => { setTimeout(carregarVitrineLogin, 0); return `<div class="auth-wrap"><div class="auth-form">${form}</div><div class="vitrine" aria-hidden="true"></div></div>`; };
   const ci = U.conviteInfo;
   const aviso = ci ? `<div class="msg">Convite para entrar em <b>${esc(ci.organizacao)}</b> como ${esc(PAPEIS[ci.papel] || ci.papel)}.</div>` : "";
   if (!API) { el.innerHTML = casca(`<div class="auth-card">${marcaDoLogin()}<h1>Quase lá</h1><p class="hint">O endereço da API ainda não foi configurado neste painel.</p></div>`); return; }
@@ -4629,6 +4718,7 @@ const seletorDlg = el => el.tagName.toLowerCase() + Object.entries(el.dataset).m
 function abrirDlg(html) {
   const d = dlg(), jaAberto = d.open, topo = d.scrollTop;
   delete d.dataset.integracoes;
+  delete d.dataset.exemplos; d.classList.remove("dlg-exemplos");
   d.classList.remove("dlg-agend");
   delete d.dataset.agendPost;
   if (d.getAttribute("aria-labelledby") === "ag-post-titulo") d.removeAttribute("aria-labelledby");
@@ -5353,7 +5443,7 @@ function formFonte(x) {
   </div>`;
 }
 // Banco de imagens: fotos próprias da marca (produtos, loja) para usar nos posts no lugar das geradas por IA.
-const BI = { lista: [], carregado: false, carregando: false, enviando: 0, total: 0, editando: null, erro: "", filtro: "todos" };
+const BI = { lista: [], carregado: false, carregando: false, enviando: 0, total: 0, editando: null, erro: "", filtro: "todos", podeVitrine: false, pedido: 0 };
 const ehVideoBanco = x => /^video\//.test((x.arquivo && x.arquivo.type) || "");
 const FILTROS_BANCO = [["todos", "Todos", () => true], ["envio", "Enviados por você", x => x.origem !== "ia"], ["ia", "Gerados por IA", x => x.origem === "ia"], ["fotos", "Fotos", x => !ehVideoBanco(x)], ["videos", "Vídeos", ehVideoBanco]];
 const bancoFiltrado = () => BI.lista.filter((FILTROS_BANCO.find(f => f[0] === BI.filtro) || FILTROS_BANCO[0])[2]);
@@ -5364,8 +5454,10 @@ const midiaBanco = (x, lazy) => ehVideoBanco(x)
 let timerBanco = null;
 async function carregarBanco(silencioso) {
   if (BI.carregando) return; BI.carregando = true;
-  try { BI.lista = (await api({ acao: "listarBanco" })).imagens || []; BI.carregado = true; BI.erro = ""; }
-  catch (e) { BI.erro = textoErro(e); }
+  const pedido = ++BI.pedido, org = U.organizacao?.id, token = U.token;
+  const atual = () => pedido === BI.pedido && org === U.organizacao?.id && token === U.token;
+  try { const r = await api({ acao: "listarBanco" }); if (!atual()) return; BI.lista = r.imagens || []; BI.podeVitrine = !!r.podeVitrine; BI.carregado = true; BI.erro = ""; }
+  catch (e) { if (!atual()) return; BI.erro = textoErro(e); }
   BI.carregando = false;
   desenharBanco(); if (!silencioso) desenharEscolhaBanco();
   clearTimeout(timerBanco);
@@ -5528,6 +5620,7 @@ function desenharBanco() {
       ${midiaBanco(x)}
       <label class="field"><span>Nome</span><input id="bi-nome" maxlength="80" value="${esc(x.nome)}"></label>
       <label class="field"><span>O que aparece</span><textarea id="bi-desc" rows="2" maxlength="400">${esc(x.descricao)}</textarea></label>
+      ${BI.podeVitrine && x.origem === "ia" ? `<div class="bi-vitrine"><label class="check-tratar"><input id="bi-login" type="checkbox" ${x.publicoLogin ? "checked" : ""}> Exibir esta mídia na tela de login</label><p class="small">Visível publicamente antes do acesso à conta. A vitrine usa até 8 itens selecionados mais recentes.</p></div>` : ""}
       <label class="field"><span>Etiquetas (separe por vírgula)</span><input id="bi-tags" maxlength="200" value="${esc((x.tags || []).join(", "))}"></label>
       <div class="actions"><button type="button" class="btn primary" data-bi="salvar" data-id="${x.id}">Salvar</button><button type="button" class="btn quiet" data-bi="cancelar">Cancelar</button></div>
     </div>` : `<div class="bi-card">
@@ -5556,7 +5649,8 @@ document.addEventListener("click", async e => {
   }
   if (a === "salvar") {
     const v = k => document.getElementById(k)?.value || "";
-    try { await api({ acao: "salvarImagemBanco", id, nome: v("bi-nome"), descricao: v("bi-desc"), tags: v("bi-tags").split(",") }); BI.editando = null; toast("Atualizado."); carregarBanco(); }
+    const login = document.getElementById("bi-login");
+    try { await api({ acao: "salvarImagemBanco", id, nome: v("bi-nome"), descricao: v("bi-desc"), tags: v("bi-tags").split(",") }); if (login) { await api({ acao: "publicarMidiaLogin", id, publicar: login.checked }); VIT.em = 0; VIT.dados = null; } BI.editando = null; toast("Atualizado."); carregarBanco(); }
     catch (err) { toast("Não deu para salvar: " + textoErro(err)); }
     return;
   }
