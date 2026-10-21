@@ -1105,7 +1105,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 </style>
 
 <link rel="stylesheet" href="assets/painel.css?v=20261020-ideias-vitrine">
-<link rel="stylesheet" href="assets/mega-brain.css?v=20261020-megabrain">
+<link rel="stylesheet" href="assets/mega-brain.css?v=20261020-home-destaque">
 <div class="app">
   <aside class="side" id="side">
     <div class="side-logo"><button class="side-brand" data-tab="home" aria-label="Content Post · Home"><img class="cp-logo-img" src="marca/content-post-logo-branco.png" alt="Content Post"><img class="side-symbol" src="marca/content-post-simbolo-branco.png" alt=""></button><button class="side-toggle" data-side-collapse aria-label="Recolher menu" aria-expanded="true" title="Recolher menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 7l-5 5 5 5"/></svg></button></div>
@@ -3944,23 +3944,32 @@ document.addEventListener("scroll", e => {
 
 /* ---------- Home ---------- */
 let homeVideosPausados = false, homeMovimentoAutorizado = false;
+const visibilidadeVideosHome = new WeakMap();
 try { homeVideosPausados = localStorage.getItem(KEY + ":videos-home") === "pausados"; } catch (e) {}
 function videosHome() {
   const pausar = homeVideosPausados || (!homeMovimentoAutorizado && (matchMedia("(prefers-reduced-motion: reduce)").matches || navigator.connection?.saveData)) || document.hidden || tab !== "home";
+  document.getElementById("p-home").classList.toggle("home-videos-parados", pausar);
   document.querySelectorAll("[data-home-video]").forEach(v => {
-    if (pausar) return v.pause();
+    const r = v.getBoundingClientRect();
+    const visivel = visibilidadeVideosHome.get(v) ?? (!!r.width && !!r.height && r.bottom > 0 && r.top < innerHeight);
+    if (pausar || !visivel) return v.pause();
     if (!v.getAttribute("src")) v.src = v.dataset.homeVideo;
     v.muted = true; v.play().catch(() => {});
   });
-  const b = document.querySelector("[data-home-motion]");
-  if (b) { b.textContent = pausar ? "▷ Reproduzir vídeos" : "Ⅱ Pausar vídeos"; b.setAttribute("aria-pressed", String(!pausar)); }
+  document.querySelectorAll("[data-home-motion]").forEach(b => { b.textContent = pausar ? "▷ Reproduzir vídeos" : "Ⅱ Pausar vídeos"; b.setAttribute("aria-pressed", String(!pausar)); b.setAttribute("aria-label", pausar ? "Reproduzir vídeos da Home" : "Pausar vídeos da Home"); });
 }
+const observadorVideosHome = "IntersectionObserver" in window ? new IntersectionObserver(entradas => {
+  entradas.forEach(e => visibilidadeVideosHome.set(e.target, e.isIntersecting && e.intersectionRatio >= .01));
+  videosHome();
+}, { threshold: [0, .01] }) : null;
+if (!observadorVideosHome) { addEventListener("scroll", videosHome, { passive: true }); addEventListener("resize", videosHome); }
 document.addEventListener("visibilitychange", videosHome);
 matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", videosHome);
 function renderHome() {
   const el = document.getElementById("p-home");
   el.classList.add("home-page");
   if (!el.querySelector(".home-hero")) {
+    observadorVideosHome?.disconnect();
     const ferramentas = [
       ["marca", "Marca e fontes", "A essência da sua marca."], ["ideias", "Ideias", "Inspiração com estratégia."], ["cal", "Calendário", "Sua pauta, bem organizada."],
       ["rev", "Revisão", "Seu olhar antes de publicar."], ["agend", "Agendados", "Conteúdo no momento certo."], ["banco", "Banco de imagens", "Suas fotos e vídeos, juntos."],
@@ -3981,11 +3990,16 @@ function renderHome() {
       <div class="home-showcase" aria-hidden="true"><div class="home-film"><video data-home-video="assets/home/toque.mp4" poster="assets/home/reels.webp" muted loop playsinline preload="none" tabindex="-1"></video><div class="home-film-caption"><small>Do seu jeito</small>Conteúdo com<br>a sua essência.</div></div><div class="home-film"><video data-home-video="assets/home/conexao.mp4" poster="assets/home/conexao.webp" muted loop playsinline preload="none" tabindex="-1"></video><div class="home-film-caption"><small>Para o seu público</small>Feito para<br>conectar.</div></div><div class="home-spark">✦ Boas ideias ganham vida aqui.</div></div>
       <button class="home-motion" data-home-motion aria-pressed="false">Reproduzir vídeos</button>
     </section>
+    <section class="home-brain" aria-labelledby="home-brain-title">
+      <div class="home-brain-background" aria-hidden="true"><video data-home-video="assets/home/conexao.mp4" poster="assets/home/conexao.webp" muted loop playsinline preload="none" tabindex="-1"></video><video data-home-video="assets/home/toque.mp4" poster="assets/home/reels.webp" muted loop playsinline preload="none" tabindex="-1"></video></div>
+      <div class="home-brain-copy"><span class="home-brain-eyebrow"><span aria-hidden="true">✦</span> Sua próxima grande ideia começa aqui</span><h2 id="home-brain-title">Mega <em>Brain</em><span>Menos “o que postar?”<br>Mais direção.</span></h2><p>Conte seu objetivo. A IA monta uma estratégia para sua marca atrair, conectar e converter. Depois, transforme cada etapa em ideias de conteúdo.</p><div class="home-brain-actions"><button type="button" class="btn primary" data-tab="brain">Criar minha estratégia ${iconeMenu("seta", 18)}</button><span>✦ Estratégia incluída no seu plano</span></div></div>
+      <div class="home-brain-universe" aria-hidden="true"><span class="home-brain-orbit"></span><span class="home-brain-orbit interior"></span><div class="home-brain-core">${iconeMenu("brain", 54)}<span>MEGA BRAIN</span></div><div class="home-brain-prompt"><span>SEU OBJETIVO</span>“Quero vender mais.”<i>${iconeMenu("seta", 15)}</i></div><div class="home-brain-node atrair"><i>01</i><span><b>Atrair</b><small>Topo do funil</small></span><span>✦</span></div><div class="home-brain-node conectar"><i>02</i><span><b>Conectar</b><small>Meio do funil</small></span><span>✦</span></div><div class="home-brain-node converter"><i>03</i><span><b>Converter</b><small>Fundo do funil</small></span><span>✦</span></div><span class="home-brain-star a">✦</span><span class="home-brain-star b">✧</span><span class="home-brain-star c">✦</span></div>
+      <button type="button" class="home-motion" data-home-motion aria-pressed="false">Reproduzir vídeos</button>
+    </section>
     <section class="home-discover" aria-label="Pacotes e ferramentas">
       <div class="home-offer"><span class="home-kicker">Um próximo passo para a sua marca</span><h2>Mais conteúdo.<br><em>Mais possibilidades.</em></h2><p>Encontre o pacote para o seu ritmo: da presença nas redes a uma rotina completa de criação e publicação com IA.</p><span class="home-plan-names">Essencial · Profissional · Agência</span><button class="btn" data-u="plano">Conhecer os pacotes ${iconeMenu("seta", 15)}</button></div>
       <div class="home-tools">${ferramentas.map(([t, nome, desc]) => `<button class="home-tool" data-tab="${t}"><span class="home-tool-icon">${iconeMenu(t)}</span><b>${nome}</b><small>${desc}</small></button>`).join("")}</div>
     </section>
-    <section class="home-brain"><span class="mb-avatar" aria-hidden="true">✦</span><div><span class="mb-selo">Conheça o Mega Brain</span><b>Antes do próximo post, uma direção.</b><p>Conte seu objetivo e monte uma estratégia para atrair, conectar e converter.</p></div><button type="button" class="btn" data-tab="brain">Montar minha estratégia ${iconeMenu("seta", 16)}</button></section>
     <section id="home-criar" aria-labelledby="home-criar-title"><div class="home-section-head"><div><h2 id="home-criar-title">O que vamos criar hoje?</h2><p>Escolha o formato. A próxima boa ideia é sua.</p></div><span class="home-kicker">Da ideia ao post</span></div>
       <div class="home-ready"><span class="home-tool-icon" aria-hidden="true">↑</span><div><b>Já tem um conteúdo pronto?</b><p>Envie suas imagens ou vídeos. A IA cuida da legenda e das hashtags.</p></div><button class="btn" data-post-pronto>Enviar post pronto ${iconeMenu("seta", 15)}</button></div>
       <div class="home-create-grid">${formatos.map(([f, icone, rotulo, arte, desc]) => `<button class="home-create" data-home-formato="${f}"><div class="home-create-art ${f === "Carrossel" ? "home-art-slides" : f === "Estatico" ? "home-art-static" : ""}"><span class="home-format">${rotulo}</span>${arte}</div><div class="home-create-text"><b>Criar ${f === "Estatico" ? "post estático" : NOME_FORMATO[f]}</b><span>${iconeMenu(icone, 18)}</span><small>${desc}</small></div></button>`).join("")}</div>
@@ -3993,6 +4007,7 @@ function renderHome() {
     <section aria-labelledby="home-overview-title"><div class="home-section-head"><div><h2 id="home-overview-title">Sua criação em movimento</h2><p>Um olhar rápido para o que está acontecendo na sua pauta.</p></div><button class="btn quiet" data-tab="cal">Ver calendário →</button></div><div class="home-overview">${[["ideias", "Ideias para explorar"], ["rev", "Para revisar"], ["agend", "Na fila de publicação"], ["publicados", "Publicados no mês"]].map(([k, t]) => `<button class="home-stat" data-tab="${k === "publicados" ? "agend" : k}"><span class="home-tool-icon">${iconeMenu(k === "publicados" ? "cal" : k)}</span><span><strong data-home-stat="${k}">–</strong><small>${t}</small></span></button>`).join("")}</div></section>
     <div class="home-bottom"><section class="home-upcoming" aria-labelledby="home-next-title"><div class="home-section-head"><h2 id="home-next-title">Vem aí na sua pauta</h2><button class="btn quiet" data-tab="cal">Ver tudo →</button></div><div id="home-proximos"></div></section>
     <section class="home-tip"><span class="home-kicker">✦ Um cuidado que faz diferença</span><h2>Sua identidade, em cada post.</h2><p>Uma marca bem definida ajuda a IA a acertar no tom, nas cores e nas ideias. Mantenha suas referências por perto e faça cada conteúdo ter a sua cara.</p><button class="btn" data-tab="marca">Cuidar da minha marca ${iconeMenu("seta", 15)}</button><p>Já tem boas fotos? Reutilize seu banco na criação e aproveite melhor os seus créditos.</p><button class="linkbtn" data-tab="banco">Explorar meu banco de imagens →</button></section></div>`;
+    el.querySelectorAll("[data-home-video]").forEach(v => observadorVideosHome?.observe(v));
   }
   const agora = new Date();
   const contagens = {
