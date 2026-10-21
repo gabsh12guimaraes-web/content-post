@@ -1116,6 +1116,8 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
+<link rel="stylesheet" href="assets/cupons.css?v=20261020-nasten">
+<script src="assets/cupons.js?v=20261020-nasten" defer></script>
 <link rel="stylesheet" href="assets/painel.css?v=20261020-ideias-vitrine">
 <div class="app">
   <aside class="side" id="side">
@@ -2425,7 +2427,7 @@ const AJUDA = {
   redesConectadas: ["Redes conectadas", "Clique em Conectar, entre na rede e autorize. A conta fica ligada só a esta organização, e os posts saem só nela. O Instagram precisa ser conta profissional (Comercial ou Criador de conteúdo).", "zernio"],
   airtable: ["Importar do Airtable", "Crie um token em airtable.com/create/tokens (leitura de registros e do esquema), dê acesso à base e cole com o ID da base (começa com app). Importe uma vez só.", "airtable"],
   equipe: ["Equipe", "Dono e admin convidam pessoas e cuidam das chaves; editor cuida da pauta. O convite vale 7 dias e precisa do mesmo e-mail.", "equipe"],
-  plano: ["Plano", "Mostra o uso do mês e permite assinar ou trocar de plano pela Kiwify. Só contam posts criados pela IA.", "planos"],
+  plano: ["Plano", "Mostra o uso do mês e permite assinar ou trocar de plano pela Nasten. Só contam posts criados pela IA.", "planos"],
 };
 const ajuda = k => AJUDA[k] ? `<button type="button" class="ajuda-btn" data-ajuda="${k}" aria-label="Como funciona: ${esc(AJUDA[k][0])}" aria-expanded="false">?</button>` : "";
 function fecharAjuda() { document.querySelectorAll(".ajuda-pop").forEach(x => x.remove()); document.querySelectorAll('.ajuda-btn[aria-expanded="true"]').forEach(b => b.setAttribute("aria-expanded", "false")); }
@@ -4803,7 +4805,7 @@ function desenharEquipe() {
 }
 const INT = { dados: null, erro: "", teste: {}, redes: null, org: null, token: null, pedido: 0, selecao: null };
 document.addEventListener("close", e => { if (e.target === dlg()) INT.selecao = null; }, true);
-// Plano da organização: uso do mês, troca de plano pelo checkout da Kiwify e link de afiliado.
+// Plano da organização: uso do mês, troca de plano pelo checkout da Nasten e link de afiliado.
 const PL = { dados: null, erro: "", ciclo: "anual", aviso: "" };
 const reais = v => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2 });
 // Situação do plano (para o aviso do topo): recarrega ao entrar, ao trocar de organização e depois de criar ou buscar ideias.
@@ -5056,6 +5058,7 @@ function desenharPlano() {
       <div class="pc-info"><b>${esc(p.nome)}${p.id === "profissional" ? ` <span class="chip acc">Mais escolhido</span>` : ""}</b><span>${p.posts} posts por mês com IA<br>${p.ideias} buscas de ideias${p.modelos ? `<br>${p.modelos} modelos da marca` : ""}</span></div>
       <div class="pc-preco">${c.dePorMes > c.porMes ? `<span class="de">de <s>${reais(c.dePorMes)}</s> por</span>` : ""}<span class="preco">${reais(c.porMes)}<small>/mês${c.dePorMes > c.porMes ? "*" : ""}</small></span><span class="small">${c.meses > 1 ? "cobrado " + reais(c.total) + " a cada " + c.meses + " meses" : "cobrado todo mês"}</span></div>
       ${meu ? `<span class="chip ok">Seu plano</span>` : c.checkout ? `<a class="btn ${p.id === "profissional" ? "primary" : ""}" href="${esc(c.checkout)}" target="_blank" rel="noopener">Assinar</a>` : `<span class="small">Checkout ainda não configurado</span>`}
+      ${!meu && d.provedor === "nasten" && c.cupom ? `<div class="cupom-checkout"><span>Use este cupom no checkout para obter o valor acima:</span><button type="button" data-cupom="${esc(c.cupom)}" aria-label="Copiar cupom ${esc(c.cupom)}"><code>${esc(c.cupom)}</code> · Copiar</button></div>` : ""}
     </div>`;
   }).join("");
   abrirDlg(`<h2>Plano · ${esc(U.organizacao.nome)}${ajuda("plano")}</h2>
@@ -5067,7 +5070,7 @@ function desenharPlano() {
     <div class="seg" role="group" aria-label="Ciclo" style="margin:14px 0 10px">${ciclos.map(([v, t]) => `<button data-u="ciclo" data-v="${v}" aria-pressed="${PL.ciclo === v}">${t}</button>`).join("")}</div>
     <div class="planos-grade">${cards}</div>
     ${d.planos.some(p => p.ciclos.some(c => c.dePorMes > c.porMes)) ? `<p class="hint">* Promoção por tempo limitado.</p>` : ""}
-    <p class="hint">O pagamento é feito na Kiwify (cartão, Pix ou boleto). Assim que for aprovado, o plano é liberado aqui.</p>
+    <p class="hint">O pagamento é feito ${d.provedor === "kiwify" ? "na Kiwify" : "na Nasten"}. Use o mesmo e-mail da sua conta${d.provedor === "nasten" ? " e aplique o cupom no checkout" : ""}. O plano será liberado após a confirmação do pagamento. Parcelamento sujeito às condições do checkout.</p>
     ${d.afiliados ? `<div class="urow" style="margin-top:10px"><div><div class="un">Indique e ganhe</div><div class="ue">Seja afiliado da Content Post e ganhe comissão por cada assinatura que vier do seu link.</div></div><a class="btn" href="${esc(d.afiliados)}" target="_blank" rel="noopener">Quero ser afiliado</a></div>` : ""}
     <div class="actions" style="margin-top:14px"><button class="btn" data-u="fechar">Fechar</button></div>`);
 }
@@ -5807,7 +5810,7 @@ function renderAdmin() {
     ["Usuários", num(d.usuarios.total), `+${d.usuarios.novos7} em 7 dias · +${d.usuarios.novos30} em 30`],
     ["Ativos", num(d.usuarios.ativos7), `entraram nos últimos 7 dias · ${num(d.usuarios.ativos30)} em 30`],
     ["Organizações", num(d.usuarios.organizacoes), `${sit.assinante} assinantes · ${sit.teste} em teste`],
-    ["Receita por mês", brl(d.receita.mrrBrl), `líquida da Kiwify: ${brl(d.receita.liquidaMesBrl)}`],
+    ["Receita por mês", brl(d.receita.mrrBrl), `líquida dos pagamentos: ${brl(d.receita.liquidaMesBrl)}`],
     ["Gasto no mês", brl(d.custos.custoMesBrl), `${usd(d.custos.custoMesUsd)} · inclui Railway estimado`],
     ["Margem do mês", brl(d.custos.margemMesBrl), "receita líquida menos o gasto da plataforma"],
   ].map(([t, v, s]) => `<div class="kpi ad-kpi"><span class="lbl">${t}</span><b>${v}</b><small>${esc(s)}</small></div>`).join("");
@@ -5824,6 +5827,7 @@ function renderAdmin() {
   el.innerHTML = `
     <div class="ad-topo"><span class="small">Atualizado ${new Date(d.geradoEm).toLocaleString("pt-BR")} · dólar a R$ ${String(d.dolar).replace(".", ",")}</span><button class="btn quiet" data-ad="atualizar" ${AD.carregando ? "disabled" : ""}>${AD.carregando ? "Atualizando…" : "Atualizar"}</button></div>
     <div class="ad-kpis">${tiles}</div>
+    ${d.pagamentos ? `<div class="glass ad-bloco" data-admin-pagamentos><h3>Pagamentos · Nasten</h3><div class="meta">${[["chavePublica","Chave pública"],["chaveSecreta","Chave secreta"],["webhook","Segredo do webhook"]].map(([k,n]) => `<span class="chip ${d.pagamentos[k] ? "ok" : "erro"}">${n}: ${d.pagamentos[k] ? "configurada" : "pendente"}</span>`).join("")}</div><p class="small" style="overflow-wrap:anywhere">URL do webhook: <code>${esc(d.pagamentos.urlWebhook)}</code></p><p class="small">${d.pagamentos.pendentes} aviso(s) aguardando processamento ou conferência. ${d.pagamentos.ultimo ? "Último aviso recebido: " + new Date(d.pagamentos.ultimo).toLocaleString("pt-BR") + "." : "Nenhum aviso recebido ainda."}</p></div>` : ""}
     <div class="glass ad-bloco"><div class="ad-cab"><h3>Gasto da plataforma por dia (últimos 30 dias, US$)</h3><button class="btn quiet" data-ad="tabela">${AD.tabela ? "Ver gráfico" : "Ver tabela"}</button></div>
       <div class="ad-legenda">${SERVICOS.map(s => `<span><i class="ad-cor" style="background:${s.cor}"></i>${s.nome} ${usd(P.d30[s.k].plataforma.usd)}</span>`).join("")}</div>
       ${AD.tabela ? `<div class="ad-tab"><table><thead><tr><th>Dia</th>${SERVICOS.map(s => `<th class="n">${s.nome}</th>`).join("")}<th class="n">Total</th></tr></thead><tbody>${d.serie.slice().reverse().map(s => `<tr><td>${diaCurto(s.dia)}</td>${SERVICOS.map(x => `<td class="n">${usd(s[x.k])}</td>`).join("")}<td class="n">${usd(SERVICOS.reduce((a, x) => a + s[x.k], 0))}</td></tr>`).join("")}</tbody></table></div>` : graficoGasto(d.serie)}
@@ -5832,7 +5836,7 @@ function renderAdmin() {
       ${SERVICOS.map(linhaServ).join("")}
       <tr><td><i class="ad-cor" style="background:#d55181"></i>Railway (estimado)</td><td class="n">${usd(d.custos.railwayUsdMes)}</td><td class="n">${usd(d.custos.railwayUsdMes)}</td><td class="n">–</td><td class="uso">${d.custos.orgsAtivas} organizações ativas × R$ ${d.precos.railwayOrgMesBrl} por mês</td><td class="n">–</td></tr>
       <tr class="ad-total"><td>Total</td><td class="n">${usd(soma("mes", "plataforma") + d.custos.railwayUsdMes)}</td><td class="n">${usd(soma("d30", "plataforma") + d.custos.railwayUsdMes)}</td><td class="n">${usd(soma("total", "plataforma"))}</td><td></td><td class="n">${usd(soma("d30", "propria"))}</td></tr>
-      <tr><td>Kiwify (taxas)</td><td class="n">${brl(d.receita.taxasKiwifyMesBrl)}</td><td colspan="4" class="small">taxas reais de cada cobrança (valor pago menos o líquido que a Kiwify informa); sem esse dado, 8,99% + R$ 2,49. Dividido pelos meses do ciclo.</td></tr>
+      <tr><td>Pagamentos (taxas)</td><td class="n">${brl((d.receita.taxasPagamentoMesBrl ?? d.receita.taxasKiwifyMesBrl))}</td><td colspan="4" class="small">valor pago menos o líquido informado pelo provedor, dividido pelos meses do ciclo. As taxas históricas da Kiwify mantêm a estimativa anterior quando não há valor líquido registrado.</td></tr>
     </tbody></table></div>
     <p class="small" style="margin:0">Preços usados (editáveis em <code>content-post-api/src/custos.js</code>): Claude US$ ${d.precos.anthropic.entrada} / ${d.precos.anthropic.saida} por milhão de tokens de entrada / saída · Magnific US$ ${String(d.precos.magnific.foto).replace(".", ",")} por foto e US$ ${String(d.precos.magnific.clipe).replace(".", ",")} por segundo de vídeo · Apify US$ ${(d.precos.apify.coleta * 1000).toFixed(2).replace(".", ",")} por mil itens · Zernio US$ ${d.precos.zernio.publicacao.toFixed(2).replace(".", ",")} por publicação. Os valores "estimado" vêm de antes do registro de consumo (18/10/2026).</p></div>
     <div class="ad-duas">
@@ -5845,7 +5849,7 @@ function renderAdmin() {
     </tbody></table></div><p class="small" style="margin:0">Inclui o uso com chave própria. Uso do mês nos posts: ${num(d.uso.posts30)} criados, ${num(d.uso.ideias30)} buscas de ideias, ${num(d.uso.publicados30)} publicados (30 dias).</p></div>
     <div class="glass ad-bloco"><h3>Organizações: gasto e receita</h3><div class="ad-tab"><table><thead><tr><th>Organização</th><th>Situação</th><th>Plano</th><th class="n">Gasto 30 dias</th><th class="n">Receita líquida/mês</th><th class="n">Margem</th></tr></thead><tbody>
       ${d.topOrgs.length ? d.topOrgs.map(o => `<tr><td>${esc(o.nome)}</td><td>${esc(SIT[o.situacao] || o.situacao)}</td><td>${esc([o.plano, o.ciclo].filter(Boolean).join(" "))}</td><td class="n">${usd(o.custoUsd30)}</td><td class="n">${o.receitaMesBrl ? brl(o.receitaMesBrl) : "–"}</td><td class="n ${o.margemBrl < 0 ? "ad-neg" : ""}">${brl(o.margemBrl)}</td></tr>`).join("") : `<tr><td colspan="6" class="small">Nenhum gasto ainda.</td></tr>`}
-    </tbody></table></div><p class="small" style="margin:0">As 25 organizações que mais gastaram nos últimos 30 dias. Receita líquida = o que a Kiwify repassa da última cobrança (com cupom e já sem as taxas). Margem = receita líquida menos o gasto de IA em R$ (sem Railway).</p></div>`;
+    </tbody></table></div><p class="small" style="margin:0">${d.receita.taxasPendentes ? `${d.receita.taxasPendentes} organização(ões) com taxas ainda não informadas pela Nasten; esses valores estão sem dedução de taxas. ` : ""}As 25 organizações que mais gastaram nos últimos 30 dias. Receita líquida = o que o provedor repassa da última cobrança (com cupom e já sem as taxas). Margem = receita líquida menos o gasto de IA em R$ (sem Railway).</p></div>`;
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-ad]"); if (!b) return;
