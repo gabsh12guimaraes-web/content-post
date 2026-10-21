@@ -178,8 +178,9 @@ footer a { color: var(--soft); }
 @media (max-width: 560px) { .barra-cta span { display: none; } .barra-cta .btn { width: 100%; } .garantia { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
 @media (prefers-reduced-motion: reduce) { .anel { animation: none; } html { scroll-behavior: auto; } }
 </style>
+<link rel="stylesheet" href="assets/landing.css">
 </head>
-<body>
+<body class="lp">
 <div class="wrap">
   <header class="topo">
     <a class="logo" href="./"><img src="marca/content-post-logo-branco.png" alt="Content Post"></a>
@@ -187,45 +188,61 @@ footer a { color: var(--soft); }
   </header>
 
   <section class="hero">
+    <div class="hero-copy">
     <span class="pre">Para quem precisa postar e não tem tempo</span>
     <h1>Seu Instagram postando <em>todo dia</em>, sem você passar a noite criando post</h1>
     <p class="sub">A Content Post usa inteligência artificial para criar ideias, textos, fotos e vídeos com a cara da sua marca. Você só aprova, e ela publica sozinha.</p>
-    <div class="vsl" id="vsl" aria-label="Vídeo de apresentação"></div>
     <div class="abaixo-video" id="cta-video">
       <a class="btn primary cta" href="#planos" data-cta>Quero meu Instagram no automático</a>
       <small>Ou <a href="app">teste grátis por 7 dias</a>, com 3 posts, sem cartão.</small>
     </div>
+    </div>
+    <div class="hero-media">
+      <div class="hero-preview" aria-hidden="true"><img src="assets/exemplos/ia-respira.webp" alt="" width="360" height="640" fetchpriority="high"></div>
+      <div class="hero-preview" aria-hidden="true"><img src="marca/cp/cp-carrossel-1.webp" alt="" width="360" height="450"></div>
+    <div class="vsl" id="vsl" aria-label="Vídeo de apresentação"></div>
+      <div class="hero-preview" aria-hidden="true"><img src="assets/exemplos/post-aprovado.webp" alt="" width="360" height="640"></div>
+      <div class="hero-preview" aria-hidden="true"><img src="assets/exemplos/instagram-com-equipe.webp" alt="" width="360" height="640"></div>
+    </div>
     <div class="faixa"><span>IA já incluída</span><span>Carrossel, Reels, Estático e Stories</span><span>Publica sozinho</span><span>7 dias de garantia</span></div>
   </section>
 
-  <h2>Postar todo dia dá trabalho demais</h2>
+  <section class="lp-section lp-pain" aria-labelledby="trabalho">
+  <h2 id="trabalho">Postar todo dia dá trabalho demais</h2>
   <p class="lead">E quando o perfil para, parece que a empresa parou também.</p>
   <div class="dores">
     <div class="dor"><span class="x">✕</span><b>Falta assunto</b><p>Você abre o Instagram e não sabe o que postar. A semana passa e o feed fica parado.</p></div>
     <div class="dor"><span class="x">✕</span><b>Falta tempo</b><p>Pensar, escrever, achar foto, montar arte e lembrar de publicar toma horas que você não tem.</p></div>
     <div class="dor"><span class="x">✕</span><b>Falta consistência</b><p>Posts com cores e jeitos diferentes deixam a marca bagunçada e sem cara de profissional.</p></div>
   </div>
+  </section>
 
-  <h2>Como a Content Post resolve</h2>
+  <section class="lp-section lp-workflow" aria-labelledby="como-funciona">
+  <h2 id="como-funciona">Como a Content Post resolve</h2>
   <p class="lead">Quatro passos, e a parte pesada fica com a IA.</p>
   <div class="etapas">
-    <div class="etapa"><b>Conte quem é a sua marca</b><p>Tom de voz, público, cores e logo. Você faz uma vez e vale para todos os posts.</p></div>
-    <div class="etapa"><b>Receba ideias prontas</b><p>A IA observa concorrentes e hashtags do seu nicho e sugere pautas com nota de aderência.</p></div>
-    <div class="etapa"><b>A IA cria o post</b><p>Textos, fotos e até vídeos gerados com a sua identidade visual. Você escolhe o modelo e ajusta o que quiser.</p></div>
-    <div class="etapa"><b>Aprove e pronto</b><p>Um clique e o post entra no calendário. Ele é publicado sozinho na data e hora marcadas.</p></div>
+    <div class="etapa"><svg class="lp-illustration" aria-hidden="true" viewBox="0 0 104 104" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="19" y="24" width="64" height="56" rx="10"/><path d="m38 48 8-15 8 15 16 3-12 12 2 16-14-8-14 8 2-16-12-12z" fill="currentColor" fill-opacity=".12"/></svg><b>Conte quem é a sua marca</b><p>Tom de voz, público, cores e logo. Você faz uma vez e vale para todos os posts.</p></div>
+    <div class="etapa"><svg class="lp-illustration" aria-hidden="true" viewBox="0 0 104 104" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="22" y="20" width="62" height="68" rx="10"/><path d="M34 37h16m-16 12h36m-36 12h28m-28 12h20"/><path d="m70 8 3 8 9 3-9 3-3 9-3-9-9-3 9-3z" fill="currentColor"/></svg><b>Receba ideias prontas</b><p>A IA observa concorrentes e hashtags do seu nicho e sugere pautas com nota de aderência.</p></div>
+    <div class="etapa"><svg class="lp-illustration" aria-hidden="true" viewBox="0 0 104 104" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="25" width="66" height="60" rx="8"/><rect x="27" y="16" width="66" height="60" rx="8" fill="#151521"/><circle cx="47" cy="36" r="6"/><path d="m29 66 18-16 14 11 12-11 18 16"/></svg><b>A IA cria o post</b><p>Textos, fotos e até vídeos gerados com a sua identidade visual. Você escolhe o modelo e ajusta o que quiser.</p></div>
+    <div class="etapa"><svg class="lp-illustration" aria-hidden="true" viewBox="0 0 104 104" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="19" y="22" width="66" height="65" rx="10"/><path d="M19 40h66M35 13v18m34-18v18m-34 31 10 9 21-22"/></svg><b>Aprove e pronto</b><p>Um clique e o post entra no calendário. Ele é publicado sozinho na data e hora marcadas.</p></div>
   </div>
+  </section>
 
-  <h2>Todos os formatos que o Instagram pede</h2>
+  <section class="lp-section lp-formats" aria-labelledby="formatos">
+  <h2 id="formatos">Todos os formatos que o Instagram pede</h2>
   <div class="formatos">
     <div class="formato"><div class="arte foto" data-tag="Carrossel"><img src="marca/cp/cp-carrossel-1.webp" alt="Capa de carrossel criada na Content Post: Seu Instagram parado está custando clientes" loading="lazy"></div><p><b>Carrossel</b>Slides com fotos, vídeos ou só texto.</p></div>
     <div class="formato"><div class="arte foto" data-tag="Reels"><img src="marca/cp/cp-cinema.webp" alt="Capa de Reels no modelo Cinema: De uma ideia a um post em minutos" loading="lazy"><span class="play">▶ 0:30</span></div><p><b>Reels</b>Cenas em vídeo com texto na tela.</p></div>
     <div class="formato"><div class="arte foto" data-tag="Estático"><img src="marca/cp/cp-manchete.webp" alt="Post estático no modelo Manchete: 3 sinais de que seu perfil precisa de ajuda" loading="lazy"></div><p><b>Estático</b>Uma arte só, com foto ou só texto.</p></div>
     <div class="formato"><div class="arte foto" data-tag="Stories"><img src="marca/cp/cp-minimal.webp" alt="Arte no modelo Minimal: Postar todo dia sem esforço" loading="lazy"></div><p><b>Stories</b>Imagem, vídeo contínuo ou vários vídeos.</p></div>
   </div>
+  </section>
 
-  <h2>Feito com a Content Post</h2>
+  <section class="lp-section lp-examples" aria-labelledby="exemplos">
+  <h2 id="exemplos">Feito com a Content Post</h2>
   <p class="lead">Um carrossel de verdade, criado pela plataforma: texto, foto e diagramação. Arraste para ver os slides.</p>
-  <div class="vitrine-carrossel" tabindex="0" aria-label="Slides de um carrossel criado pela Content Post">
+  <div class="lp-rail-header"><div class="lp-controls" role="group" aria-label="Navegar pelos exemplos"><button type="button" data-lp-scroll="lp-slides" data-direcao="-1" aria-label="Exemplos anteriores" aria-controls="lp-slides"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button type="button" data-lp-scroll="lp-slides" data-direcao="1" aria-label="Próximos exemplos" aria-controls="lp-slides"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div></div>
+  <div id="lp-slides" class="vitrine-carrossel" tabindex="0" aria-label="Slides de um carrossel criado pela Content Post">
     <img src="marca/cp/cp-carrossel-1.webp" alt="Slide 1 de um carrossel criado na Content Post" loading="lazy">
     <img src="marca/cp/cp-carrossel-2.webp" alt="Slide 2 de um carrossel criado na Content Post" loading="lazy">
     <img src="marca/cp/cp-carrossel-3.webp" alt="Slide 3 de um carrossel criado na Content Post" loading="lazy">
@@ -234,7 +251,8 @@ footer a { color: var(--soft); }
   </div>
   <h3 class="exemplos-titulo">Posts em movimento</h3>
   <p class="lead">Vídeos criados na plataforma. Dê o play para ver cada exemplo.</p>
-  <div class="exemplos-videos" tabindex="0" aria-label="Exemplos de vídeos criados na Content Post. Arraste para ver mais.">
+  <div class="lp-rail-header"><div class="lp-controls" role="group" aria-label="Navegar pelos exemplos"><button type="button" data-lp-scroll="lp-videos" data-direcao="-1" aria-label="Exemplos anteriores" aria-controls="lp-videos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button type="button" data-lp-scroll="lp-videos" data-direcao="1" aria-label="Próximos exemplos" aria-controls="lp-videos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div></div>
+  <div id="lp-videos" class="exemplos-videos" tabindex="0" aria-label="Exemplos de vídeos criados na Content Post. Arraste para ver mais.">
     <figure class="exemplo-video"><video src="assets/exemplos/ia-respira.mp4" poster="assets/exemplos/ia-respira.webp" controls playsinline preload="none" aria-label="Usa IA e ainda se sente atrasado? Respira."></video><figcaption>Usa IA e ainda se sente atrasado? Respira.</figcaption></figure>
     <figure class="exemplo-video"><video src="assets/exemplos/instagram-com-equipe.mp4" poster="assets/exemplos/instagram-com-equipe.webp" controls playsinline preload="none" aria-label="O que sai da sua lista quando o Instagram tem uma equipe"></video><figcaption>O que sai da sua lista quando o Instagram tem uma equipe.</figcaption></figure>
     <figure class="exemplo-video"><video src="assets/exemplos/post-aprovado.mp4" poster="assets/exemplos/post-aprovado.webp" controls playsinline preload="none" aria-label="POV: você aprovou o post da semana entre um pedido e outro"></video><figcaption>POV: você aprovou o post da semana entre um pedido e outro.</figcaption></figure>
@@ -249,15 +267,19 @@ footer a { color: var(--soft); }
     <img src="marca/cp/cp-manchete-2.webp" alt="Modelo Manchete com imagem" loading="lazy">
     <img src="marca/cp/cp-minimal-2.webp" alt="Modelo Minimal em fundo claro" loading="lazy">
   </div>
+  </section>
 
-  <h2>Feita para quem vive de Instagram</h2>
+  <section class="lp-section lp-audience" aria-labelledby="para-quem">
+  <h2 id="para-quem">Feita para quem vive de Instagram</h2>
   <div class="publico">
     <div><b>Donos de negócio</b><p>Bares, restaurantes, lojas, clínicas e serviços que precisam aparecer, mas não têm tempo para criar conteúdo.</p></div>
     <div><b>Social medias</b><p>Cuide de várias marcas no mesmo lugar, com a IA fazendo o rascunho e você dando o toque final.</p></div>
     <div><b>Agências</b><p>Entregue mais posts sem aumentar a equipe, com equipe e calendário separados por cliente.</p></div>
   </div>
+  </section>
 
-  <h2>Compare</h2>
+  <section class="lp-section lp-compare" aria-labelledby="comparacao">
+  <h2 id="comparacao">Compare</h2>
   <div class="comparar estreito wrap" style="padding:0">
     <table>
       <tr><th></th><th>Fazer sozinho</th><th>Contratar alguém</th><th class="nos">Content Post</th></tr>
@@ -268,7 +290,9 @@ footer a { color: var(--soft); }
       <tr><td>Custo</td><td>Seu tempo</td><td>Variável</td><td class="nos">Fixo por mês, a partir de R$ 307</td></tr>
     </table>
   </div>
+  </section>
 
+  <section class="lp-section lp-pricing" aria-labelledby="planos">
   <h2 id="planos">Escolha seu plano</h2>
   <p class="lead">A inteligência artificial já vem incluída. Sem contratar outras ferramentas.</p>
   <div class="ciclos" role="group" aria-label="Ciclo de cobrança">
@@ -281,8 +305,10 @@ footer a { color: var(--soft); }
     <div class="sel">7<small>DIAS</small></div>
     <div><b>Garantia de 7 dias</b><p>Assinou e não gostou? Peça o reembolso em até 7 dias e você recebe seu dinheiro de volta, sem burocracia. O pagamento é processado com segurança pela Nasten.</p></div>
   </div>
+  </section>
 
-  <h2>Perguntas frequentes</h2>
+  <section class="lp-section lp-faq" aria-labelledby="perguntas">
+  <h2 id="perguntas">Perguntas frequentes</h2>
   <div class="estreito wrap" style="padding:0">
     <details><summary>Preciso saber design ou mexer com IA?</summary><p>Não. Você responde algumas perguntas sobre a marca e a plataforma faz o resto. Para ajustar, é só clicar no modelo que preferir ou escrever o que quer mudar.</p></details>
     <details><summary>Os posts ficam com a cara da minha marca?</summary><p>Sim. A IA usa o seu tom de voz, as suas cores e o seu logo, e você ainda pode enviar imagens de referência (mood board) do estilo que gosta.</p></details>
@@ -292,6 +318,7 @@ footer a { color: var(--soft); }
     <details><summary>Posso colocar minha equipe?</summary><p>Sim, sem limite de pessoas, com papéis de dono, administrador e editor.</p></details>
     <details><summary>Como funciona o pagamento?</summary><p>Pela Nasten, com cartão, Pix ou boleto. Use o e-mail da sua conta Content Post para a liberação após a confirmação do pagamento. Você pode cancelar quando quiser.</p></details>
   </div>
+  </section>
 
   <section class="final">
     <h2>Seu Instagram no automático, a partir de hoje</h2>
@@ -367,8 +394,16 @@ function montarVideo(url) {
 var timerDemo = null;
 const videoHtml = VIDEO_URL ? montarVideo(VIDEO_URL) : "";
 function mostrarVideo() {
-  vsl.innerHTML = videoHtml;
   if (VIDEO_VERTICAL || /\/shorts\//.test(VIDEO_URL)) vsl.classList.add("vertical");
+  // A capa mantém a vitrine leve; o player externo é carregado quando a pessoa quiser assistir.
+  if (videoHtml.startsWith("<iframe") && VIDEO_CAPA) {
+    const capa = document.createElement("button");
+    capa.type = "button"; capa.className = "vsl-play vsl-externo"; capa.setAttribute("aria-label", "Assistir ao vídeo de apresentação");
+    capa.style.backgroundImage = "url(" + JSON.stringify(VIDEO_CAPA) + ")";
+    capa.innerHTML = '<span class="bola" aria-hidden="true"></span>';
+    capa.addEventListener("click", () => { vsl.innerHTML = videoHtml; evento("ViewContent", { content_name: "vsl" }); });
+    vsl.replaceChildren(capa);
+  } else vsl.innerHTML = videoHtml;
   const v = vsl.querySelector("video"), play = vsl.querySelector(".vsl-play");
   if (v && play) play.addEventListener("click", () => { play.remove(); v.muted = false; v.play().catch(() => {}); evento("ViewContent", { content_name: "vsl" }); });
   if (CTA_APOS_SEGUNDOS > 0) { const c = document.getElementById("cta-video"); c.hidden = true; setTimeout(() => { c.hidden = false; }, CTA_APOS_SEGUNDOS * 1000); }
@@ -419,10 +454,13 @@ desenhar();
 // Barra fixa com o botão depois que a pessoa passa do vídeo
 const barra = document.getElementById("barra-cta"), alvoPlanos = document.getElementById("planos");
 addEventListener("scroll", () => {
-  const passou = scrollY > vsl.offsetTop + vsl.offsetHeight;
-  const vendoPlanos = alvoPlanos.getBoundingClientRect().top < innerHeight && alvoPlanos.getBoundingClientRect().bottom > 0;
+  const passou = vsl.getBoundingClientRect().bottom < 0;
+  const areaPlanos = alvoPlanos.closest("section") || alvoPlanos;
+  const r = areaPlanos.getBoundingClientRect();
+  const vendoPlanos = r.top < innerHeight && r.bottom > 0;
   barra.classList.toggle("on", passou && !vendoPlanos);
 }, { passive: true });
 </script>
+<script src="assets/landing.js" defer></script>
 </body>
 </html>
