@@ -34,6 +34,9 @@ O Mega Brain fica no menu e tem um banner na Home, logo abaixo da abertura, com 
 
 A apresentação da landing usa `assets/landing.css` e `assets/landing.js`. Os exemplos de vídeo e o vídeo de apresentação carregam sob demanda; as animações respeitam movimento reduzido. Textos, preços, links e rastreamento das campanhas continuam em `lp.html`.
 
+Em Integrações → Magnific, **Acervo quando faltar crédito** permite declarar Premium, Premium+ ou Pro e usar fotos prontas quando a geração ficar sem saldo. A configuração acompanha a chave e exige a API com a migração `030_acervo_magnific.sql`; versões anteriores da API ocultam esse controle. As fotos ficam no filtro **Acervo Magnific**, com a origem na edição. Reels também podem ser montados somente com fotos do banco, com três segundos por foto, após a confirmação de aprovação.
+
+
 ## Segredos
 
 Nenhuma chave de API fica neste repositório. Todas ficam nas credenciais do n8n. Os IDs que aparecem nos arquivos (base do Airtable, fluxos do n8n, chat do Telegram) não dão acesso a nada sozinhos.

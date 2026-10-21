@@ -1223,7 +1223,7 @@ function dePost(r) {
   return {
     id: r.id, origem: r.Origem || "ia", titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
     status: nomeSel(r.Status) || "Planejado", publicacao: r.Publicacao && typeof r.Publicacao === "object" ? { ...r.Publicacao } : {}, versao: r.Versao || 1, legenda: r.Legenda || "", hashtags: r.Hashtags || "", redes: Array.isArray(r.Redes) && r.Redes.length ? r.Redes.slice() : [nomeSel(r.Rede)].filter(Boolean), links: r.Links || {}, briefing: (() => { try { return JSON.parse(r.Briefing || "null") || {}; } catch (e) { return {}; } })(), slides, slidesBrutos: (() => { try { const a = JSON.parse(r.Slides || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } })(), link: r.LinkPublicado || "",
-    erro: r.Erro || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te", audio: "original" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } const padraoMao = !/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao ? (M.modelos || []).find(x => x.id === M.modeloPadrao && x.status === "pronto" && x.diag) : null; if (padraoMao) Object.assign(d, diagDoModelo(padraoMao.diag)); else if (!/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao && (M.modelos || []).some(x => x.id === M.modeloPadrao && x.status === "pronto" && x.spec)) { d.modelo = "proprio"; d.proprio = M.modeloPadrao; d.v = 3; const sp = M.modelos.find(x => x.id === M.modeloPadrao).spec; d.alinhar = sp.alinhar; d.posicao = sp.posicao; d.logoPos = sp.logo === "nenhum" ? "te" : sp.logo; if (sp.logo === "nenhum") d.logo = "nenhum"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
+    erro: r.Erro || "", avisoMidias: r.AvisoMidias || "", ideia: ((r.Ideia || [])[0] && typeof r.Ideia[0] === "object") ? r.Ideia[0].id : (r.Ideia || [])[0] || null, clipes: r.Clipes || [], diag: (() => { const pad = { alinhar: "esquerda", posicao: "auto", modelo: "foto", fundo: "auto", logo: "auto", logoPos: "te", audio: "original" }; let d; try { d = Object.assign(pad, JSON.parse(r.Diagramacao || "{}")); } catch (e) { d = pad; } if (d.modelo === "claro" || d.modelo === "escuro") { d.fundo = d.modelo; d.modelo = "editorial"; } const padraoMao = !/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao ? (M.modelos || []).find(x => x.id === M.modeloPadrao && x.status === "pronto" && x.diag) : null; if (padraoMao) Object.assign(d, diagDoModelo(padraoMao.diag)); else if (!/"modelo"/.test(r.Diagramacao || "") && M.modeloPadrao && (M.modelos || []).some(x => x.id === M.modeloPadrao && x.status === "pronto" && x.spec)) { d.modelo = "proprio"; d.proprio = M.modeloPadrao; d.v = 3; const sp = M.modelos.find(x => x.id === M.modeloPadrao).spec; d.alinhar = sp.alinhar; d.posicao = sp.posicao; d.logoPos = sp.logo === "nenhum" ? "te" : sp.logo; if (sp.logo === "nenhum") d.logo = "nenhum"; } if ((d.v || 0) < 2) { d.fundo = MODELOS_ED.includes(d.modelo) ? (d.fundo === "escuro" ? "marca" : "claro") : "auto"; d.v = 2; } if (d.v < 3) { if (["Reels", "Stories"].includes(r.Formato)) d.modelo = "video"; d.v = 3; } if (d.modelo === "video" && !["Reels", "Stories"].includes(r.Formato)) d.modelo = "foto"; return d; })(), clipesSlides: (() => { try { return JSON.parse(r.ClipesSlides || "{}"); } catch (e) { return {}; } })(),
     arquivos: r.Arquivos || [], fotos: r.Fotos || [], artesProntas: r.ArtesProntas === true, imagensSlides: (() => { try { return JSON.parse(r.ImagensSlides || "{}"); } catch (e) { return {}; } })(),
   };
 }
@@ -3936,6 +3936,7 @@ function cardRev(p) {
       <h3>${esc(p.titulo)}</h3>
       <div class="small">Publicação: <b>${fmtData(p.data)}</b></div>
       ${p.erro && !((midiasCompletas || prontas) && erroGeracaoMidia(p.erro)) ? `<div class="msg erro">${esc(p.erro)}</div>` : ""}
+      ${p.avisoMidias ? `<div class="msg">${esc(p.avisoMidias)}</div>` : ""}
       ${acoes}
     </div>
   </article>`;
@@ -5236,6 +5237,7 @@ function desenharIntegracoes() {
         ${i.configurada ? `<button class="btn" data-u="int-testar" data-id="${i.id}">Testar</button><button class="btn quiet" data-u="int-remover" data-id="${i.id}">Remover</button>` : ""}</div>
         <p class="hint" style="margin:0">Onde pegar: ${esc(i.onde)}</p>` : ""}
       ${INT.teste[i.id] ? `<div class="msg ${INT.teste[i.id].ok ? "ok" : "erro"}">${esc(INT.teste[i.id].mensagem)}</div>` : ""}
+      ${i.id === "magnific" ? htmlAcervoMagnific(d.acervoMagnific) : ""}
     </div>`).join("")}</div>
     ${d.podeGerir ? `<form class="glass box" style="margin-top:14px" onsubmit="return false">
       <b>Trazer do Airtable (opcional)${ajuda("airtable")}</b>
@@ -5249,6 +5251,11 @@ function desenharIntegracoes() {
     </form>` : ""}
     <div class="actions" style="margin-top:14px"><button class="btn quiet" data-u="fechar">Fechar</button></div>`);
   dlg().dataset.integracoes = String(INT.pedido);
+}
+function htmlAcervoMagnific(a) {
+  if (!a?.disponivel) return "";
+  if (!a.podeGerir) return a.ativo ? `<p class="small" style="margin:0">Se a geração ficar sem créditos, podemos usar fotos prontas do acervo Magnific e enviar para revisão.</p>` : "";
+  return `<div style="border-top:1px solid var(--line);padding-top:12px;display:grid;gap:10px"><label class="field"><span>Acervo quando faltar crédito</span><select id="int-acervo-magnific"><option value="">Não buscar no acervo automaticamente</option>${[["premium","Premium"],["premium_plus","Premium+"],["pro","Pro"]].map(([v,n]) => `<option value="${v}" ${a.plano === v ? "selected" : ""}>Minha conta é ${n} · usar fotos prontas</option>`).join("")}</select></label><p class="small" style="margin:0">Nesses planos, o acervo pela API não consome créditos, com até 100 downloads por dia, compartilhados pela conta. As fotos passam pela sua revisão. A preferência vale para todas as organizações que usam esta conta Magnific.</p><button type="button" class="btn quiet" data-u="acervo-salvar">Salvar preferência do acervo</button></div>`;
 }
 function desenharSelecaoRedes() {
   const s = INT.selecao; if (!s || !integracoesAtuais()) return;
@@ -5369,6 +5376,13 @@ document.addEventListener("click", async e => {
       }
     } catch (err) { if (!integracoesAtuais(pedido) || s !== INT.selecao) return; s.erro = textoErro(err); }
     return desenharSelecaoRedes();
+  }
+  if (a === "acervo-salvar") {
+    const pedido = INT.pedido; if (!integracoesAtuais(pedido)) return;
+    const plano = val("int-acervo-magnific"), organizacao = U.organizacao?.id; b.disabled = true; INT.erro = "";
+    try { const r = await api({ acao: "salvarAcervoMagnific", plano, organizacao }); if (!integracoesAtuais(pedido)) return; INT.dados.acervoMagnific = r.acervoMagnific; toast("Preferência do acervo salva."); }
+    catch (err) { if (!integracoesAtuais(pedido)) return; INT.erro = textoErro(err); }
+    return desenharIntegracoes();
   }
   if (a === "int-salvar") {
     const pedido = INT.pedido; if (!integracoesAtuais(pedido)) return;
@@ -5567,7 +5581,7 @@ function formFonte(x) {
 // Banco de imagens: fotos próprias da marca (produtos, loja) para usar nos posts no lugar das geradas por IA.
 const BI = { lista: [], carregado: false, carregando: false, enviando: 0, total: 0, editando: null, erro: "", filtro: "todos", podeVitrine: false, pedido: 0 };
 const ehVideoBanco = x => /^video\//.test((x.arquivo && x.arquivo.type) || "");
-const FILTROS_BANCO = [["todos", "Todos", () => true], ["envio", "Enviados por você", x => x.origem !== "ia"], ["ia", "Gerados por IA", x => x.origem === "ia"], ["fotos", "Fotos", x => !ehVideoBanco(x)], ["videos", "Vídeos", ehVideoBanco]];
+const FILTROS_BANCO = [["todos", "Todos", () => true], ["envio", "Enviados por você", x => x.origem === "envio"], ["ia", "Gerados por IA", x => x.origem === "ia"], ["acervo", "Acervo Magnific", x => x.origem === "acervo"], ["fotos", "Fotos", x => !ehVideoBanco(x)], ["videos", "Vídeos", ehVideoBanco]];
 const bancoFiltrado = () => BI.lista.filter((FILTROS_BANCO.find(f => f[0] === BI.filtro) || FILTROS_BANCO[0])[2]);
 // Miniatura de foto ou vídeo do banco (vídeo mostra o primeiro quadro).
 const midiaBanco = (x, lazy) => ehVideoBanco(x)
@@ -5742,11 +5756,12 @@ function desenharBanco() {
       ${midiaBanco(x)}
       <label class="field"><span>Nome</span><input id="bi-nome" maxlength="80" value="${esc(x.nome)}"></label>
       <label class="field"><span>O que aparece</span><textarea id="bi-desc" rows="2" maxlength="400">${esc(x.descricao)}</textarea></label>
+      ${x.origem === "acervo" && x.fonte?.url ? `<p class="small" style="margin:0">Foto do acervo Magnific${x.fonte.autor ? " · " + esc(x.fonte.autor) : ""}. <a href="${esc(x.fonte.url)}" target="_blank" rel="noopener noreferrer">Ver origem e licença ↗</a></p>` : ""}
       ${BI.podeVitrine && x.origem === "ia" ? `<div class="bi-vitrine"><label class="check-tratar"><input id="bi-login" type="checkbox" ${x.publicoLogin ? "checked" : ""}> Exibir esta mídia na tela de login</label><p class="small">Visível publicamente antes do acesso à conta. A vitrine usa até 8 itens selecionados mais recentes.</p></div>` : ""}
       <label class="field"><span>Etiquetas (separe por vírgula)</span><input id="bi-tags" maxlength="200" value="${esc((x.tags || []).join(", "))}"></label>
       <div class="actions"><button type="button" class="btn primary" data-bi="salvar" data-id="${x.id}">Salvar</button><button type="button" class="btn quiet" data-bi="cancelar">Cancelar</button></div>
     </div>` : `<div class="bi-card">
-      <div class="bi-midia">${midiaBanco(x, true)}${x.origem === "ia" ? `<span class="bi-selo ia" title="Gerado por IA num post">IA</span>` : ""}${ehVideoBanco(x) ? `<span class="bi-play">▶ vídeo</span>` : ""}</div>
+      <div class="bi-midia">${midiaBanco(x, true)}${x.origem === "ia" ? `<span class="bi-selo ia" title="Gerado por IA num post">IA</span>` : x.origem === "acervo" ? `<span class="bi-selo" title="Foto pronta do acervo Magnific">Acervo</span>` : ""}${ehVideoBanco(x) ? `<span class="bi-play">▶ vídeo</span>` : ""}</div>
       <div class="actions bi-actions"><button type="button" class="btn quiet" data-bi="editar" data-id="${x.id}" aria-label="Editar ${esc(x.nome || "arquivo")}">Editar</button><a class="btn quiet" data-bi="baixar" href="${esc(urlCheia(x.arquivo))}" download="${esc((x.nome || "arquivo").replace(/[^\w\- ]+/g, "") + "." + String((x.arquivo && x.arquivo.type) || "image/jpeg").split("/")[1].replace("jpeg", "jpg"))}" target="_blank" rel="noopener" aria-label="Baixar ${esc(x.nome || "arquivo")}">Baixar</a><button type="button" class="btn quiet" data-bi="remover" data-id="${x.id}" aria-label="Remover ${esc(x.nome || "arquivo")}">Remover</button></div>
     </div>`).join("");
 }
