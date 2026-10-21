@@ -1105,6 +1105,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 </style>
 
 <link rel="stylesheet" href="assets/painel.css?v=20261020-ideias-vitrine">
+<link rel="stylesheet" href="assets/mega-brain.css?v=20261020-megabrain">
 <div class="app">
   <aside class="side" id="side">
     <div class="side-logo"><button class="side-brand" data-tab="home" aria-label="Content Post · Home"><img class="cp-logo-img" src="marca/content-post-logo-branco.png" alt="Content Post"><img class="side-symbol" src="marca/content-post-simbolo-branco.png" alt=""></button><button class="side-toggle" data-side-collapse aria-label="Recolher menu" aria-expanded="true" title="Recolher menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 7l-5 5 5 5"/></svg></button></div>
@@ -1113,6 +1114,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
     <div class="grupo grupo-pautas">Pautas</div>
     <nav class="track trilho" role="tablist" aria-label="Etapas">
       <button role="tab" class="t-marca" id="tab-marca" data-tab="marca" title="Marca e fontes"><span class="side-icon" data-nav-icon="marca"></span><span class="name">Marca e fontes</span><span class="count" id="c-marca">–</span></button>
+      <button role="tab" class="t-brain" id="tab-brain" data-tab="brain" title="Mega Brain"><span class="side-icon" data-nav-icon="brain"></span><span class="name">Mega Brain</span></button>
       <button role="tab" class="t-ideias" id="tab-ideias" data-tab="ideias" title="Ideias"><span class="side-icon" data-nav-icon="ideias"></span><span class="name">Ideias</span><span class="count" id="c-ideias">0</span></button>
       <button role="tab" class="t-cal" id="tab-cal" data-tab="cal" title="Calendário"><span class="side-icon" data-nav-icon="cal"></span><span class="name">Calendário</span><span class="count" id="c-cal">0</span></button>
       <button role="tab" class="t-rev" id="tab-rev" data-tab="rev" title="Revisão"><span class="side-icon" data-nav-icon="rev"></span><span class="name">Revisão</span><span class="count" id="c-rev">0</span></button>
@@ -1141,6 +1143,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
       </div>
       <section class="panel" id="p-home" role="region" aria-labelledby="tab-home" hidden></section>
       <section class="panel" id="p-marca" role="tabpanel" aria-labelledby="tab-marca" hidden></section>
+      <section class="panel" id="p-brain" role="tabpanel" aria-labelledby="tab-brain" hidden></section>
       <section class="panel" id="p-ideias" role="tabpanel" aria-labelledby="tab-ideias"></section>
       <section class="panel" id="p-cal" role="tabpanel" aria-labelledby="tab-cal" hidden></section>
       <section class="panel" id="p-rev" role="tabpanel" aria-labelledby="tab-rev" hidden></section>
@@ -1155,6 +1158,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 <div class="auth" id="auth" hidden></div>
 <dialog class="dlg glass" id="dlg"></dialog>
 
+<script src="assets/mega-brain.js?v=20261020-megabrain"></script>
 <script>
 const KEY = "pauta-painel-v3";
 
@@ -1164,7 +1168,7 @@ const pauta = { carregada: false, erro: null };
 
 let tab = "home";
 try { tab = localStorage.getItem(KEY + ":tab") || "home"; } catch (e) {}
-if (!["home", "marca", "ideias", "cal", "rev", "agend", "banco", "admin"].includes(tab)) tab = "home";
+if (!["home", "marca", "brain", "ideias", "cal", "rev", "agend", "banco", "admin"].includes(tab)) tab = "home";
 try { document.body.classList.toggle("menu-recolhido", localStorage.getItem(KEY + ":menu") === "recolhido"); } catch (e) {}
 let filtro = "Sugerida";
 // Filtros das ideias por tipo de post e por categoria (pilar da marca); ficam guardados neste navegador.
@@ -1206,6 +1210,7 @@ const nomeSel = v => (v && typeof v === "object") ? v.name : (v ?? "");
 function deIdeia(r) {
   return {
     id: r.id, titulo: r.Titulo || "", resumo: r.Resumo || "", formato: nomeSel(r.Formato), rede: nomeSel(r.Rede), pilar: nomeSel(r.Pilar),
+    estrategia: r.Estrategia || null, etapaFunil: r.EtapaFunil || null,
     score: Number(r.Score) || 0, porQue: r.PorQueFunciona || "", refs: (r.Referencias || []).length, criada: Date.parse(r.CriadaEm || "") || 0,
     status: nomeSel(r.Status) || "Sugerida", motivo: r.MotivoDescarte || "", posts: (r.Calendario || []).map(x => (x && typeof x === "object") ? x.id : x),
   };
@@ -2041,27 +2046,28 @@ async function confirmarRemocao(id) {
 /* ---------- Ideias ---------- */
 function renderIdeias() {
   const el = document.getElementById("p-ideias");
+  const base = state.ideias.filter(megaBrainIdeiaVisivel);
   const botao = M.modo !== "web" ? ""
     : buscandoIdeias() ? `<div class="working"><span class="dot"></span>Buscando ideias nas fontes…</div>`
-    : `<button class="btn primary" data-act="buscar-ideias">Buscar ideias novas</button>`;
+    : MB.filtroIdeias ? `<button class="btn primary" data-mb="gerar-ideias" data-estrategia="${MB.filtroIdeias.id}" data-etapa="${MB.filtroIdeias.etapa}" ${MB.gerandoIdeias ? "disabled" : ""}>Gerar mais para esta etapa</button>` : `<button class="btn primary" data-act="buscar-ideias">Buscar ideias novas</button>`;
   const ti = tarefaIdeias();
   const falhaIdeias = ti && ti.status === "erro" ? `<div class="msg erro" style="margin-bottom:12px">A última busca de ideias falhou: ${esc(ti.erro || "")}</div>` : "";
-  const head = `<div class="panel-head"><p>A IA lê as fontes cadastradas e sugere ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>${botao}`;
+  const head = megaBrainIdeiasBanner() + `<div class="panel-head"><p>A IA lê as fontes cadastradas e sugere ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>${botao}`;
   if (!pauta.carregada) { el.innerHTML = head + `</div>` + semPauta(); return; }
   // tipo e categoria disponíveis vêm das próprias ideias (o que a IA já gera)
-  const tipos = [...new Set([...state.ideias.map(tipoIdeia), ...(Object.hasOwn(NOME_FORMATO, FI.tipo) ? [FI.tipo] : [])])].sort((a, b) => ["Reels", "Carrossel", "Estatico", "Stories"].indexOf(a) - ["Reels", "Carrossel", "Estatico", "Stories"].indexOf(b));
-  const cats = [...new Set(state.ideias.map(catIdeia))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const tipos = [...new Set([...base.map(tipoIdeia), ...(Object.hasOwn(NOME_FORMATO, FI.tipo) ? [FI.tipo] : [])])].sort((a, b) => ["Reels", "Carrossel", "Estatico", "Stories"].indexOf(a) - ["Reels", "Carrossel", "Estatico", "Stories"].indexOf(b));
+  const cats = [...new Set(base.map(catIdeia))].sort((a, b) => a.localeCompare(b, "pt-BR"));
   if (FI.tipo !== "Todos" && !tipos.includes(FI.tipo)) FI.tipo = "Todos";
   if (FI.cat !== "Todas" && !cats.includes(FI.cat)) FI.cat = "Todas";
   const passaTipo = i => FI.tipo === "Todos" || tipoIdeia(i) === FI.tipo, passaCat = i => FI.cat === "Todas" || catIdeia(i) === FI.cat;
   const passaStatus = i => filtro === "Todas" || i.status === filtro;
   if (!ORDENS_IDEIA[FI.ordem]) FI.ordem = "aderencia";
-  const lista = state.ideias.filter(i => passaStatus(i) && passaTipo(i) && passaCat(i)).sort(ORDENS_IDEIA[FI.ordem][1]);
-  const contagem = s => state.ideias.filter(i => (s === "Todas" || i.status === s) && passaTipo(i) && passaCat(i)).length;
-  const nTipo = t => state.ideias.filter(i => passaStatus(i) && passaCat(i) && (t === "Todos" || tipoIdeia(i) === t)).length;
-  const nCat = c => state.ideias.filter(i => passaStatus(i) && passaTipo(i) && (c === "Todas" || catIdeia(i) === c)).length;
+  const lista = base.filter(i => passaStatus(i) && passaTipo(i) && passaCat(i)).sort(ORDENS_IDEIA[FI.ordem][1]);
+  const contagem = s => base.filter(i => (s === "Todas" || i.status === s) && passaTipo(i) && passaCat(i)).length;
+  const nTipo = t => base.filter(i => passaStatus(i) && passaCat(i) && (t === "Todos" || tipoIdeia(i) === t)).length;
+  const nCat = c => base.filter(i => passaStatus(i) && passaTipo(i) && (c === "Todas" || catIdeia(i) === c)).length;
   const chipF = (k, v, label, n) => `<button type="button" data-fi="${k}" data-v="${esc(v)}" aria-pressed="${FI[k] === v}">${esc(label)} <span class="fi-n">${n}</span></button>`;
-  const filtrosExtra = state.ideias.length ? `<div class="fi-grupos">
+  const filtrosExtra = base.length ? `<div class="fi-grupos">
       ${tipos.length > 1 ? `<div class="fi-grupo"><span class="fi-rot">Tipo de post</span><div class="fi-chips" role="group" aria-label="Tipo de post">${chipF("tipo", "Todos", "Todos", nTipo("Todos"))}${tipos.map(t => chipF("tipo", t, NOME_FORMATO[t] || t, nTipo(t))).join("")}</div></div>` : ""}
       ${cats.length > 1 ? `<div class="fi-grupo"><span class="fi-rot">Categoria</span><div class="fi-chips" role="group" aria-label="Categoria">${chipF("cat", "Todas", "Todas", nCat("Todas"))}${cats.map(c => chipF("cat", c, c, nCat(c))).join("")}</div></div>` : ""}
       <div class="fi-grupo"><span class="fi-rot">Ordenar por</span><div class="fi-chips" role="group" aria-label="Ordenar por">${Object.entries(ORDENS_IDEIA).map(([k, [t]]) => `<button type="button" data-fi="ordem" data-v="${k}" aria-pressed="${FI.ordem === k}">${t}</button>`).join("")}</div></div>
@@ -2070,7 +2076,7 @@ function renderIdeias() {
   el.innerHTML = falhaIdeias + head + `<div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div></div>
     ${filtrosExtra}
     ${lista.length ? `<div class="ideas">${lista.slice(0, ideiasVisiveis).map(cardIdeia).join("")}</div>${lista.length > ideiasVisiveis ? `<div class="mais-ideias"><button class="btn" data-mais-ideias>Mostrar mais ${Math.min(IDEIAS_PAGINA, lista.length - ideiasVisiveis)} de ${lista.length - ideiasVisiveis}</button></div>` : ""}`
-      : `<div class="empty glass">${state.ideias.length ? "Nenhuma ideia neste filtro." : "Nenhuma ideia ainda. Clique em Buscar ideias novas."}</div>`}`;
+      : `<div class="empty glass">${base.length ? "Nenhuma ideia neste filtro." : MB.filtroIdeias ? buscandoIdeias() ? "As ideias desta etapa estão sendo preparadas. Elas aparecerão aqui." : "Ainda não há ideias para esta etapa. Clique em Gerar mais para esta etapa." : "Nenhuma ideia ainda. Clique em Buscar ideias novas."}</div>`}`;
 }
 // A lista de ideias vem em páginas de 30: com centenas de cartões o celular travava a cada redesenho.
 const IDEIAS_PAGINA = 30;
@@ -3979,6 +3985,7 @@ function renderHome() {
       <div class="home-offer"><span class="home-kicker">Um próximo passo para a sua marca</span><h2>Mais conteúdo.<br><em>Mais possibilidades.</em></h2><p>Encontre o pacote para o seu ritmo: da presença nas redes a uma rotina completa de criação e publicação com IA.</p><span class="home-plan-names">Essencial · Profissional · Agência</span><button class="btn" data-u="plano">Conhecer os pacotes ${iconeMenu("seta", 15)}</button></div>
       <div class="home-tools">${ferramentas.map(([t, nome, desc]) => `<button class="home-tool" data-tab="${t}"><span class="home-tool-icon">${iconeMenu(t)}</span><b>${nome}</b><small>${desc}</small></button>`).join("")}</div>
     </section>
+    <section class="home-brain"><span class="mb-avatar" aria-hidden="true">✦</span><div><span class="mb-selo">Conheça o Mega Brain</span><b>Antes do próximo post, uma direção.</b><p>Conte seu objetivo e monte uma estratégia para atrair, conectar e converter.</p></div><button type="button" class="btn" data-tab="brain">Montar minha estratégia ${iconeMenu("seta", 16)}</button></section>
     <section id="home-criar" aria-labelledby="home-criar-title"><div class="home-section-head"><div><h2 id="home-criar-title">O que vamos criar hoje?</h2><p>Escolha o formato. A próxima boa ideia é sua.</p></div><span class="home-kicker">Da ideia ao post</span></div>
       <div class="home-ready"><span class="home-tool-icon" aria-hidden="true">↑</span><div><b>Já tem um conteúdo pronto?</b><p>Envie suas imagens ou vídeos. A IA cuida da legenda e das hashtags.</p></div><button class="btn" data-post-pronto>Enviar post pronto ${iconeMenu("seta", 15)}</button></div>
       <div class="home-create-grid">${formatos.map(([f, icone, rotulo, arte, desc]) => `<button class="home-create" data-home-formato="${f}"><div class="home-create-art ${f === "Carrossel" ? "home-art-slides" : f === "Estatico" ? "home-art-static" : ""}"><span class="home-format">${rotulo}</span>${arte}</div><div class="home-create-text"><b>Criar ${f === "Estatico" ? "post estático" : NOME_FORMATO[f]}</b><span>${iconeMenu(icone, 18)}</span><small>${desc}</small></div></button>`).join("")}</div>
@@ -4045,7 +4052,8 @@ function restaurarRascunhos(r) {
 function render() {
   document.querySelectorAll(".track button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
   if (tab === "admin" && !(U.usuario && U.usuario.admin)) tab = "ideias";
-  ["home", "marca", "ideias", "cal", "rev", "agend", "banco", "admin"].forEach(t => (document.getElementById("p-" + t).hidden = t !== tab));
+  ["home", "marca", "brain", "ideias", "cal", "rev", "agend", "banco", "admin"].forEach(t => (document.getElementById("p-" + t).hidden = t !== tab));
+  if (tab === "brain") renderMegaBrain();
   if (tab === "home") renderHome();
   else document.querySelectorAll("#p-home video").forEach(v => v.pause());
   if (tab === "banco") renderBancoPagina();
@@ -4067,6 +4075,7 @@ function render() {
 }
 function ir(t) { if (t === "banco" && M.modo === "web") setTimeout(() => carregarBanco(true)); if (t === "admin" && !AD.dados) setTimeout(() => carregarAdmin()); tab = t; try { localStorage.setItem(KEY + ":tab", t); } catch (e) {} document.body.classList.remove("menu-aberto"); const v = document.querySelector(".veu-menu"); if (v) v.hidden = true; render(); window.scrollTo({ top: 0 }); }
 const PAGINAS = {
+  brain: ["Mega Brain", "Transforme seu objetivo em uma estratégia de conteúdo."],
   home: ["Home", "Seu espaço para transformar boas ideias em conteúdo."],
   marca: ["Marca e fontes", "Perfil da marca e fontes que a IA usa em todas as etapas."],
   ideias: ["Ideias", "Sugestões da IA a partir das fontes. Escolha o que vai para o calendário."],
@@ -4133,6 +4142,7 @@ const ICONES_NAV = {
   stories: "M7 2h10v20H7zM11 18h2M11 5h2",
   marca: "M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.4 7.2 17.9l.9-5.4L4.2 8.7l5.4-.8z",
   ideias: "M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z",
+  brain: "M12 18V5a3 3 0 0 0-5.8-1A4 4 0 0 0 3 11a4 4 0 0 0 3 7 3 3 0 0 0 6 0zM12 5a3 3 0 0 1 5.8-1A4 4 0 0 1 21 11a4 4 0 0 1-3 7 3 3 0 0 1-6 0M7 8a3 3 0 0 1 3 3M17 8a3 3 0 0 0-3 3M6 15a3 3 0 0 1 3 2M18 15a3 3 0 0 0-3 2",
   cal: "M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM4 10h16M8 3v4M16 3v4",
   rev: "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
   agend: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2",
@@ -4594,6 +4604,7 @@ async function carregarWeb() {
   M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
 }
 function limparDados() {
+  resetMegaBrain();
   ideiasAbertas.clear(); clearTimeout(EX.timer); EX.pedido++; EX.exemplos = []; EX.ideia = null;
   clearTimeout(timerBanco); BI.pedido++; BI.lista = []; BI.carregado = false; BI.carregando = false; BI.editando = null; BI.podeVitrine = false;
   clearTimeout(OB.timer); OB.versao++; OB.aberto = false; OB.analise = false;

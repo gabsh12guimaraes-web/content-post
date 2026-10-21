@@ -29,6 +29,8 @@ node painel/montar-site.js .
 
 O painel atual é publicado em `app.html`. Edite `painel/index-api.html` e `assets/painel.css`, e regenere o site com o comando acima. A Home reúne pacotes, atalhos, criação por formato e indicadores da pauta. No calendário desktop, cada dia mostra um resumo por formato e abre todos os seus posts; no celular, os posts continuam visíveis diretamente. O menu pode ser recolhido no desktop, e a preferência fica salva no navegador.
 
+O Mega Brain fica no menu e tem um atalho na Home. A conversa faz seis perguntas guiadas, monta uma estratégia salva por organização e mostra as três etapas do funil. Montar a estratégia está incluído; gerar ideias de uma etapa usa uma busca do plano e abre a aba Ideias com o filtro correspondente. A interface fica em `assets/mega-brain.js` e `assets/mega-brain.css`, com suporte da API e da migração `028_mega_brain.sql`.
+
 ## Segredos
 
 Nenhuma chave de API fica neste repositório. Todas ficam nas credenciais do n8n. Os IDs que aparecem nos arquivos (base do Airtable, fluxos do n8n, chat do Telegram) não dão acesso a nada sozinhos.
