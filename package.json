@@ -1,0 +1,25 @@
+{
+  "name": "easycontentpost-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aplicativo iOS do Easy Content Post e compilação no Codemagic.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "mobile:build": "node mobile/build.mjs",
+    "mobile:sync": "npm run mobile:build && cap sync ios",
+    "mobile:check": "node --test mobile/test/*.test.mjs"
+  },
+  "dependencies": {
+    "@capacitor/browser": "8.0.5",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/share": "8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "0.28.2"
+  }
+}

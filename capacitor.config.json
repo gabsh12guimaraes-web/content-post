@@ -1,0 +1,10 @@
+{
+  "appId": "br.com.easycontentpost.app",
+  "appName": "Easy Content Post",
+  "webDir": "mobile/www",
+  "ios": {
+    "backgroundColor": "#0A0C15",
+    "contentInset": "never",
+    "preferredContentMode": "mobile"
+  }
+}

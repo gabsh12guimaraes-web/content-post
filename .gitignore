@@ -1,0 +1,15 @@
+node_modules/
+mobile/www/
+mobile/build/
+build/
+.DS_Store
+*.p8
+*.p12
+*.mobileprovision
+ios/App/Pods/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcworkspace/xcshareddata/swiftpm/
