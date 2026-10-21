@@ -415,9 +415,9 @@ body.travado .wrap { visibility: hidden; }
 .urow .un { font-weight: 600; }
 .uso { height: 6px; border-radius: 99px; background: var(--line); margin-top: 8px; overflow: hidden; } .uso i { display: block; height: 100%; background: var(--red, #F8395A); }
 .planos-grade { display: grid; grid-template-columns: 1fr; gap: 10px; }
-.plano-card { display: grid; grid-template-columns: minmax(0, 1fr) auto 120px; gap: 6px 16px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: rgba(0,0,0,.2); font-size: 13px; }
-.plano-card .pc-info { display: grid; gap: 4px; } .plano-card .pc-info b { font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .plano-card .pc-info span { color: var(--ink-soft); }
-.plano-card .pc-preco { display: grid; justify-items: end; gap: 2px; text-align: right; }
+.plano-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 16px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: rgba(0,0,0,.2); font-size: 13px; }
+.plano-card .pc-info { display: grid; grid-column: 1 / -1; gap: 4px; } .plano-card .pc-info b { font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .plano-card .pc-info span { color: var(--ink-soft); }
+.plano-card .pc-preco { display: grid; justify-items: start; gap: 2px; text-align: left; }
 .plano-card > .btn, .plano-card > .chip, .plano-card > .small { justify-self: stretch; }
 @media (max-width: 520px) { .plano-card { grid-template-columns: minmax(0, 1fr) auto; } .plano-card > .btn, .plano-card > .chip, .plano-card > .small { grid-column: 1 / -1; } }
 .plano-card.dest { border-color: var(--red, #F8395A); }
@@ -1110,8 +1110,6 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
-<link rel="stylesheet" href="assets/cupons.css?v=20261020-nasten">
-<script src="assets/cupons.js?v=20261020-nasten" defer></script>
 <link rel="stylesheet" href="assets/painel.css?v=20261020-ideias-vitrine">
 <div class="app">
   <aside class="side" id="side">
@@ -5126,9 +5124,8 @@ function desenharPlano() {
     const meu = s.plano === p.id && s.ciclo === c.ciclo && s.ativo;
     return `<div class="plano-card ${p.id === "profissional" ? "dest" : ""}">
       <div class="pc-info"><b>${esc(p.nome)}${p.id === "profissional" ? ` <span class="chip acc">Mais escolhido</span>` : ""}</b><span>${p.posts} posts por mês com IA<br>${p.ideias} buscas de ideias${p.modelos ? `<br>${p.modelos} modelos da marca` : ""}</span></div>
-      <div class="pc-preco">${c.dePorMes > c.porMes ? `<span class="de">de <s>${reais(c.dePorMes)}</s> por</span>` : ""}<span class="preco">${reais(c.porMes)}<small>/mês${c.dePorMes > c.porMes ? "*" : ""}</small></span><span class="small">${c.meses > 1 ? "cobrado " + reais(c.total) + " a cada " + c.meses + " meses" : "cobrado todo mês"}</span></div>
+      <div class="pc-preco"><span class="preco">${reais(c.porMes)}<small>/mês</small></span><span class="small">${c.meses > 1 ? "cobrado " + reais(c.total) + " a cada " + c.meses + " meses" : "cobrado todo mês"}</span></div>
       ${meu ? `<span class="chip ok">Seu plano</span>` : c.checkout ? `<a class="btn ${p.id === "profissional" ? "primary" : ""}" href="${esc(c.checkout)}" target="_blank" rel="noopener">Assinar</a>` : `<span class="small">Checkout ainda não configurado</span>`}
-      ${!meu && d.provedor === "nasten" && c.cupom ? `<div class="cupom-checkout"><span>Use este cupom no checkout para obter o valor acima:</span><button type="button" data-cupom="${esc(c.cupom)}" aria-label="Copiar cupom ${esc(c.cupom)}"><code>${esc(c.cupom)}</code> · Copiar</button></div>` : ""}
     </div>`;
   }).join("");
   abrirDlg(`<h2>Plano · ${esc(U.organizacao.nome)}${ajuda("plano")}</h2>
@@ -5139,8 +5136,7 @@ function desenharPlano() {
     ${s.cobranca ? "" : `<p class="hint">Os limites ainda não estão valendo: a cobrança será ligada quando os planos forem lançados.</p>`}
     <div class="seg" role="group" aria-label="Ciclo" style="margin:14px 0 10px">${ciclos.map(([v, t]) => `<button data-u="ciclo" data-v="${v}" aria-pressed="${PL.ciclo === v}">${t}</button>`).join("")}</div>
     <div class="planos-grade">${cards}</div>
-    ${d.planos.some(p => p.ciclos.some(c => c.dePorMes > c.porMes)) ? `<p class="hint">* Promoção por tempo limitado.</p>` : ""}
-    <p class="hint">O pagamento é feito ${d.provedor === "kiwify" ? "na Kiwify" : "na Nasten"}. Use o mesmo e-mail da sua conta${d.provedor === "nasten" ? " e aplique o cupom no checkout" : ""}. O plano será liberado após a confirmação do pagamento. Parcelamento sujeito às condições do checkout.</p>
+    <p class="hint">O pagamento é feito ${d.provedor === "kiwify" ? "na Kiwify" : "na Nasten"}. Use o mesmo e-mail da sua conta. O plano será liberado após a confirmação do pagamento. Parcelamento sujeito às condições do checkout.</p>
     ${d.afiliados ? `<div class="urow" style="margin-top:10px"><div><div class="un">Indique e ganhe</div><div class="ue">Seja afiliado da Content Post e ganhe comissão por cada assinatura que vier do seu link.</div></div><a class="btn" href="${esc(d.afiliados)}" target="_blank" rel="noopener">Quero ser afiliado</a></div>` : ""}
     <div class="actions" style="margin-top:14px"><button class="btn" data-u="fechar">Fechar</button></div>`);
 }
@@ -5919,7 +5915,7 @@ function renderAdmin() {
     </tbody></table></div><p class="small" style="margin:0">Inclui o uso com chave própria. Uso do mês nos posts: ${num(d.uso.posts30)} criados, ${num(d.uso.ideias30)} buscas de ideias, ${num(d.uso.publicados30)} publicados (30 dias).</p></div>
     <div class="glass ad-bloco"><h3>Organizações: gasto e receita</h3><div class="ad-tab"><table><thead><tr><th>Organização</th><th>Situação</th><th>Plano</th><th class="n">Gasto 30 dias</th><th class="n">Receita líquida/mês</th><th class="n">Margem</th></tr></thead><tbody>
       ${d.topOrgs.length ? d.topOrgs.map(o => `<tr><td>${esc(o.nome)}</td><td>${esc(SIT[o.situacao] || o.situacao)}</td><td>${esc([o.plano, o.ciclo].filter(Boolean).join(" "))}</td><td class="n">${usd(o.custoUsd30)}</td><td class="n">${o.receitaMesBrl ? brl(o.receitaMesBrl) : "–"}</td><td class="n ${o.margemBrl < 0 ? "ad-neg" : ""}">${brl(o.margemBrl)}</td></tr>`).join("") : `<tr><td colspan="6" class="small">Nenhum gasto ainda.</td></tr>`}
-    </tbody></table></div><p class="small" style="margin:0">${d.receita.taxasPendentes ? `${d.receita.taxasPendentes} organização(ões) com taxas ainda não informadas pela Nasten; esses valores estão sem dedução de taxas. ` : ""}As 25 organizações que mais gastaram nos últimos 30 dias. Receita líquida = o que o provedor repassa da última cobrança (com cupom e já sem as taxas). Margem = receita líquida menos o gasto de IA em R$ (sem Railway).</p></div>`;
+    </tbody></table></div><p class="small" style="margin:0">${d.receita.taxasPendentes ? `${d.receita.taxasPendentes} organização(ões) com taxas ainda não informadas pela Nasten; esses valores estão sem dedução de taxas. ` : ""}As 25 organizações que mais gastaram nos últimos 30 dias. Receita líquida = o valor efetivo da última cobrança repassado pelo provedor, já sem as taxas. Margem = receita líquida menos o gasto de IA em R$ (sem Railway).</p></div>`;
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-ad]"); if (!b) return;

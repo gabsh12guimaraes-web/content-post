@@ -155,7 +155,6 @@ h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.025em; line-height: 1.
 .plano .tag { position: absolute; top: -12px; left: 24px; background: var(--red); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
 .plano h3 { font-size: 20px; }
 .de { font-size: 14px; color: var(--faint); margin-bottom: -8px; } .de s { color: var(--soft); }
-.desconto { display: inline-block; margin-left: 8px; background: rgba(248,57,90,.16); color: var(--red); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; vertical-align: middle; }
 .promo { text-align: center; color: var(--faint); font-size: 13px; margin-top: 12px; }
 .preco { font-size: 40px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
 .preco small { font-size: 15px; font-weight: 500; color: var(--faint); letter-spacing: 0; }
@@ -179,8 +178,6 @@ footer a { color: var(--soft); }
 @media (max-width: 560px) { .barra-cta span { display: none; } .barra-cta .btn { width: 100%; } .garantia { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
 @media (prefers-reduced-motion: reduce) { .anel { animation: none; } html { scroll-behavior: auto; } }
 </style>
-<link rel="stylesheet" href="assets/cupons.css?v=20261020-nasten">
-<script src="assets/cupons.js?v=20261020-nasten" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -278,8 +275,7 @@ footer a { color: var(--soft); }
     <button data-ciclo="mensal">Mensal</button><button data-ciclo="semestral">Semestral</button><button data-ciclo="anual">Anual</button>
   </div>
   <div class="grade-planos" id="grade"></div>
-  <p class="promo">Valores à vista com o cupom indicado. Parcelamento sujeito às condições do checkout.</p>
-  <p class="promo">* Promoção por tempo limitado.</p>
+  <p class="promo">Valores à vista. Parcelamento sujeito às condições do checkout.</p>
 
   <div class="garantia">
     <div class="sel">7<small>DIAS</small></div>
@@ -327,26 +323,26 @@ const PIXEL_META = "";
 // Mostrar o botão abaixo do vídeo só depois de X segundos (0 = sempre visível). Funciona com vídeo; sem vídeo fica sempre visível.
 const CTA_APOS_SEGUNDOS = 0;
 const CHECKOUT = {
-  "essencial:mensal": "https://app.nasten.com.br/checkout/xk10c2k", "essencial:semestral": "https://app.nasten.com.br/checkout/et20cqs", "essencial:anual": "https://app.nasten.com.br/checkout/6t20djh",
-  "profissional:mensal": "https://app.nasten.com.br/checkout/5d6038k", "profissional:semestral": "https://app.nasten.com.br/checkout/78703pn", "profissional:anual": "https://app.nasten.com.br/checkout/d110wxt",
-  "agencia:mensal": "https://app.nasten.com.br/checkout/g6b03qk", "agencia:semestral": "https://app.nasten.com.br/checkout/wic0399", "agencia:anual": "https://app.nasten.com.br/checkout/6jd030e",
+  "essencial:mensal": "https://app.nasten.com.br/checkout/1b00ye7", "essencial:semestral": "https://app.nasten.com.br/checkout/n2004ue", "essencial:anual": "https://app.nasten.com.br/checkout/lb1040d",
+  "profissional:mensal": "https://app.nasten.com.br/checkout/1i204x5", "profissional:semestral": "https://app.nasten.com.br/checkout/w7304kn", "profissional:anual": "https://app.nasten.com.br/checkout/qj40411",
+  "agencia:mensal": "https://app.nasten.com.br/checkout/wn504iq", "agencia:semestral": "https://app.nasten.com.br/checkout/sn604vs", "agencia:anual": "https://app.nasten.com.br/checkout/y910yjc",
 };
 /* ============================================================ */
 const PLANOS = [
-  { id: "essencial", nome: "Essencial", posts: 12, ideias: 8, de: { mensal: 369, semestral: 339, anual: 307 }, cupom: { mensal: 52, semestral: 50, anual: 46 }, extra: "Para quem posta 3 vezes por semana" },
-  { id: "profissional", nome: "Profissional", posts: 30, ideias: 20, de: { mensal: 877, semestral: 807, anual: 729 }, cupom: { mensal: 52, semestral: 49, anual: 45 }, extra: "Um post por dia", destaque: true },
-  { id: "agencia", nome: "Agência", posts: 80, ideias: 50, de: { mensal: 2307, semestral: 2117, anual: 1919 }, cupom: { mensal: 52, semestral: 49, anual: 45 }, extra: "Para agências e várias marcas" },
+  { id: "essencial", nome: "Essencial", posts: 12, ideias: 8, precos: { mensal: 177.12, semestral: 169.5, anual: 165.78 }, extra: "Para quem posta 3 vezes por semana" },
+  { id: "profissional", nome: "Profissional", posts: 30, ideias: 20, precos: { mensal: 420.96, semestral: 411.57, anual: 400.95 }, extra: "Um post por dia", destaque: true },
+  { id: "agencia", nome: "Agência", posts: 80, ideias: 50, precos: { mensal: 1107.36, semestral: 1079.67, anual: 1055.45 }, extra: "Para agências e várias marcas" },
 ];
 const MESES = { mensal: 1, semestral: 6, anual: 12 };
-// O preço é o "de" (o do produto na Nasten) com o cupom PLANOCICLO, que acompanha o link (?coupon=) e fica visível para copiar e aplicar no checkout. Igual a planos.html e content-post-api/src/planos.js.
+// Preços finais, sem cupom. Iguais a planos.html e content-post-api/src/planos.js.
 const reais = v => "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
 const centavos = v => Math.round(v * 100) / 100;
-const totalDo = (p, c) => centavos(p.de[c] * MESES[c] * (100 - p.cupom[c]) / 100);
+const totalDo = (p, c) => centavos(p.precos[c] * MESES[c]);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const daUrl = new URLSearchParams(location.search);
 // Repassa a origem da campanha (utm_*, src, sck) para o checkout da Nasten.
-function comOrigem(link, cupom) {
-  try { const u = new URL(link); if (cupom) u.searchParams.set("coupon", cupom); for (const [k, v] of daUrl) if (/^(utm_[a-z]+|src|sck|afid)$/.test(k)) u.searchParams.set(k, v); if (!u.searchParams.has("src")) u.searchParams.set("src", "lp"); return u.toString(); }
+function comOrigem(link) {
+  try { const u = new URL(link); for (const [k, v] of daUrl) if (/^(utm_[a-z]+|src|sck|afid)$/.test(k)) u.searchParams.set(k, v); if (!u.searchParams.has("src")) u.searchParams.set("src", "lp"); return u.toString(); }
   catch (e) { return link; }
 }
 // Pixel da Meta (opcional)
@@ -404,14 +400,12 @@ let ciclo = MESES[daUrl.get("ciclo")] ? daUrl.get("ciclo") : "anual";
 function desenhar() {
   document.querySelectorAll("[data-ciclo]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ciclo === ciclo)));
   document.getElementById("grade").innerHTML = PLANOS.map(p => {
-    const m = MESES[ciclo], total = totalDo(p, ciclo), porMes = centavos(total / m), link = comOrigem(CHECKOUT[p.id + ":" + ciclo], (p.id + ciclo).toUpperCase());
+    const m = MESES[ciclo], total = totalDo(p, ciclo), porMes = centavos(total / m), link = comOrigem(CHECKOUT[p.id + ":" + ciclo]);
     return `<div class="plano ${p.destaque ? "dest" : ""}">${p.destaque ? `<span class="tag">Mais escolhido</span>` : ""}
       <h3>${esc(p.nome)}</h3>
-      <div class="de">de <s>${reais(p.de[ciclo])}</s> por<span class="desconto">-${p.cupom[ciclo]}%</span></div>
-      <div class="preco">${reais(porMes)}<small>/mês*</small></div>
+      <div class="preco">${reais(porMes)}<small>/mês</small></div>
       <div class="cobranca">${m > 1 ? `${reais(total)} a cada ${m} meses` : "cobrado todo mês"}</div>
       <ul><li>${p.posts} posts por mês criados pela IA</li><li>${p.ideias} buscas de ideias por mês</li><li>Fotos e vídeos com IA inclusos</li><li>Calendário e publicação automática</li><li>Equipe sem limite de pessoas</li><li>${esc(p.extra)}</li></ul>
-      <div class="cupom-checkout"><span>Use no checkout para obter o valor acima:</span><button type="button" data-cupom="${(p.id + ciclo).toUpperCase()}" aria-label="Copiar cupom ${(p.id + ciclo).toUpperCase()}"><code>${(p.id + ciclo).toUpperCase()}</code> · Copiar</button></div>
       <a class="btn ${p.destaque ? "primary" : ""}" href="${esc(link)}" data-checkout="${p.id}:${ciclo}" data-valor="${total}">Assinar ${esc(p.nome)}</a>
     </div>`;
   }).join("");
