@@ -115,6 +115,7 @@
 .mb-ideias-banner small { display: block; color: #c1b3f3; font-size: 10px; margin-bottom: 5px; }
 .mb-ideias-banner b { display: block; font-size: 12px; overflow-wrap: anywhere; }
 .mb-ideias-banner .btn, .mb-ideias-banner .link { font-size: 10px; }
+.mb-filtros-ideias select { min-width: 0; width: 100%; max-width: 520px; }
 .home-brain { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,1fr); align-items: center; gap: 20px; min-height: 400px; overflow: hidden; padding: 40px; border: 1px solid #b6a1f34d; border-radius: 20px; background: radial-gradient(ellipse at 80% 30%,#633959,#141020 70%); box-shadow: inset 0 1px 0 #eee0ff0d,0 14px 55px -35px #ad6de66e; }
 .home-brain::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg,#100e20 0%,#100e20f5 30%,#100e20aa 56%,#19112740 100%),linear-gradient(0deg,#100e20a6,transparent 40%,#29183933); }
 .home-brain::after { content: ""; position: absolute; z-index: 2; inset: 0 15% auto; height: 1px; background: linear-gradient(90deg,transparent,#e8bdffbb,transparent); pointer-events: none; }

@@ -1105,7 +1105,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 </style>
 
 <link rel="stylesheet" href="assets/painel.css?v=20261020-ideias-vitrine">
-<link rel="stylesheet" href="assets/mega-brain.css?v=20261020-home-destaque">
+<link rel="stylesheet" href="assets/mega-brain.css?v=20261021-filtro-ideias">
 <div class="app">
   <aside class="side" id="side">
     <div class="side-logo"><button class="side-brand" data-tab="home" aria-label="Content Post · Home"><img class="cp-logo-img" src="marca/content-post-logo-branco.png" alt="Content Post"><img class="side-symbol" src="marca/content-post-simbolo-branco.png" alt=""></button><button class="side-toggle" data-side-collapse aria-label="Recolher menu" aria-expanded="true" title="Recolher menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 7l-5 5 5 5"/></svg></button></div>
@@ -1158,7 +1158,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 <div class="auth" id="auth" hidden></div>
 <dialog class="dlg glass" id="dlg"></dialog>
 
-<script src="assets/mega-brain.js?v=20261020-megabrain"></script>
+<script src="assets/mega-brain.js?v=20261021-filtro-ideias"></script>
 <script>
 const KEY = "pauta-painel-v3";
 
@@ -2049,7 +2049,7 @@ function renderIdeias() {
   const base = state.ideias.filter(megaBrainIdeiaVisivel);
   const botao = M.modo !== "web" ? ""
     : buscandoIdeias() ? `<div class="working"><span class="dot"></span>Buscando ideias nas fontes…</div>`
-    : MB.filtroIdeias ? `<button class="btn primary" data-mb="gerar-ideias" data-estrategia="${MB.filtroIdeias.id}" data-etapa="${MB.filtroIdeias.etapa}" ${MB.gerandoIdeias ? "disabled" : ""}>Gerar mais para esta etapa</button>` : `<button class="btn primary" data-act="buscar-ideias">Buscar ideias novas</button>`;
+    : MB.filtroIdeias?.id && MB.filtroIdeias.etapa ? `<button class="btn primary" data-mb="gerar-ideias" data-estrategia="${MB.filtroIdeias.id}" data-etapa="${MB.filtroIdeias.etapa}" ${MB.gerandoIdeias ? "disabled" : ""}>Gerar mais para esta etapa</button>` : MB.filtroIdeias ? `<button class="btn primary" data-mb="abrir-brain">Abrir Mega Brain ${iconeMenu("seta", 17)}</button>` : `<button class="btn primary" data-act="buscar-ideias">Buscar ideias novas</button>`;
   const ti = tarefaIdeias();
   const falhaIdeias = ti && ti.status === "erro" ? `<div class="msg erro" style="margin-bottom:12px">A última busca de ideias falhou: ${esc(ti.erro || "")}</div>` : "";
   const head = megaBrainIdeiasBanner() + `<div class="panel-head"><p>A IA lê as fontes cadastradas e sugere ideias, ordenadas pela aderência à marca. Aprove as que devem ir para o calendário.</p>${botao}`;
@@ -2074,9 +2074,9 @@ function renderIdeias() {
       ${FI.tipo !== "Todos" || FI.cat !== "Todas" ? `<button type="button" class="link-btn fi-limpar" data-fi="limpar">Limpar filtros</button>` : ""}</div>` : "";
   const fb = (s, label) => `<button aria-pressed="${filtro === s}" data-filtro="${s}">${label} · ${contagem(s)}</button>`;
   el.innerHTML = falhaIdeias + head + `<div class="filters">${fb("Sugerida", "Para decidir")}${fb("Aprovada", "Aprovadas")}${fb("Guardada", "Guardadas")}${fb("Descartada", "Descartadas")}${fb("Todas", "Todas")}</div></div>
-    ${filtrosExtra}
+    ${megaBrainFiltrosIdeias()}${filtrosExtra}
     ${lista.length ? `<div class="ideas">${lista.slice(0, ideiasVisiveis).map(cardIdeia).join("")}</div>${lista.length > ideiasVisiveis ? `<div class="mais-ideias"><button class="btn" data-mais-ideias>Mostrar mais ${Math.min(IDEIAS_PAGINA, lista.length - ideiasVisiveis)} de ${lista.length - ideiasVisiveis}</button></div>` : ""}`
-      : `<div class="empty glass">${base.length ? "Nenhuma ideia neste filtro." : MB.filtroIdeias ? buscandoIdeias() ? "As ideias desta etapa estão sendo preparadas. Elas aparecerão aqui." : "Ainda não há ideias para esta etapa. Clique em Gerar mais para esta etapa." : "Nenhuma ideia ainda. Clique em Buscar ideias novas."}</div>`}`;
+      : `<div class="empty glass">${base.length ? "Nenhuma ideia neste filtro." : MB.filtroIdeias ? buscandoIdeias() ? "As ideias do Mega Brain estão sendo preparadas. Elas aparecerão aqui." : MB.filtroIdeias.id && MB.filtroIdeias.etapa ? "Ainda não há ideias para esta etapa. Clique em Gerar mais para esta etapa." : "Ainda não há ideias do Mega Brain neste filtro. Gere ideias a partir de uma etapa da sua estratégia." : "Nenhuma ideia ainda. Clique em Buscar ideias novas."}</div>`}`;
 }
 // A lista de ideias vem em páginas de 30: com centenas de cartões o celular travava a cada redesenho.
 const IDEIAS_PAGINA = 30;

@@ -31,7 +31,7 @@ async function carregarMegaBrain(id, selecionar = false) {
     if (selecionar || MB.modo === "inicio") MB.modo = MB.atual ? "estrategia" : "chat";
     MB.erro = "";
   } catch (e) { if (contextoMBAtual(contexto) && pedido === MB.pedido) { MB.erro = textoErro(e); MB.carregado = true; } }
-  finally { if (contextoMBAtual(contexto) && pedido === MB.pedido) { MB.carregando = false; if (tab === "brain") renderMegaBrain(); agendarMegaBrain(); } }
+  finally { if (contextoMBAtual(contexto) && pedido === MB.pedido) { MB.carregando = false; if (tab === "brain") renderMegaBrain(); else if (tab === "ideias") renderIdeias(); agendarMegaBrain(); } }
 }
 function novaConversaMegaBrain() {
   if (MB.ocupado) return;
@@ -131,10 +131,28 @@ function abrirIdeiasMegaBrain(id, etapa, titulo) {
   MB.filtroIdeias = { id, etapa, titulo: titulo || MB.atual?.resultado?.titulo || "Estratégia de conteúdo" };
   FI.tipo = "Todos"; FI.cat = "Todas"; filtro = "Todas"; ideiasVisiveis = IDEIAS_PAGINA; guardarFI(); ir("ideias");
 }
-function megaBrainIdeiaVisivel(i) { const f = MB.filtroIdeias; return !f || (i.estrategia === f.id && i.etapaFunil === f.etapa); }
+function megaBrainIdeiaVisivel(i) {
+  const f = MB.filtroIdeias;
+  return !f || (!!i.estrategia && (!f.id || i.estrategia === f.id) && (!f.etapa || i.etapaFunil === f.etapa));
+}
+function megaBrainFiltrosIdeias() {
+  if (M.modo !== "web") return "";
+  const f = MB.filtroIdeias, relacionadas = state.ideias.filter(i => i.estrategia);
+  const ids = new Set([...MB.lista.filter(s => s.status === "pronta").map(s => s.id), ...relacionadas.map(i => i.estrategia), ...(f?.id ? [f.id] : [])]);
+  const estrategias = [...ids].map(id => ({ id, titulo: MB.lista.find(s => s.id === id)?.titulo || (f?.id === id && f.titulo) || "Estratégia de conteúdo" }));
+  const daEstrategia = relacionadas.filter(i => !f?.id || i.estrategia === f.id);
+  return `<div class="fi-grupos mb-filtros-ideias"><div class="fi-grupo"><span class="fi-rot">Origem</span><div class="fi-chips" role="group" aria-label="Origem das ideias"><button type="button" data-mb="filtrar-origem" data-origem="todas" aria-pressed="${!f}">Todas as ideias <span class="fi-n">${state.ideias.length}</span></button><button type="button" data-mb="filtrar-origem" data-origem="brain" aria-pressed="${!!f}">✦ Mega Brain <span class="fi-n">${relacionadas.length}</span></button></div></div>
+    ${f ? `<label class="fi-grupo"><span class="fi-rot">Estratégia</span><select id="mb-filtro-estrategia" aria-label="Filtrar ideias por estratégia"><option value="">Todas as estratégias</option>${estrategias.map(s => `<option value="${esc(s.id)}" ${f.id === s.id ? "selected" : ""}>${esc(s.titulo)}</option>`).join("")}</select></label><div class="fi-grupo"><span class="fi-rot">Etapa do funil</span><div class="fi-chips" role="group" aria-label="Etapa do funil das ideias">${[["", "Todas as etapas"], ...Object.entries(MB_ETAPAS).map(([id, e]) => [id, e.nome])].map(([id, nome]) => `<button type="button" data-mb="filtrar-etapa" data-etapa="${id}" aria-pressed="${(f.etapa || "") === id}">${nome} <span class="fi-n">${daEstrategia.filter(i => !id || i.etapaFunil === id).length}</span></button>`).join("")}</div></div>` : ""}</div>`;
+}
+function mudarOrigemIdeias(origem) {
+  prepararMegaBrain();
+  MB.filtroIdeias = origem === "brain" ? { id: null, etapa: null, titulo: "" } : null;
+  ideiasVisiveis = IDEIAS_PAGINA; renderIdeias();
+  if (MB.filtroIdeias && !MB.carregado && !MB.carregando) carregarMegaBrain();
+}
 function megaBrainIdeiasBanner() {
-  const f = MB.filtroIdeias; if (!f) return "";
-  return `<div class="mb-ideias-banner"><span class="mb-avatar" aria-hidden="true">✦</span><div><small>Mega Brain · ${MB_ETAPAS[f.etapa].nome}</small><b>${esc(f.titulo)}</b></div><div class="actions"><button type="button" class="btn quiet" data-mb="abrir-estrategia" data-estrategia="${f.id}">Ver estratégia</button><button type="button" class="link" data-mb="todas-ideias">Ver todas as ideias</button></div></div>`;
+  const f = MB.filtroIdeias; if (!f?.id) return "";
+  return `<div class="mb-ideias-banner"><span class="mb-avatar" aria-hidden="true">✦</span><div><small>Mega Brain · ${MB_ETAPAS[f.etapa]?.nome || "Todas as etapas"}</small><b>${esc(f.titulo)}</b></div><div class="actions"><button type="button" class="btn quiet" data-mb="abrir-estrategia" data-estrategia="${esc(f.id)}">Ver estratégia</button><button type="button" class="link" data-mb="todas-ideias">Ver todas as ideias</button></div></div>`;
 }
 document.addEventListener("input", e => {
   if (e.target.id !== "mb-mensagem") return;
@@ -143,9 +161,18 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("submit", e => { if (e.target.id === "mb-form") { e.preventDefault(); responderMegaBrain(MB.texto); } });
 document.addEventListener("change", e => { if (e.target.id === "mb-escolher" && !MB.ocupado) { if (e.target.value) { MB.etapa = "topo"; carregarMegaBrain(e.target.value, true); } else novaConversaMegaBrain(); } });
+document.addEventListener("change", e => {
+  if (e.target.id !== "mb-filtro-estrategia" || !MB.filtroIdeias || U.tela !== "ok") return;
+  const id = e.target.value;
+  MB.filtroIdeias = { ...MB.filtroIdeias, id: id || null, titulo: id ? e.target.selectedOptions[0].textContent : "" };
+  ideiasVisiveis = IDEIAS_PAGINA; renderIdeias();
+});
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-mb]"); if (!b || b.disabled || U.tela !== "ok") return;
   const a = b.dataset.mb;
+  if (a === "filtrar-origem") return mudarOrigemIdeias(b.dataset.origem);
+  if (a === "filtrar-etapa" && MB.filtroIdeias && (!b.dataset.etapa || MB_ETAPAS[b.dataset.etapa])) { MB.filtroIdeias.etapa = b.dataset.etapa || null; ideiasVisiveis = IDEIAS_PAGINA; return renderIdeias(); }
+  if (a === "abrir-brain") return ir("brain");
   if (a === "novo") return novaConversaMegaBrain();
   if (a === "responder" && Number(b.dataset.passo) === MB.respostas.length) return responderMegaBrain(b.dataset.valor);
   if (a === "voltar") {
@@ -163,5 +190,5 @@ document.addEventListener("click", e => {
   if (a === "gerar-ideias") return gerarIdeiasMegaBrain(b.dataset.estrategia, b.dataset.etapa);
   if (a === "ver-ideias") return abrirIdeiasMegaBrain(b.dataset.estrategia, b.dataset.etapa);
   if (a === "abrir-estrategia") { ir("brain"); return carregarMegaBrain(b.dataset.estrategia, true); }
-  if (a === "todas-ideias") { MB.filtroIdeias = null; return renderIdeias(); }
+  if (a === "todas-ideias") return mudarOrigemIdeias("todas");
 });
