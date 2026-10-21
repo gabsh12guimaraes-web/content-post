@@ -34,6 +34,10 @@ O Mega Brain fica no menu e tem um banner na Home, logo abaixo da abertura, com 
 
 A apresentação da landing usa `assets/landing.css` e `assets/landing.js`. Os exemplos de vídeo e o vídeo de apresentação carregam sob demanda; as animações respeitam movimento reduzido. Textos, preços, links e rastreamento das campanhas continuam em `lp.html`.
 
+O login usa o logo centralizado e uma faixa superior de posts flutuantes em todos os tamanhos de tela, sem o vídeo de apresentação da landing. As mídias selecionadas publicamente no banco têm prioridade; as capas e os vídeos enviados servem de complemento. O botão de pausa controla o movimento, e no máximo dois vídeos silenciosos tocam enquanto a faixa está visível. Movimento reduzido e economia de dados usam somente as capas.
+
+`assets/splash.css` e `assets/splash.js` mostram uma transição líquida curta na abertura da landing/painel e ao solicitar estratégia, ideias, criação ou ajuste de post. O splash é decorativo, termina automaticamente e respeita movimento reduzido; as chamadas da API e os indicadores reais de geração seguem o fluxo existente. Erros encerram a transição para liberar a mensagem correspondente.
+
 A faixa superior usa a paleta rosa/vermelha e uma contagem pública de quatro dias, com renovação identificada na própria mensagem. O início de referência está em `assets/landing.js`, com horário de Brasília explícito; recarregar mantém o prazo. O botão leva aos planos e usa o rastreamento existente. A contagem pausa quando a página fica oculta e retoma com o horário atual.
 
 Em Integrações → Magnific, **Acervo quando faltar crédito** permite declarar Premium, Premium+ ou Pro e usar fotos prontas quando a geração ficar sem saldo. A configuração acompanha a chave e exige a API com a migração `030_acervo_magnific.sql`; versões anteriores da API ocultam esse controle. As fotos ficam no filtro **Acervo Magnific**, com a origem na edição. Reels também podem ser montados somente com fotos do banco, com três segundos por foto, após a confirmação de aprovação.

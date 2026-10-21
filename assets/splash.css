@@ -1,0 +1,27 @@
+/* Transição curta de marca; o andamento real continua nos estados do painel. */
+.cp-splash { --cp-splash-ready: 1; position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; overflow: hidden; pointer-events: none; isolation: isolate; background: #0a0c15f5; opacity: 1; transition: opacity 240ms ease-out; }
+.cp-splash::backdrop { background: transparent; pointer-events: none; }
+.cp-splash[hidden] { display: none !important; }
+.cp-splash.cp-splash-saindo { opacity: 0; }
+.cp-splash-liquid { position: absolute; inset: -15%; z-index: -2; overflow: hidden; filter: blur(8px); }
+.cp-splash-liquid i { position: absolute; width: min(82vw, 760px); height: min(92vw, 760px); left: 50%; top: 50%; overflow: hidden; border-radius: 44% 56% 62% 38% / 52% 34% 66% 48%; background: radial-gradient(ellipse at 32% 28%, #fff1e8, #ffb6bf 17%, #ff557b 42%, #b10d40 74%); box-shadow: inset 16px 12px 60px #ffb9c580, inset -22px -18px 60px #710b3b50; opacity: .95; animation: cp-liquido 1400ms cubic-bezier(.22,.7,.32,1) both; }
+.cp-splash-liquid i::before { content: ""; position: absolute; inset: 18% 6% 24% 9%; border-radius: 55% 45% 66% 34% / 72% 32% 68% 28%; background: linear-gradient(155deg, transparent 22%, #fff5dfbb 44%, #fff8ec88 49%, transparent 64%); filter: blur(10px); transform: rotate(-22deg); }
+.cp-splash-liquid i:nth-child(2) { width: min(66vw, 620px); height: min(74vw, 660px); background: radial-gradient(ellipse at 65% 25%, #ffd5cb, #ff6e89 28%, #ed244e 66%, #670f39); mix-blend-mode: screen; animation-name: cp-liquido-b; }
+.cp-splash-liquid i:nth-child(3) { width: min(52vw, 480px); height: min(62vw, 560px); background: radial-gradient(ellipse at 45% 35%, #fff8e6, #ffb6bb 25%, #f13a69 64%, transparent 76%); mix-blend-mode: screen; animation-name: cp-liquido-c; opacity: .65; }
+.cp-splash::after { content: ""; position: absolute; z-index: -1; inset: 0; background: radial-gradient(ellipse at center, #0a0c1514, #0a0c1520 38%, #0a0c15ed 82%); }
+.cp-splash-content { display: grid; justify-items: center; gap: 20px; width: 100%; box-sizing: border-box; padding: 32px; text-align: center; animation: cp-marca 650ms ease-out both; }
+.cp-splash-content img { display: block; width: min(300px, 76vw); height: auto; filter: drop-shadow(0 3px 20px #25051170); }
+.cp-splash-content span { max-width: 300px; color: #fff3f3; font: 500 12px/1.7 Poppins, system-ui, sans-serif; text-shadow: 0 2px 12px #250511; }
+@keyframes cp-liquido { 0% { transform: translate(-72%, -40%) scale(.45) rotate(-48deg); opacity: 0; } 28% { opacity: .95; } 65% { transform: translate(-61%, -56%) scale(1.15) rotate(14deg); border-radius: 58% 42% 30% 70% / 32% 63% 37% 68%; } 100% { transform: translate(-45%, -54%) scale(1.4) rotate(42deg); border-radius: 36% 64% 60% 40% / 64% 38% 62% 36%; } }
+@keyframes cp-liquido-b { 0% { transform: translate(-18%, -82%) scale(.3) rotate(40deg); opacity: 0; } 30% { opacity: .8; } 68% { transform: translate(-25%, -37%) scale(1.15) rotate(-26deg); border-radius: 68% 32% 44% 56% / 40% 70% 30% 60%; } 100% { transform: translate(-52%, -36%) scale(1.25) rotate(-52deg); } }
+@keyframes cp-liquido-c { 0% { transform: translate(-85%, -5%) scale(.2); opacity: 0; } 35% { opacity: .6; } 70% { transform: translate(-88%, -28%) scale(1.1) rotate(-28deg); } 100% { transform: translate(-48%, -70%) scale(1.15) rotate(36deg); border-radius: 62% 38% 66% 34% / 32% 54% 46% 68%; } }
+@keyframes cp-marca { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+@media (max-width: 599px) {
+  .cp-splash-liquid { inset: -20%; filter: blur(6px); }
+  .cp-splash-liquid i { width: 116vw; height: 150vw; }
+  .cp-splash-liquid i:nth-child(2) { width: 98vw; height: 122vw; }
+  .cp-splash-liquid i:nth-child(3) { width: 80vw; height: 106vw; }
+  .cp-splash-content { gap: 16px; }
+  .cp-splash-content img { width: min(254px, 74vw); }
+}
+@media (prefers-reduced-motion: reduce) { .cp-splash { display: none; } }
