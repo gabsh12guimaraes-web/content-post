@@ -1060,35 +1060,13 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .dlg .glass.box { background: var(--card); }
 .urow { border-radius: 6px; }
 
-/* login em duas colunas, como no admin */
+/* login */
 .auth { background: var(--bg); padding: 0; place-items: stretch; }
-.auth-wrap { min-height: 100vh; display: grid; grid-template-columns: 1fr; }
-.auth-form { display: grid; place-items: center; padding: 28px 20px; }
 .auth-card { background: none; border: 0; max-width: 380px; padding: 0; gap: 14px; }
 .auth-card .btn.primary { padding: 14px 0; }
 .auth-card .btn.quiet { width: 100%; }
 .auth-card h1 { font-size: 18px; margin-top: 6px; }
 .auth-card .hint { font-size: 12px; color: var(--ink-soft); }
-.auth-marca { display: grid; gap: 8px; justify-items: start; }
-.auth-marca .wm { font-size: 30px; }
-.auth-marca .wm img { height: 44px; max-width: 300px; }
-.auth-marca .adm { font-size: 11px; letter-spacing: .34em; }
-.vitrine { display: none; }
-@media (min-width: 900px) {
-  .auth-wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .vitrine { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 24px; height: 100vh; position: sticky; top: 0; overflow: hidden;
-    -webkit-mask: linear-gradient(transparent, #000 12%, #000 88%, transparent); mask: linear-gradient(transparent, #000 12%, #000 88%, transparent); }
-  .vitrine .col { display: grid; gap: 12px; align-content: start; animation: sobe 38s linear infinite; }
-  .vitrine .col.b { animation-name: desce; animation-duration: 46s; }
-  .vitrine .tile { aspect-ratio: 4 / 5; border-radius: 9px; padding: 16px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; color: #fff; border: 1px solid var(--line);
-    background: linear-gradient(135deg, #F8395A, #2a1220); }
-  .vitrine .tile:nth-child(3n+2) { background: linear-gradient(160deg, #191B25, #0A0C15 60%, #3a0d1b); }
-  .vitrine .tile:nth-child(3n) { background: linear-gradient(200deg, #FF8FA3, #C8102E 55%, #1a0b12); }
-  .vitrine .tile b { font-size: 18px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
-  .vitrine .tile span { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; opacity: .8; }
-}
-@keyframes sobe { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-@keyframes desce { from { transform: translateY(-50%); } to { transform: translateY(0); } }
 
 /* tablet e celular */
 @media (max-width: 1079px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -1110,7 +1088,9 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
-<link rel="stylesheet" href="assets/painel.css?v=20261020-ideias-vitrine">
+<link rel="stylesheet" href="assets/painel.css?v=20261021-login-flutuante">
+<link rel="stylesheet" href="assets/splash.css?v=20261021-liquido">
+<script defer src="assets/splash.js?v=20261021-liquido"></script>
 <link rel="stylesheet" href="assets/mega-brain.css?v=20261021-filtro-ideias">
 <div class="app">
   <aside class="side" id="side">
@@ -4613,8 +4593,10 @@ async function chamar(corpo, comToken = true) {
 async function api(corpo) {
   // Uma ação que muda dados pode ter mexido na tela: a próxima recarga da pauta vem completa. Leituras não contam.
   if (!/^(pauta|listar\w*|redesConectadas|contasRedes|plano|situacao|eu|verConvite)$/.test(corpo.acao)) pauta.versao = null;
+  const splash = window.CPSplash?.geracao(corpo.acao);
   try { return await chamar(corpo); }
   catch (e) {
+    window.CPSplash?.encerrar(splash);
     if (e.login) sairLocal("Sua sessão expirou. Entre de novo.");
     else if (e.semOrganizacao) { U.tela = "semOrg"; renderAuth(); }
     else if (e.status === 402) setTimeout(() => abrirPlano(e.message), 50);
@@ -4721,8 +4703,9 @@ const iniciais = n => String(n || "?").split(/\s+/).filter(Boolean).slice(0, 2).
 function marcaDoLogin() {
   return `<div class="auth-marca"><img class="cp-logo-img grande" src="marca/content-post-logo-branco.png" alt="Content Post"></div>`;
 }
-const VIT = { dados: null, em: 0, carregando: false, observer: null, videos: [] };
-// Vídeos enviados e autorizados para a vitrine pública, além dos itens selecionados no banco.
+const VIT = { dados: null, em: 0, carregando: false, observer: null, videos: [], pausada: false, visivel: false };
+// Mídias autorizadas para a vitrine pública. O vídeo de apresentação da landing
+// não faz parte desta seleção: a abertura do login mostra somente posts.
 const MIDIAS_LOGIN_ENVIADAS = [
   { tipo: "video/mp4", url: "assets/exemplos/ia-respira.mp4", previa: "assets/exemplos/ia-respira.webp" },
   { tipo: "video/mp4", url: "assets/exemplos/instagram-com-equipe.mp4", previa: "assets/exemplos/instagram-com-equipe.webp" },
@@ -4731,33 +4714,57 @@ const MIDIAS_LOGIN_ENVIADAS = [
   { tipo: "video/mp4", url: "assets/exemplos/enquete-post-3.mp4", previa: "assets/exemplos/enquete-post-3.webp" },
 ];
 const MIDIAS_LOGIN_PADRAO = [
-  { tipo: "video/mp4", url: "assets/home/toque.mp4", previa: "assets/home/reels.webp" },
-  { tipo: "image/webp", url: "assets/home/stories.webp" },
-  { tipo: "video/mp4", url: "assets/home/conexao.mp4", previa: "assets/home/conexao.webp" },
-  { tipo: "image/webp", url: "assets/home/reels.webp" },
-  { tipo: "image/webp", url: "assets/home/conexao.webp" },
-  { tipo: "image/webp", url: "assets/home/stories.webp" },
+  MIDIAS_LOGIN_ENVIADAS[0],
+  { tipo: "image/webp", url: "marca/cp/cp-carrossel-1.webp" },
+  MIDIAS_LOGIN_ENVIADAS[2], MIDIAS_LOGIN_ENVIADAS[1],
+  ...MIDIAS_LOGIN_ENVIADAS.slice(3),
 ];
-function pararVitrineLogin() { VIT.observer?.disconnect(); VIT.observer = null; VIT.videos.forEach(v => v.pause()); VIT.videos = []; }
+function pararVitrineLogin() {
+  VIT.observer?.disconnect(); VIT.observer = null;
+  VIT.videos.forEach(v => v.pause()); VIT.videos = []; VIT.visivel = false;
+}
+function atualizarMovimentoLogin() {
+  const el = document.querySelector("#auth .vitrine"), auth = document.getElementById("auth");
+  if (!el) return;
+  const movimento = !VIT.pausada && !matchMedia("(prefers-reduced-motion: reduce)").matches && !navigator.connection?.saveData;
+  const ativo = movimento && VIT.visivel && !document.hidden && !auth.hidden;
+  el.classList.toggle("vitrine-parada", !ativo);
+  // No máximo dois vídeos decorativos tocando. Em economia de dados ou com
+  // movimento reduzido, só as capas são carregadas.
+  const tocar = ativo ? VIT.videos.filter(v => v.dataset.visivel === "1").slice(0, 2) : [];
+  VIT.videos.forEach(v => {
+    if (!tocar.includes(v)) { v.pause(); return; }
+    if (!v.getAttribute("src")) v.src = v.dataset.vitrineSrc;
+    v.play().catch(() => {});
+  });
+  const botao = document.querySelector("[data-auth-motion]");
+  if (botao) {
+    botao.setAttribute("aria-pressed", String(VIT.pausada));
+    botao.setAttribute("aria-label", VIT.pausada ? "Retomar animações" : "Pausar animações");
+    botao.title = VIT.pausada ? "Retomar animações" : "Pausar animações";
+  }
+}
 function desenharVitrineLogin() {
-  const el = document.querySelector("#auth .vitrine"); if (!el || document.getElementById("auth").hidden || !matchMedia("(min-width:900px)").matches) return;
+  const el = document.querySelector("#auth .vitrine");
+  if (!el || document.getElementById("auth").hidden) return;
   pararVitrineLogin();
-  let lista = [...MIDIAS_LOGIN_ENVIADAS, ...(VIT.dados?.length ? VIT.dados : MIDIAS_LOGIN_PADRAO)];
-  if (lista.length < 6) lista = Array.from({ length: 6 }, (_, i) => lista[i % lista.length]);
-  const tile = m => `<div class="tile tile-midia">${m.tipo === "video/mp4" ? `<video data-vitrine-src="${esc(m.url)}#t=0.1" ${m.previa ? `poster="${esc(m.previa)}"` : ""} muted loop playsinline preload="none" tabindex="-1"></video>` : `<img src="${esc(m.previa || m.url)}" alt="" loading="lazy" decoding="async">`}<span class="vitrine-ia">${m.tipo === "video/mp4" ? "Vídeo" : "Imagem"} com IA</span></div>`;
-  const metade = Math.ceil(lista.length / 2);
-  el.innerHTML = [0, 1].map(col => { const itens = col ? lista.slice(metade) : lista.slice(0, metade); return `<div class="col ${col ? "b" : "a"}">${itens.concat(itens).map(tile).join("")}</div>`; }).join("");
-  const animar = !matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const atualizar = (v, visivel) => {
-    if (visivel && !v.getAttribute("src")) { v.src = v.dataset.vitrineSrc; v.addEventListener("loadedmetadata", () => { if (v.paused && v.duration > 0.1) v.currentTime = 0.1; }, { once: true }); }
-    if (visivel && animar && !document.hidden && !document.getElementById("auth").hidden) v.play().catch(() => {}); else v.pause();
-  };
+  const lista = [...(VIT.dados || []), ...MIDIAS_LOGIN_PADRAO]
+    .filter((m, i, todos) => todos.findIndex(x => x.url === m.url) === i).slice(0, 6);
+  el.innerHTML = lista.map(m => `<div class="tile tile-midia">${m.tipo === "video/mp4" ? `<video data-vitrine-src="${esc(m.url)}#t=0.1" ${m.previa ? `poster="${esc(m.previa)}"` : ""} muted loop playsinline preload="none" tabindex="-1" disablepictureinpicture></video>` : `<img src="${esc(m.previa || m.url)}" alt="" decoding="async">`}</div>`).join("");
   VIT.videos = [...el.querySelectorAll("video")];
-  if ("IntersectionObserver" in window) { VIT.observer = new IntersectionObserver(es => es.forEach(e => atualizar(e.target, e.isIntersecting)), { root: el, threshold: 0.1 }); VIT.videos.forEach(v => VIT.observer.observe(v)); }
-  else VIT.videos.forEach(v => atualizar(v, true));
+  if ("IntersectionObserver" in window) {
+    VIT.observer = new IntersectionObserver(es => {
+      es.forEach(e => { if (e.target === el) VIT.visivel = e.isIntersecting; else e.target.dataset.visivel = e.isIntersecting ? "1" : "0"; });
+      atualizarMovimentoLogin();
+    }, { root: document.getElementById("auth"), threshold: 0.1 });
+    VIT.observer.observe(el); VIT.videos.forEach(v => VIT.observer.observe(v));
+  } else {
+    VIT.visivel = true; VIT.videos.forEach(v => v.dataset.visivel = "1");
+  }
+  atualizarMovimentoLogin();
 }
 async function carregarVitrineLogin() {
-  if (!matchMedia("(min-width:900px)").matches || document.getElementById("auth").hidden) return;
+  if (document.getElementById("auth").hidden) return;
   desenharVitrineLogin();
   if (!API || VIT.carregando || Date.now() - VIT.em < 60000) return;
   VIT.carregando = true;
@@ -4768,9 +4775,12 @@ async function carregarVitrineLogin() {
   } catch (e) { VIT.em = Date.now(); }
   finally { VIT.carregando = false; }
 }
-matchMedia("(min-width:900px)").addEventListener("change", e => { if (e.matches) carregarVitrineLogin(); else pararVitrineLogin(); });
-matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", desenharVitrineLogin);
-document.addEventListener("visibilitychange", () => { if (document.hidden) VIT.videos.forEach(v => v.pause()); else desenharVitrineLogin(); });
+matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", atualizarMovimentoLogin);
+navigator.connection?.addEventListener?.("change", atualizarMovimentoLogin);
+document.addEventListener("visibilitychange", atualizarMovimentoLogin);
+document.addEventListener("click", e => {
+  if (e.target.closest?.("[data-auth-motion]")) { VIT.pausada = !VIT.pausada; atualizarMovimentoLogin(); }
+});
 function renderAuth() {
   const el = document.getElementById("auth"), quem = document.getElementById("usuario");
   const web = M.modo === "web";
@@ -4790,13 +4800,12 @@ function renderAuth() {
   el.hidden = !aberto; document.body.classList.toggle("travado", aberto);
   if (!aberto) { pararVitrineLogin(); return; }
   const erro = U.erro ? `<div class="msg erro">${esc(U.erro)}</div>` : "";
-  const casca = form => { setTimeout(carregarVitrineLogin, 0); return `<div class="auth-wrap"><div class="auth-form">${form}</div><div class="vitrine" aria-hidden="true"></div></div>`; };
+  const casca = form => { setTimeout(carregarVitrineLogin, 0); return `<div class="auth-wrap"><header class="auth-intro">${marcaDoLogin()}<div class="auth-posts"><div class="vitrine vitrine-parada" aria-hidden="true"></div><button type="button" class="auth-motion" data-auth-motion aria-label="Pausar animações" aria-pressed="${VIT.pausada}" title="Pausar animações"><svg class="pausa" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 5v10m6-10v10"/></svg><svg class="tocar" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="m7 4 9 6-9 6z"/></svg></button></div></header><div class="auth-form">${form}</div></div>`; };
   const ci = U.conviteInfo;
   const aviso = ci ? `<div class="msg">Convite para entrar em <b>${esc(ci.organizacao)}</b> como ${esc(PAPEIS[ci.papel] || ci.papel)}.</div>` : "";
-  if (!API) { el.innerHTML = casca(`<div class="auth-card">${marcaDoLogin()}<h1>Quase lá</h1><p class="hint">O endereço da API ainda não foi configurado neste painel.</p></div>`); return; }
+  if (!API) { el.innerHTML = casca(`<div class="auth-card"><h1>Quase lá</h1><p class="hint">O endereço da API ainda não foi configurado neste painel.</p></div>`); return; }
   if (U.tela === "semOrg") {
     el.innerHTML = casca(`<form class="auth-card" id="f-org" onsubmit="return false">
-      ${marcaDoLogin()}
       <h1>Crie sua organização</h1>
       <p class="hint">Você ainda não participa de nenhuma organização. Crie a sua, ou peça um convite para quem já usa a plataforma.</p>
       <label class="field"><span>Nome da organização</span><input id="o-nome" placeholder="Ex.: Easypeasy Pay"></label>
@@ -4808,7 +4817,6 @@ function renderAuth() {
   }
   if (U.tela === "cadastro") {
     el.innerHTML = casca(`<form class="auth-card" id="f-cadastro" onsubmit="return false">
-      ${marcaDoLogin()}
       <h1>Criar conta</h1>
       ${aviso}
       <label class="field"><span>Seu nome</span><input id="c-nome" autocomplete="name"></label>
@@ -4820,11 +4828,10 @@ function renderAuth() {
       <button class="btn primary" data-u="cadastrar" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Criando…" : ci ? "Criar conta e entrar" : "Criar conta"}</button>
       <button class="btn quiet" type="button" data-u="ir-login">Já tenho conta</button>
     </form>`);
-    if (!U.ocupado) document.getElementById("c-nome")?.focus();
+    if (!U.ocupado && !telaDeToque()) document.getElementById("c-nome")?.focus({ preventScroll: true });
     return;
   }
   el.innerHTML = casca(`<form class="auth-card" id="f-login" onsubmit="return false">
-    ${marcaDoLogin()}
     <h1>Entrar</h1>
     ${aviso}
     <label class="field"><span>E-mail</span><input id="l-email" type="email" autocomplete="username" value="${esc(ci ? ci.email : U.emailDigitado || "")}"></label>
@@ -4835,7 +4842,7 @@ function renderAuth() {
     <p class="hint">Esqueceu a senha? Fale com o suporte do Content Post pelo e-mail da sua conta para redefinir.</p>
     <p class="auth-rodape">Ainda não tem conta? <button type="button" data-u="ir-cadastro">Criar nova conta</button></p>
   </form>`);
-  if (!U.ocupado) document.getElementById(ci ? "l-senha" : "l-email")?.focus();
+  if (!U.ocupado && !telaDeToque()) document.getElementById(ci ? "l-senha" : "l-email")?.focus({ preventScroll: true });
 }
 
 /* ---------- diálogos: equipe, integrações, nova organização, minha senha, agendar, remover ---------- */
