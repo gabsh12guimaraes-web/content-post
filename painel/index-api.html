@@ -1082,9 +1082,9 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
-<link rel="stylesheet" href="assets/painel.css?v=20261021-login-flutuante">
+<link rel="stylesheet" href="assets/painel.css?v=20261021-conta-calendario">
 <link rel="stylesheet" href="assets/splash.css?v=20261021-liquido">
-<script defer src="assets/splash.js?v=20261021-liquido"></script>
+<script defer src="assets/splash.js?v=20261021-inspire"></script>
 <link rel="stylesheet" href="assets/mega-brain.css?v=20261021-filtro-ideias">
 <div class="app">
   <aside class="side" id="side">
@@ -1139,6 +1139,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 <dialog class="dlg glass" id="dlg"></dialog>
 
 <script src="assets/mega-brain.js?v=20261021-filtro-ideias"></script>
+<script src="assets/conta.js?v=20261021-loops"></script>
 <script>
 const KEY = "pauta-painel-v3";
 
@@ -2140,6 +2141,13 @@ document.addEventListener("close", e => { if (e.target === dlg()) { clearTimeout
 const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 let mesVisto = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })();
 let calDiaAberto = null;
+function pendentesGeracao(posts) {
+  return posts.filter(p => !criando(p.id) && (p.status === "Planejado" || p.status === "Erro" && !p.legenda && !p.slides.length && !p.arquivos.length)).length;
+}
+function indicadorPendentes(posts) {
+  const n = pendentesGeracao(posts);
+  return n ? `<span class="cal-pendentes">${n} ${n === 1 ? "pendente de gerar" : "pendentes de gerar"}</span>` : "";
+}
 function resumoFormatos(posts) {
   const nomes = { Carrossel: ["carrossel", "carrosséis"], Stories: ["story", "stories"], Reels: ["reel", "reels"], Estatico: ["post estático", "posts estáticos"] };
   const contagens = new Map();
@@ -2194,7 +2202,8 @@ function renderCal() {
       const posts = state.posts.filter(p => ymd(new Date(p.data)) === key).sort((a, b) => new Date(a.data) - new Date(b.data));
       const cls = [key === ymd(hoje) ? "today" : dia < hoje ? "past" : "", dia.getMonth() !== mes ? "fora" : "", posts.length ? "" : "sem-post"].join(" ");
       dias += `<div class="day ${cls}"><div class="dlabel"><span>${DIAS[dia.getDay()]}</span><span>${doisDig(dia.getDate())}/${doisDig(dia.getMonth() + 1)}${key === ymd(hoje) ? " · hoje" : ""}</span></div>
-        <button class="cal-summary" data-cal-dia="${key}" aria-controls="cal-posts-dia" aria-expanded="${calDiaAberto === key}" aria-label="${dia.getDate()} de ${MESES[dia.getMonth()]}: ${posts.length} posts. Ver posts do dia">${posts.length ? resumoFormatos(posts).map(r => `<span>${esc(r.texto)}</span>`).join("") + `<small>Ver ${posts.length === 1 ? "post" : "posts"} →</small>` : `<small>Dia livre</small>`}</button>
+        ${indicadorPendentes(posts)}
+        <button class="cal-summary" data-cal-dia="${key}" aria-controls="cal-posts-dia" aria-expanded="${calDiaAberto === key}" aria-label="${dia.getDate()} de ${MESES[dia.getMonth()]}: ${posts.length} posts.${pendentesGeracao(posts) ? ` ${pendentesGeracao(posts)} pendentes de gerar.` : ""} Ver posts do dia">${posts.length ? resumoFormatos(posts).map(r => `<span>${esc(r.texto)}</span>`).join("") + `<small>Ver ${posts.length === 1 ? "post" : "posts"} →</small>` : `<small>Dia livre</small>`}</button>
         <div class="list cal-mobile-posts">${posts.map(cardPost).join("")}</div></div>`;
     }
     semanas.push(`<div class="cal-week">${dias}</div>`);
@@ -4579,7 +4588,7 @@ async function chamar(corpo, comToken = true) {
   }
   let j = null;
   try { j = await r.json(); } catch (e) {}
-  if (!r.ok || !j || j.ok === false) throw { web: true, status: r.status, login: !!(j && j.login), semOrganizacao: !!(j && j.semOrganizacao), message: (j && j.erro) || (r.status === 413 ? "O arquivo é grande demais para enviar." : "A plataforma respondeu com erro " + r.status + ".") };
+  if (!r.ok || !j || j.ok === false) throw { web: true, status: r.status, login: !!(j && j.login), semOrganizacao: !!(j && j.semOrganizacao), confirmarEmail: !!(j && j.confirmarEmail), message: (j && j.erro) || (r.status === 413 ? "O arquivo é grande demais para enviar." : "A plataforma respondeu com erro " + r.status + ".") };
   return j;
 }
 async function api(corpo) {
@@ -4589,7 +4598,8 @@ async function api(corpo) {
   try { return await chamar(corpo); }
   catch (e) {
     window.CPSplash?.encerrar(splash);
-    if (e.login) sairLocal("Sua sessão expirou. Entre de novo.");
+    if (e.confirmarEmail) { if (U.usuario) U.usuario.confirmacaoPendente = true; U.tela = "confirmarEmail"; renderAuth(); }
+    else if (e.login) sairLocal("Sua sessão expirou. Entre de novo.");
     else if (e.semOrganizacao) { U.tela = "semOrg"; renderAuth(); }
     else if (e.status === 402) setTimeout(() => abrirPlano(e.message), 50);
     throw e;
@@ -4621,6 +4631,7 @@ function limparDados() {
   if (typeof PP !== "undefined") { PP.pedido++; PP.redes = null; PP.carregandoRedes = false; }
 }
 async function iniciarWeb() {
+  if (U.usuario?.confirmacaoPendente) { U.tela = "confirmarEmail"; M.conexao = "login"; renderAuth(); return; }
   if (!U.organizacao) { U.tela = "semOrg"; renderAuth(); return; }
   U.tela = "ok"; U.erro = ""; renderAuth();
   M.conexao = "carregando"; M.ocupado = true; renderMarca();
@@ -4637,6 +4648,7 @@ async function iniciarWeb() {
 async function depoisDeEntrar(r, lembrar) {
   U.token = r.token; guardarInfo(r);
   sessao.salvar({ token: r.token }, lembrar);
+  if (U.usuario?.confirmacaoPendente) { if (typeof AC !== "undefined") AC.lembrar = !!lembrar; U.ocupado = false; return iniciarWeb(); }
   if (U.convite) {
     try { guardarInfo(await chamar({ acao: "aceitarConvite", convite: U.convite })); toast("Você entrou na organização " + ((U.organizacao && U.organizacao.nome) || "") + "."); }
     catch (e) { toast(textoErro(e)); }
@@ -4794,6 +4806,7 @@ function renderAuth() {
   const erro = U.erro ? `<div class="msg erro">${esc(U.erro)}</div>` : "";
   const casca = form => { setTimeout(carregarVitrineLogin, 0); return `<div class="auth-wrap"><header class="auth-intro">${marcaDoLogin()}<div class="auth-posts"><div class="vitrine vitrine-parada" aria-hidden="true"></div><button type="button" class="auth-motion" data-auth-motion aria-label="Pausar animações" aria-pressed="${VIT.pausada}" title="Pausar animações"><svg class="pausa" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 5v10m6-10v10"/></svg><svg class="tocar" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="m7 4 9 6-9 6z"/></svg></button></div></header><div class="auth-form">${form}</div></div>`; };
   const ci = U.conviteInfo;
+  if (typeof renderAuthConta === "function" && renderAuthConta(casca)) return;
   const aviso = ci ? `<div class="msg">Convite para entrar em <b>${esc(ci.organizacao)}</b> como ${esc(PAPEIS[ci.papel] || ci.papel)}.</div>` : "";
   if (!API) { el.innerHTML = casca(`<div class="auth-card"><h1>Quase lá</h1><p class="hint">O endereço da API ainda não foi configurado neste painel.</p></div>`); return; }
   if (U.tela === "semOrg") {
@@ -4831,7 +4844,7 @@ function renderAuth() {
     <label class="actions small"><input id="l-lembrar" type="checkbox" style="width:auto" checked> Manter conectado neste aparelho</label>
     ${erro}
     <button class="btn primary" data-u="entrar" ${U.ocupado ? "disabled" : ""}>${U.ocupado ? "Entrando…" : ci ? "Entrar e aceitar o convite" : "Entrar"}</button>
-    <p class="hint">Esqueceu a senha? Fale com o suporte do Content Post pelo e-mail da sua conta para redefinir.</p>
+    <div id="conta-recuperar">${typeof linkRecuperacaoConta === "function" ? linkRecuperacaoConta() : '<p class="hint">Esqueceu a senha? Fale com o suporte do Content Post pelo e-mail da sua conta para redefinir.</p>'}</div>
     <p class="auth-rodape">Ainda não tem conta? <button type="button" data-u="ir-cadastro">Criar nova conta</button></p>
   </form>`);
   if (!U.ocupado && !telaDeToque()) document.getElementById(ci ? "l-senha" : "l-email")?.focus({ preventScroll: true });
@@ -6264,6 +6277,7 @@ document.addEventListener("click", async e => {
   if (M.mcp) return conectar();
   // Fora do claude.ai (ex.: GitHub Pages): conta, organização e pauta pela API da plataforma.
   M.modo = "web";
+  if (typeof prepararAcessoConta === "function" && prepararAcessoConta()) { M.conexao = "login"; renderMarca(); renderAuth(); return; }
   if (U.convite) {
     try { U.conviteInfo = (await chamar({ acao: "verConvite", convite: U.convite }, false)).convite; U.tela = U.conviteInfo.temConta ? "login" : "cadastro"; }
     catch (e) { U.erro = textoErro(e); U.convite = null; try { history.replaceState(null, "", location.pathname); } catch (x) {} }

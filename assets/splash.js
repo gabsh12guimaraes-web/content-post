@@ -9,12 +9,8 @@
     criarPostPronto: 'post',
     ajustarPost: 'post',
   });
-  const mensagens = {
-    entrada: 'Boas ideias começam aqui.',
-    estrategia: 'Conectando os pontos da sua estratégia.',
-    ideias: 'Abrindo espaço para novas ideias.',
-    post: 'Preparando sua próxima criação.',
-  };
+  const tiposSplash = new Set(['entrada', 'estrategia', 'ideias', 'post']);
+  const mensagem = 'Inspire, crie e publique.';
   let el, timer, saida, sequencia = 0;
   function ocultar() {
     clearTimeout(timer); clearTimeout(saida);
@@ -30,7 +26,7 @@
     saida = setTimeout(ocultar, 260);
   }
   function mostrar(tipo) {
-    if (!mensagens[tipo] || preferencia.matches || document.hidden) return null;
+    if (!tiposSplash.has(tipo) || preferencia.matches || document.hidden) return null;
     if (!el) {
       el = document.createElement('div');
       el.className = 'cp-splash'; el.hidden = true; el.setAttribute('aria-hidden', 'true');
@@ -45,7 +41,7 @@
     if (getComputedStyle(el).getPropertyValue('--cp-splash-ready').trim() !== '1') return null;
     clearTimeout(timer); clearTimeout(saida);
     const id = ++sequencia;
-    el.querySelector('span').textContent = mensagens[tipo];
+    el.querySelector('span').textContent = mensagem;
     el.dataset.tipo = tipo; el.classList.remove('cp-splash-saindo'); el.hidden = false;
     if (el.showPopover && !el.matches(':popover-open')) el.showPopover();
     timer = setTimeout(() => encerrar(id), tipo === 'entrada' ? 1050 : 850);
