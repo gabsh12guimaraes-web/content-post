@@ -2458,6 +2458,12 @@ function clipesDoPost(p) {
   Object.keys(p.clipesSlides || {}).map(Number).sort((a, b) => a - b).forEach((n, i) => { const c = (p.clipes || [])[i]; if (c && c.url) mapa[n] = c.url; });
   return mapa;
 }
+function midiasVideoPost(p) {
+  const clipes = clipesDoPost(p), fotos = fotosCheias(p);
+  const cenas = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
+  return { clipes, fotos, cenas, faltantes: cenas.filter(c => !clipes[c.n] && !fotos[c.n]) };
+}
+const erroGeracaoMidia = erro => /^(?:A conta do Magnific está sem créditos:|\d+ imagem\(ns\) ou clipe\(s\) não foram gerados pelo Magnific\.)/i.test(String(erro || ""));
 
 /* ---------- artes finais: desenha cada slide em 1080 × 1350 ---------- */
 const ARTE_L = 1080, ARTE_A = 1350, CQ = ARTE_L / 100;
@@ -3298,10 +3304,9 @@ function desenharVertical(sl, foto, logos, cores, nome, cv, diag, t) {
 }
 async function gerarVideoFinal(p, logo, cores, nome) {
   // Cada cena usa o clipe dela; cena trocada por uma foto do banco entra como imagem parada de 3 s.
-  const clipes = clipesDoPost(p), fotos = fotosCheias(p);
-  const cenas = p.slides.filter(c => clipes[c.n] || fotos[c.n]);
-  if (!cenas.some(c => clipes[c.n])) throw new Error("os clipes das cenas ainda não foram gerados");
-  toast("Carregando os clipes…");
+  const { clipes, fotos, cenas, faltantes } = midiasVideoPost(p);
+  if (faltantes.length) throw new Error("escolha uma imagem ou vídeo para cada cena antes de montar o vídeo final");
+  toast("Carregando as mídias do vídeo…");
   const vids = [];
   for (const c of cenas) vids.push(clipes[c.n] ? await carregarVideoLocal(clipes[c.n]) : await carregarImg(fotos[c.n]));
   const ehVid = m => m instanceof HTMLVideoElement;
@@ -3861,6 +3866,8 @@ function cardRev(p) {
   const ehVideo = ehVideoFmt(p);
   const clipes = clipesDoPost(p);
   const temClipes = Object.keys(clipes).length > 0;
+  const fontesVideo = ehVideo ? midiasVideoPost(p) : null;
+  const midiasCompletas = ehVideo && !fontesVideo.faltantes.length;
   let { mapa, prontas } = imagensDoPost(p);
   let slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
   let html;
@@ -3879,13 +3886,12 @@ function cardRev(p) {
   const pontos = slides.length > 1 ? `<div class="ig-pontos" aria-hidden="true">${slides.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
   const nomeArte = ehVideo ? "vídeo final" : "artes finais";
   let artes = "";
-  if (p.status !== "Ajustes" && (!ehVideo || temClipes || prontas)) {
+  if (p.status !== "Ajustes" && (!ehVideo || midiasCompletas || prontas)) {
     if (M.modo !== "web") artes = `<div class="msg">Para gerar as ${ehVideo ? "o vídeo final" : "artes finais"}, abra o painel pelo link do GitHub. No claude.ai as fotos e os vídeos ficam bloqueados.</div>`;
     else if (gerandoArtes === p.id) artes = `<div class="working"><span class="dot"></span>${ehVideo || temClipes ? "Montando o vídeo… pode levar alguns minutos. Deixe esta aba aberta." : "Gerando as artes finais…"}</div>`;
-    else if (ehVideo && !temClipes) artes = "";
     else artes = `<div class="actions"><button class="btn quiet" data-act="gerar-artes" data-id="${p.id}" ${aprovando || gerandoArtes ? "disabled" : ""}>${prontas ? "Refazer " + nomeArte : "Só gerar " + nomeArte + ", sem aprovar"}</button></div>
       <p class="small" style="margin:0">${prontas ? (ehVideo ? "Vídeo final pronto: é ele que vai para a publicação." : "Artes finais prontas: são elas que vão para a publicação.")
-        : ehVideo ? "Junta os clipes do Magnific com o texto de cada cena e o logo, e salva o vídeo que será publicado. A gravação leva o tempo do vídeo."
+        : ehVideo ? "Monta o vídeo com as fotos e os clipes escolhidos, o texto e o logo. Cada foto aparece por 3 segundos. Essa montagem não gera novas mídias com IA."
         : temClipes ? "Coloca o texto e o logo sobre as fotos e os clipes, e salva o que será publicado. Os slides em vídeo levam alguns segundos cada."
         : "Coloca o texto e o logo sobre as fotos e salva as imagens que serão publicadas."}</p>`;
   }
@@ -3901,10 +3907,10 @@ function cardRev(p) {
       <textarea id="ajuste-${p.id}" rows="4" maxlength="2000" placeholder="Ex.: deixe o título do slide 2 mais curto e troque a foto da capa por algo mais claro"></textarea>
       <div class="actions"><button class="btn primary" data-act="ajuste-enviar" data-id="${p.id}">Enviar ajuste</button><button class="btn quiet" data-act="ajuste-cancelar">Cancelar</button></div></div>`;
   else {
-    const semClipes = ehVideo && !temClipes && !prontas;
-    decisao = `<div class="actions"><button class="btn primary" data-act="post-aprovar" data-id="${p.id}" ${semClipes || aprovando || revisando || gerandoArtes ? "disabled" : ""}>${prontas ? "Aprovar e agendar" : ehVideo ? "Gravar vídeo e aprovar" : "Gerar artes e aprovar"}</button>
+    const semMidias = ehVideo && !midiasCompletas && !prontas;
+    decisao = `<div class="actions"><button class="btn primary" data-act="post-aprovar" data-id="${p.id}" ${semMidias || aprovando || revisando || gerandoArtes ? "disabled" : ""}>${prontas ? "Aprovar e agendar" : ehVideo ? "Gravar vídeo e aprovar" : "Gerar artes e aprovar"}</button>
       <button class="btn" data-act="post-ajustar" data-id="${p.id}" ${revisando ? "disabled" : ""}>Pedir ajuste</button></div>
-      <p class="small" style="margin:0">${semClipes ? "Os clipes ainda não chegaram do Magnific. Se não aparecerem, peça um ajuste." : prontas ? "Vai para a fila e publica em " + fmtData(p.data) + "." : "As " + (ehVideo ? "cenas" : "artes") + " são montadas com a diagramação escolhida e o post vai para a fila de " + fmtData(p.data) + "."}</p>`;
+      <p class="small" style="margin:0">${semMidias ? "Escolha uma imagem ou vídeo do banco para cada cena. Falta mídia na" + (fontesVideo.faltantes.length > 1 ? "s cenas " : " cena ") + fontesVideo.faltantes.map(c => c.n).join(", ") + "." : prontas ? "Vai para a fila e publica em " + fmtData(p.data) + "." : "As " + (ehVideo ? "cenas" : "artes") + " são montadas com a diagramação escolhida e o post vai para a fila de " + fmtData(p.data) + "."}</p>`;
   }
   const diag = p.status === "Ajustes" ? "" : htmlDiagramacao(p, { ehVideo, cores, slides });
   const podeEditar = !ehVideo && p.status !== "Ajustes";
@@ -3931,13 +3937,13 @@ function cardRev(p) {
       <div class="ig-trilho" data-trilho="${p.id}" tabindex="0" aria-label="Slides do post">${html}</div>
       ${pontos}
       <div class="ig-legenda"><b>${esc(nome)}</b> ${esc(p.legenda || "Legenda ainda não gerada.")}<span class="tags">${esc(p.hashtags || "")}</span></div>
-      ${!prontas && (Object.keys(mapa).length || temClipes) ? `<div class="ig-aviso">Prévia montada pelo painel: ${ehVideo ? "os clipes" : "as fotos" + (temClipes ? " e clipes" : "")} são do Magnific e o texto entra por cima. Clique em Gerar ${nomeArte} para salvar o que será publicado.</div>` : ""}
+      ${!prontas && (Object.keys(mapa).length || temClipes) ? `<div class="ig-aviso">Prévia montada com as mídias escolhidas e o texto por cima. Gere ${nomeArte} para salvar o que será publicado.</div>` : ""}
     </div>
     <div class="rside">
       <div class="meta">${chip(p.status)}${prontas ? `<span class="chip ok">${ehVideo ? "Vídeo pronto" : "Artes prontas"}</span>` : ""}<span class="chip plain">v${p.versao}</span><span class="chip plain">${esc(p.rede)}</span><span class="chip plain">${esc(p.formato)}</span></div>
       <h3>${esc(p.titulo)}</h3>
       <div class="small">Publicação: <b>${fmtData(p.data)}</b></div>
-      ${p.erro ? `<div class="msg erro">${esc(p.erro)}</div>` : ""}
+      ${p.erro && !((midiasCompletas || prontas) && erroGeracaoMidia(p.erro)) ? `<div class="msg erro">${esc(p.erro)}</div>` : ""}
       ${acoes}
     </div>
   </article>`;
