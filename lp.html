@@ -178,17 +178,18 @@ footer a { color: var(--soft); }
 @media (max-width: 560px) { .barra-cta span { display: none; } .barra-cta .btn { width: 100%; } .garantia { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
 @media (prefers-reduced-motion: reduce) { .anel { animation: none; } html { scroll-behavior: auto; } }
 </style>
-<link rel="stylesheet" href="assets/landing.css?v=20261021-contagem">
+<link rel="stylesheet" href="assets/landing.css?v=20261021-contagem-promocao">
 </head>
 <body class="lp">
 <aside class="lp-countdown-banner" aria-label="Contagem renovável">
   <div class="wrap lp-countdown-inner">
-    <div class="lp-countdown-copy"><b>Seu próximo post não precisa esperar.</b><span>Contagem renovada a cada 4 dias.</span></div>
+    <div class="lp-countdown-copy"><b>Seu próximo post não precisa esperar.</b><span>Aproveite nossa promoção</span></div>
     <div class="lp-countdown" role="timer" aria-live="off" aria-label="Tempo para renovar a contagem" hidden>
       <span><strong data-lp-count="dias">00</strong><small>dias</small></span>
       <span><strong data-lp-count="horas">00</strong><small>horas</small></span>
       <span><strong data-lp-count="minutos">00</strong><small>min</small></span>
       <span><strong data-lp-count="segundos">00</strong><small>seg</small></span>
+      <small class="lp-countdown-note">Contagem renovável</small>
     </div>
     <a class="btn lp-countdown-cta" href="#planos" data-cta>Ver planos <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13 13 3M3 3h10v10"/></svg></a>
   </div>
