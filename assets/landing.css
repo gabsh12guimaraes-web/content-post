@@ -3,6 +3,18 @@
 html { scroll-padding-top:110px; }
 body { background:radial-gradient(ellipse 70% 650px at 50% 1%,rgba(109,48,86,.13),transparent 75%),var(--bg); }
 .wrap { max-width:1280px; padding-inline:32px; }
+.lp-countdown-banner { color:#290616; background:radial-gradient(ellipse at 10% 0%,#ffb4c8aa,transparent 65%),linear-gradient(110deg,#ff7298,#ff4d78 55%,#f23264); border-bottom:1px solid #ffb0c455; padding:14px 0; padding-top:calc(14px + env(safe-area-inset-top,0px)); }
+.lp-countdown-inner { display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:58px; }
+.lp-countdown-copy { display:grid; gap:3px; min-width:0; }
+.lp-countdown-copy b { font-size:clamp(15px,1.5vw,19px); font-weight:700; letter-spacing:-.025em; line-height:1.35; }
+.lp-countdown-copy > span { font-size:11px; color:#4b0e27; }
+.lp-countdown { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; width:222px; flex:none; text-align:center; }
+.lp-countdown > span { display:grid; gap:2px; padding:7px 5px 6px; border:1px solid #4f0b2122; border-radius:10px; background:#4f0b2110; }
+.lp-countdown strong { font-size:25px; line-height:1; font-weight:700; font-variant-numeric:tabular-nums; }
+.lp-countdown small { font-size:9px; font-weight:600; line-height:1.4; }
+.lp-countdown-cta { flex:none; display:inline-flex; align-items:center; gap:14px; color:#fff; background:#280918; border-color:#280918; font-size:12px; font-weight:600; padding:13px 18px; white-space:nowrap; }
+.lp-countdown-cta:hover { background:#411025; border-color:#411025; }
+.lp-countdown-banner a:focus-visible { outline-color:#280918; }
 header.topo { position:sticky; top:12px; z-index:40; margin-top:12px; padding:15px 24px; min-height:72px; border:1px solid var(--line); border-radius:18px; background:rgba(15,17,26,.82); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
 .logo img { height:27px; }
 .btn { border-radius:10px; transition:background .2s,border-color .2s,transform .2s,box-shadow .2s; }
@@ -132,6 +144,13 @@ footer img { height:23px !important; opacity:.85 !important; }
 }
 @media (max-width:760px) {
  .wrap { padding-inline:20px; }
+ .lp-countdown-inner { flex-wrap:wrap; justify-content:center; gap:12px 18px; min-height:116px; }
+ .lp-countdown-copy { flex-basis:100%; text-align:center; gap:4px; }
+ .lp-countdown-copy b { font-size:16px; }
+ .lp-countdown-copy > span { font-size:10px; }
+ .lp-countdown { width:180px; }
+ .lp-countdown strong { font-size:23px; }
+ .lp-countdown-cta { padding:12px 14px; gap:10px; font-size:11px; }
  header.topo { padding:14px 16px; min-height:64px; border-radius:14px; top:8px; margin-top:8px; }
  .logo img { height:22px; max-width:100%; }
  header.topo .btn { padding:8px 14px; font-size:12px; }
@@ -198,6 +217,12 @@ footer img { height:23px !important; opacity:.85 !important; }
  .final .btn { font-size:13px; }
 }
 @media (max-width:440px) {
+ .lp-countdown-inner { column-gap:12px; }
+ .lp-countdown-copy b { font-size:15px; }
+ .lp-countdown { width:152px; gap:5px; }
+ .lp-countdown > span { padding:6px 3px; border-radius:8px; }
+ .lp-countdown strong { font-size:21px; }
+ .lp-countdown small { font-size:8px; }
  .hero h1 { font-size:clamp(32px,8.8vw,38px); }
  .etapas { grid-template-columns:1fr; }
  .etapa { min-height:230px; }

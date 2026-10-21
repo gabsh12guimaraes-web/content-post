@@ -1,5 +1,27 @@
 /* Animações progressivas: o conteúdo continua visível se o navegador não as suportar. */
 (() => {
+  const contador = document.querySelector('.lp-countdown');
+  if (contador) {
+    // Ciclo público e identificado: não reinicia ao recarregar e não altera ofertas ou preços.
+    const ciclo = 4 * 24 * 60 * 60 * 1000, inicio = Date.parse('2026-10-21T00:00:00-03:00');
+    let intervalo;
+    function atualizarContagem() {
+      const agora = Date.now(), fim = inicio + (Math.floor((agora - inicio) / ciclo) + 1) * ciclo;
+      const segundos = Math.ceil((fim - agora) / 1000);
+      const partes = { dias:Math.floor(segundos / 86400), horas:Math.floor(segundos / 3600) % 24, minutos:Math.floor(segundos / 60) % 60, segundos:segundos % 60 };
+      for (const [nome, valor] of Object.entries(partes)) {
+        const campo = contador.querySelector(`[data-lp-count="${nome}"]`), texto = String(valor).padStart(2,'0');
+        if (campo.textContent !== texto) campo.textContent = texto;
+      }
+      contador.setAttribute('aria-label', `Próxima renovação da contagem em ${partes.dias} dias, ${partes.horas} horas, ${partes.minutos} minutos e ${partes.segundos} segundos`);
+      contador.hidden = false;
+    }
+    function iniciarContagem() { clearInterval(intervalo); atualizarContagem(); if (!document.hidden) intervalo = setInterval(atualizarContagem,1000); }
+    iniciarContagem();
+    document.addEventListener('visibilitychange', iniciarContagem);
+    addEventListener('pageshow', iniciarContagem);
+    addEventListener('pagehide', () => clearInterval(intervalo));
+  }
   const movimento = matchMedia('(prefers-reduced-motion: reduce)');
   const secoes = [...document.querySelectorAll('.lp-section, .final')];
   let observador;
