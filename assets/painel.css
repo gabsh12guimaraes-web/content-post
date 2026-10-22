@@ -386,3 +386,12 @@ input[type="file"] { color: var(--ink-soft); font: 500 12px/1.4 inherit; font-fa
 input[type="file"]::file-selector-button { margin-right: 12px; padding: 8px 14px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--card); color: var(--ink); font: 600 12px/1.2 inherit; font-family: inherit; cursor: pointer; transition: border-color .15s; }
 input[type="file"]:hover::file-selector-button { border-color: var(--pink); }
 input[type="file"]:disabled::file-selector-button { opacity: .5; cursor: not-allowed; }
+
+/* Celular: o logo fica só no cabeçalho, centralizado; o menu lateral começa pela organização */
+@media (max-width: 719px) {
+  .side .side-logo { display: none; }
+  .side { padding-top: 18px; }
+  .mtop { position: sticky; justify-content: flex-start; }
+  .mtop-logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; padding: 4px; border: 0; background: none; cursor: pointer; }
+  .mtop-logo:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; border-radius: 6px; }
+}
