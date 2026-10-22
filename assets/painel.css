@@ -390,8 +390,9 @@ input[type="file"]:disabled::file-selector-button { opacity: .5; cursor: not-all
 /* Celular: o logo fica só no cabeçalho, centralizado; o menu lateral começa pela organização */
 @media (max-width: 719px) {
   .side .side-logo { display: none; }
-  .side { padding-top: 18px; }
-  .mtop { position: sticky; justify-content: flex-start; }
-  .mtop-logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; padding: 4px; border: 0; background: none; cursor: pointer; }
+  /* No app do iPhone a tela vai por baixo da barra do relógio: o topo soma a área segura (zero no navegador comum) */
+  .side { padding-top: calc(18px + env(safe-area-inset-top, 0px)); }
+  .mtop { position: sticky; justify-content: flex-start; padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+  .mtop-logo { position: absolute; left: 50%; top: calc(50% + env(safe-area-inset-top, 0px) / 2); transform: translate(-50%, -50%); display: grid; place-items: center; padding: 4px; border: 0; background: none; cursor: pointer; }
   .mtop-logo:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; border-radius: 6px; }
 }
