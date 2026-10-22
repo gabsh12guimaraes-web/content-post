@@ -1083,6 +1083,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 </style>
 
 <link rel="stylesheet" href="assets/painel.css?v=20261022-login-padding">
+<link rel="stylesheet" href="assets/sinsalabim.css?v=20261022-editor">
 <link rel="stylesheet" href="assets/splash.css?v=20261021-liquido">
 <script defer src="assets/splash.js?v=20261021-inspire"></script>
 <link rel="stylesheet" href="assets/mega-brain.css?v=20261021-filtro-ideias">
@@ -1140,6 +1141,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 
 <script src="assets/mega-brain.js?v=20261021-filtro-ideias"></script>
 <script src="assets/conta.js?v=20261021-loops"></script>
+<script src="assets/sinsalabim.js?v=20261022-editor"></script>
 <script>
 const KEY = "pauta-painel-v3";
 
@@ -1371,7 +1373,7 @@ function lerPostPronto() {
 }
 function desenharPostPronto() {
   const d = UP.d; if (!d || !contextoPostPronto(d)) return;
-  abrirDlg(`<div class="post-pronto"><span class="home-kicker">Seu conteúdo, pronto para publicar</span><h2>Enviar post pronto</h2>
+  abrirDlg(`<div class="post-pronto"><span class="home-kicker">Seu conteúdo, pronto para publicar</span><h2>Self-creation</h2>
     <p class="hint">Envie as mídias e conte um pouco sobre o post. A IA prepara a legenda e as hashtags para você revisar.</p>
     ${d.erro ? `<div class="msg erro" role="alert">${esc(d.erro)}</div>` : ""}
     ${d.ocupado ? `<div class="working" role="status"><span class="dot"></span>${esc(d.progresso)}</div>` : `<form onsubmit="return false">
@@ -2174,7 +2176,7 @@ document.addEventListener("click", e => {
 });
 function renderCal() {
   const el = document.getElementById("p-cal");
-  const head = `<div class="panel-head"><p>Organize as próximas publicações ou envie um conteúdo que já está pronto.</p><button class="btn primary" data-post-pronto>↑ Enviar post pronto</button></div>`;
+  const head = cardsCriacaoCalendario();
   if (!pauta.carregada) { el.innerHTML = head + semPauta(); return; }
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   const ano = mesVisto.getFullYear(), mes = mesVisto.getMonth();
@@ -3997,7 +3999,7 @@ function renderHome() {
       <div class="home-tools">${ferramentas.map(([t, nome, desc]) => `<button class="home-tool" data-tab="${t}"><span class="home-tool-icon">${iconeMenu(t)}</span><b>${nome}</b><small>${desc}</small></button>`).join("")}</div>
     </section>
     <section id="home-criar" aria-labelledby="home-criar-title"><div class="home-section-head"><div><h2 id="home-criar-title">O que vamos criar hoje?</h2><p>Escolha o formato. A próxima boa ideia é sua.</p></div><span class="home-kicker">Da ideia ao post</span></div>
-      <div class="home-ready"><span class="home-tool-icon" aria-hidden="true">↑</span><div><b>Já tem um conteúdo pronto?</b><p>Envie suas imagens ou vídeos. A IA cuida da legenda e das hashtags.</p></div><button class="btn" data-post-pronto>Enviar post pronto ${iconeMenu("seta", 15)}</button></div>
+      <div class="home-ready"><span class="home-tool-icon" aria-hidden="true">↑</span><div><b>Self-creation · Seu conteúdo, do seu jeito</b><p>Envie suas imagens ou vídeos. A IA cuida da legenda e das hashtags.</p></div><button class="btn" data-post-pronto>Enviar meu conteúdo ${iconeMenu("seta", 15)}</button></div>
       <div class="home-create-grid">${formatos.map(([f, icone, rotulo, arte, desc]) => `<button class="home-create" data-home-formato="${f}"><div class="home-create-art ${f === "Carrossel" ? "home-art-slides" : f === "Estatico" ? "home-art-static" : ""}"><span class="home-format">${rotulo}</span>${arte}</div><div class="home-create-text"><b>Criar ${f === "Estatico" ? "post estático" : NOME_FORMATO[f]}</b><span>${iconeMenu(icone, 18)}</span><small>${desc}</small></div></button>`).join("")}</div>
     </section>
     <section aria-labelledby="home-overview-title"><div class="home-section-head"><div><h2 id="home-overview-title">Sua criação em movimento</h2><p>Um olhar rápido para o que está acontecendo na sua pauta.</p></div><button class="btn quiet" data-tab="cal">Ver calendário →</button></div><div class="home-overview">${[["ideias", "Ideias para explorar"], ["rev", "Para revisar"], ["agend", "Na fila de publicação"], ["publicados", "Publicados no mês"]].map(([k, t]) => `<button class="home-stat" data-tab="${k === "publicados" ? "agend" : k}"><span class="home-tool-icon">${iconeMenu(k === "publicados" ? "cal" : k)}</span><span><strong data-home-stat="${k}">–</strong><small>${t}</small></span></button>`).join("")}</div></section>
@@ -4618,6 +4620,7 @@ async function carregarWeb() {
   M.marcaCarregada = true; M.fontesCarregadas = true; M.conexao = "ok"; M.erro = null;
 }
 function limparDados() {
+  resetSinsalabim();
   resetMegaBrain();
   ideiasAbertas.clear(); clearTimeout(EX.timer); EX.pedido++; EX.exemplos = []; EX.ideia = null;
   clearTimeout(timerBanco); BI.pedido++; BI.lista = []; BI.carregado = false; BI.carregando = false; BI.editando = null; BI.podeVitrine = false;
@@ -5638,14 +5641,14 @@ function prepararFoto(f) {
 const LIMITE_VIDEO = 24 * 1024 * 1024, VIDEO_MAX_S = 180;
 const ehVideoArq = f => /^video\//.test(f.type) || /\.(mov|mp4|m4v|webm|avi|mkv|3gp)$/i.test(f.name || "");
 const mb = n => (n / 1048576).toFixed(n < 10 * 1048576 ? 1 : 0).replace(".", ",") + " MB";
-async function converterVideo(f, aoAvancar) {
+async function converterVideo(f, aoAvancar, limiteDuracao = VIDEO_MAX_S) {
   if (!podeRenderizar()) throw new Error(`o vídeo tem ${mb(f.size)} e este navegador não consegue reduzir vídeos. Use o Chrome ou o Edge no computador, ou exporte o vídeo em MP4 com até 24 MB`);
   let v;
   try { v = await carregarVideo(URL.createObjectURL(f)); v._blob = f; }
   catch (e) { throw new Error("não consegui abrir o vídeo neste navegador (vídeos HEVC do iPhone só abrem no Safari ou no Chrome do Mac). Tente por outro navegador ou exporte em MP4 (H.264)"); }
   const dur = v.duration;
   if (!isFinite(dur) || dur <= 0) throw new Error("não consegui ler a duração do vídeo");
-  if (dur > VIDEO_MAX_S) throw new Error(`o vídeo tem ${Math.round(dur / 60)} min; o banco aceita vídeos de até 3 minutos. Corte o trecho que vai usar e envie de novo`);
+  if (dur > limiteDuracao) throw new Error(`o vídeo tem ${Math.round(dur / 60)} min; o limite deste envio é de ${Math.round(limiteDuracao / 60)} minutos. Corte o trecho que vai usar e envie de novo`);
   // até 1080 no lado menor e 1920 no maior, sem aumentar; dimensões pares
   const k = Math.min(1, 1080 / Math.min(v.videoWidth, v.videoHeight), 1920 / Math.max(v.videoWidth, v.videoHeight));
   const W = Math.max(2, Math.round(v.videoWidth * k / 2) * 2), H = Math.max(2, Math.round(v.videoHeight * k / 2) * 2);
@@ -5887,6 +5890,8 @@ const SERVICOS = [
   { k: "magnific", nome: "Magnific", cor: "#d95926" },
   { k: "apify", nome: "Apify", cor: "#199e70" },
   { k: "zernio", nome: "Zernio", cor: "#c98500" },
+  { k: "groq", nome: "Groq · Transcrição", cor: "#c58bff" },
+  { k: "shotstack", nome: "Shotstack · Vídeo", cor: "#6ed8ca" },
 ];
 const AD = { dados: null, erro: "", carregando: false, tabela: false };
 const usd = v => "US$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -5929,7 +5934,7 @@ function renderAdmin() {
   if (!(U.usuario && U.usuario.admin)) { el.innerHTML = `<div class="glass empty">Esta área é só do administrador da plataforma.</div>`; return; }
   const d = AD.dados;
   if (!d) { el.innerHTML = AD.erro ? `<div class="msg erro">${esc(AD.erro)}</div><button class="btn" data-ad="atualizar">Tentar de novo</button>` : `<div class="esqueleto"><i></i></div>`; return; }
-  const P = d.custos.periodos, soma = (per, lado) => SERVICOS.reduce((a, s) => a + P[per][s.k][lado].usd, 0);
+  const P = d.custos.periodos; for (const per of Object.values(P)) for (const s of SERVICOS) if (!per[s.k]) per[s.k] = { plataforma: { usd: 0 }, propria: { usd: 0 } }; const soma = (per, lado) => SERVICOS.reduce((a, s) => a + P[per][s.k][lado].usd, 0);
   const sit = d.usuarios.porSituacao;
   const tiles = [
     ["Usuários", num(d.usuarios.total), `+${d.usuarios.novos7} em 7 dias · +${d.usuarios.novos30} em 30`],
@@ -5942,7 +5947,7 @@ function renderAdmin() {
   const linhaServ = s => {
     const a = P.mes[s.k].plataforma, b = P.d30[s.k].plataforma, c = P.total[s.k].plataforma, pr = P.d30[s.k].propria;
     const uso = s.k === "anthropic" ? `${num(b.chamadas)} chamadas · ${curtoNum(b.entrada)} tokens de entrada · ${curtoNum(b.saida)} de saída${b.cache ? " · " + curtoNum(b.cache) + " em cache" : ""}`
-      : s.k === "magnific" ? (() => { const t = k => (d.porTipo.find(x => x.provedor === "magnific" && x.tipo === k) || { quantidade: 0 }).quantidade; return `${num(t("foto"))} fotos · ${num(t("foto_pessoa"))} com pessoa real · ${num(t("clipe"))} s de vídeo`; })() : s.k === "apify" ? `${num(b.quantidade)} itens coletados` : `${num(b.quantidade)} publicações`;
+      : s.k === "magnific" ? (() => { const t = k => (d.porTipo.find(x => x.provedor === "magnific" && x.tipo === k) || { quantidade: 0 }).quantidade; return `${num(t("foto"))} fotos · ${num(t("foto_pessoa"))} com pessoa real · ${num(t("clipe"))} s de vídeo`; })() : s.k === "apify" ? `${num(b.quantidade)} itens coletados` : ["groq", "shotstack"].includes(s.k) ? `${Number(b.quantidade || 0).toFixed(2).replace(".", ",")} minutos processados` : `${num(b.quantidade)} publicações`;
     return `<tr><td><i class="ad-cor" style="background:${s.cor}"></i>${s.nome}</td><td class="n">${usd(a.usd)}</td><td class="n">${usd(b.usd)}</td><td class="n">${usd(c.usd)}${c.usdEstimado ? `<small> (${usd(c.usdEstimado)} estimado)</small>` : ""}</td><td class="uso">${uso}</td><td class="n">${pr.usd ? usd(pr.usd) : "–"}</td></tr>`;
   };
   const magn = P.d30.magnific.plataforma;
