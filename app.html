@@ -1149,7 +1149,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 
 <script src="assets/mega-brain.js?v=20261021-filtro-ideias"></script>
 <script src="assets/conta.js?v=20261021-loops"></script>
-<script src="assets/sinsalabim.js?v=20261022-retencao"></script>
+<script src="assets/sinsalabim.js?v=20261022-mov"></script>
 <script>
 const KEY = "pauta-painel-v3";
 
@@ -1429,12 +1429,11 @@ document.addEventListener("click", async e => {
       d.progresso = `Preparando arquivo ${n + 1} de ${d.arquivos.length}…`; desenharPostPronto();
       let x;
       if (a.video) {
-        let arq = a.file;
-        if (!(arq.type === "video/mp4" && arq.size <= LIMITE_VIDEO)) arq = await converterVideo(arq, f => { if (contextoPostPronto(d)) { d.progresso = `Preparando vídeo ${n + 1}: ${Math.round(f * 100)}%`; desenharPostPronto(); } });
-        x = { tipo: "video/mp4", base64: await arquivoBase64(arq), capa: await capaDoArquivoVideo(arq) };
+        x = await prepararVideoEnvio(a.file, f => { if (contextoPostPronto(d)) { d.progresso = `Preparando vídeo ${n + 1}: ${Math.round(f * 100)}%`; desenharPostPronto(); } }, undefined,
+          { titulo: d.titulo, aoEnviar: f => { if (contextoPostPronto(d)) { d.progresso = f < 1 ? `Enviando vídeo ${n + 1}: ${Math.round(f * 100)}%` : `Convertendo vídeo ${n + 1}…`; desenharPostPronto(); } } });
       } else x = await prepararFoto(a.file);
       if (!contextoPostPronto(d)) return;
-      const r = await api({ acao: "enviarImagemBanco", ...x, nome: a.file.name, titulo: d.titulo, descrever: false });
+      const r = x.banco ? { id: x.banco } : await api({ acao: "enviarImagemBanco", ...x, nome: a.file.name, titulo: d.titulo, descrever: false });
       if (!contextoPostPronto(d)) return; a.banco = r.id;
     }
     if (!contextoPostPronto(d)) return;
@@ -5683,6 +5682,33 @@ function prepararFoto(f) {
 const LIMITE_VIDEO = 24 * 1024 * 1024, VIDEO_MAX_S = 180;
 const ehVideoArq = f => /^video\//.test(f.type) || /\.(mov|mp4|m4v|webm|avi|mkv|3gp)$/i.test(f.name || "");
 const mb = n => (n / 1048576).toFixed(n < 10 * 1048576 ? 1 : 0).replace(".", ",") + " MB";
+// .mov do iPhone (muitas vezes HEVC), outros formatos e MP4 grande vão para o servidor converter (a conversão no
+// navegador falha no iPhone e no app). Só arquivos acima do limite de envio ainda passam pela conversão aqui.
+const LIMITE_CONVERSAO_SERVIDOR = 300 * 1024 * 1024;
+const TIPO_VIDEO_EXT = { mov: "video/quicktime", qt: "video/quicktime", m4v: "video/x-m4v", webm: "video/webm", "3gp": "video/3gpp", mkv: "video/x-matroska", mp4: "video/mp4" };
+const tipoVideoServidor = f => { const ext = (String(f.name || "").match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase(); return Object.values(TIPO_VIDEO_EXT).includes(f.type) ? f.type : TIPO_VIDEO_EXT[ext] || "video/quicktime"; };
+// Envia o arquivo inteiro (sem base64) para a rota /video, com a porcentagem do envio; devolve o id no banco.
+function enviarVideoServidor(f, { titulo = "", aoEnviar } = {}) {
+  return new Promise((ok, falha) => {
+    const q = new URLSearchParams({ tipo: tipoVideoServidor(f), nome: f.name || "video", titulo: String(titulo).slice(0, 80) });
+    const x = new XMLHttpRequest(); x.open("POST", API.replace(/\/api$/, "/video") + "?" + q);
+    x.setRequestHeader("content-type", "application/octet-stream"); x.setRequestHeader("x-pauta-token", U.token || "");
+    x.upload.onprogress = e => { if (e.lengthComputable && aoEnviar) aoEnviar(e.loaded / e.total); };
+    x.onerror = () => falha(new Error("a conexão caiu durante o envio do vídeo. Tente de novo com uma internet mais estável"));
+    x.onload = () => { let j = {}; try { j = JSON.parse(x.responseText); } catch (e) {}
+      if (x.status === 401) { sairLocal("Sua sessão expirou. Entre de novo."); return falha(new Error("sua sessão expirou")); }
+      if (x.status >= 200 && x.status < 300 && j.id) ok(j.id); else falha(new Error(j.erro || "não consegui enviar o vídeo")); };
+    x.send(f);
+  });
+}
+async function prepararVideoEnvio(f, aoAvancar, limiteDuracao, { titulo, aoEnviar } = {}) {
+  const capa = arq => capaDoArquivoVideo(arq).catch(() => undefined);
+  if (f.type === "video/mp4" && f.size <= LIMITE_VIDEO) return { tipo: "video/mp4", base64: await arquivoBase64(f), capa: await capa(f) };
+  // .mov, outros formatos e MP4 grande: o servidor converte (o id já volta do banco)
+  if (f.size <= LIMITE_CONVERSAO_SERVIDOR) return { banco: await enviarVideoServidor(f, { titulo, aoEnviar }), servidor: true };
+  const arq = await converterVideo(f, aoAvancar, limiteDuracao);
+  return { tipo: "video/mp4", base64: await arquivoBase64(arq), capa: await capa(arq) };
+}
 async function converterVideo(f, aoAvancar, limiteDuracao = VIDEO_MAX_S) {
   if (!podeRenderizar()) throw new Error(`o vídeo tem ${mb(f.size)} e este navegador não consegue reduzir vídeos. Use o Chrome ou o Edge no computador, ou exporte o vídeo em MP4 com até 24 MB`);
   let v;
@@ -5786,18 +5812,15 @@ async function enviarBanco(arquivos) {
     try {
       let x;
       if (ehVideoArq(f)) {
-        let arq = f;
-        if (!(f.type === "video/mp4" && f.size <= LIMITE_VIDEO)) {
-          toast(`Convertendo ${f.name} para subir${pos}… deixe esta aba aberta.`);
-          arq = await converterVideo(f, fr => st(`Convertendo ${f.name}: ${Math.round(fr * 100)}%`));
-        }
-        st(`Enviando ${f.name}${pos}…`);
-        x = { tipo: "video/mp4", base64: await arquivoBase64(arq), capa: await capaDoArquivoVideo(arq) };
+        toast(`Enviando ${f.name}${pos}… deixe esta aba aberta.`);
+        x = await prepararVideoEnvio(f, fr => st(`Convertendo ${f.name}: ${Math.round(fr * 100)}%`), undefined,
+          { titulo: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60), aoEnviar: fr => st(fr < 1 ? `Enviando ${f.name}${pos}: ${Math.round(fr * 100)}%` : `Convertendo ${f.name}${pos}…`) });
+        if (!x.servidor) st(`Enviando ${f.name}${pos}…`);
       } else {
         try { x = await prepararFoto(f); }
         catch (e) { throw new Error(/\.(heic|heif)$/i.test(f.name) || /heic|heif/i.test(f.type) ? "foto HEIC do iPhone não abre neste navegador. Envie pelo Safari ou mude a câmera para \"Mais compatível\" (JPG)" : "não consegui abrir a imagem (arquivo corrompido ou formato não suportado)"); }
       }
-      await api({ acao: "enviarImagemBanco", tipo: x.tipo, base64: x.base64, capa: x.capa, nome: f.name.replace(/\.(mov|m4v|webm|avi|mkv|3gp)$/i, ".mp4"), titulo: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60) });
+      if (!x.banco) await api({ acao: "enviarImagemBanco", tipo: x.tipo, base64: x.base64, capa: x.capa, nome: f.name.replace(/\.(mov|m4v|webm|avi|mkv|3gp)$/i, ".mp4"), titulo: f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60) });
       enviados++;
     } catch (e) { falhas.push({ nome: f.name, motivo: motivoEnvio(e) }); }
     BI.enviando--; desenharBanco();
