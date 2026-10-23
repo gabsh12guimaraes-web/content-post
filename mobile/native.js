@@ -19,6 +19,8 @@ if (integration.ativo) {
     integration.abrirURL(url).catch(informarErro);
     return null;
   };
+  // Avisa o painel quando o navegador externo fecha (ex.: depois de conectar o Instagram).
+  Browser.addListener('browserFinished', () => window.dispatchEvent(new Event('contentpost:navegador-fechado')));
   document.addEventListener('click', event => {
     const link = event.target.closest?.('a[target="_blank"]');
     if (!link || link.hasAttribute('download') || event.defaultPrevented) return;
