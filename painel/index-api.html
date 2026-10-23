@@ -1083,7 +1083,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 </style>
 
 <link rel="stylesheet" href="assets/painel.css?v=20261022-area-segura">
-<link rel="stylesheet" href="assets/sinsalabim.css?v=20261022-retencao">
+<link rel="stylesheet" href="assets/sinsalabim.css?v=20261023-progresso">
 <link rel="stylesheet" href="assets/splash.css?v=20261021-liquido">
 <script defer src="assets/splash.js?v=20261021-inspire"></script>
 <link rel="stylesheet" href="assets/mega-brain.css?v=20261022-paleta">
@@ -1141,7 +1141,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 
 <script src="assets/mega-brain.js?v=20261021-filtro-ideias"></script>
 <script src="assets/conta.js?v=20261021-loops"></script>
-<script src="assets/sinsalabim.js?v=20261022-mov"></script>
+<script src="assets/sinsalabim.js?v=20261023-progresso"></script>
 <script>
 const KEY = "pauta-painel-v3";
 
@@ -4893,10 +4893,12 @@ const dlg = () => document.getElementById("dlg");
 const telaDeToque = () => matchMedia("(hover: none) and (pointer: coarse)").matches;
 // O botão tocado por último no pop-up: ao redesenhar, ele continua na mesma altura da tela.
 let toqueDlg = null;
+let soltarAncoraDlg = null;
 document.addEventListener("pointerdown", e => { const el = e.target.closest && e.target.closest("#dlg button, #dlg [data-b]"); if (el) toqueDlg = el; }, true);
 const seletorDlg = el => el.tagName.toLowerCase() + Object.entries(el.dataset).map(([k, v]) => `[data-${k.replace(/[A-Z]/g, m => "-" + m.toLowerCase())}="${CSS.escape(v)}"]`).join("");
 function abrirDlg(html) {
   const d = dlg(), jaAberto = d.open, topo = d.scrollTop;
+  soltarAncoraDlg?.(); // a âncora do desenho anterior não pode puxar a rolagem deste
   delete d.dataset.integracoes;
   delete d.dataset.exemplos; d.classList.remove("dlg-exemplos", "dlg-dia");
   d.classList.remove("dlg-agend");
@@ -4910,7 +4912,8 @@ function abrirDlg(html) {
     const alinhar = () => { const n = d.querySelector(ancora.sel); if (n) { const dy = n.getBoundingClientRect().top - ancora.y; if (Math.abs(dy) > 0.5) d.scrollTop += dy; } };
     alinhar();
     if (window.ResizeObserver) {
-      const ro = new ResizeObserver(alinhar), fim = () => { ro.disconnect(); d.removeEventListener("wheel", fim); d.removeEventListener("touchstart", fim); };
+      const ro = new ResizeObserver(alinhar), fim = () => { ro.disconnect(); d.removeEventListener("wheel", fim); d.removeEventListener("touchstart", fim); if (soltarAncoraDlg === fim) soltarAncoraDlg = null; };
+      soltarAncoraDlg = fim;
       [...d.children].forEach(c => ro.observe(c));
       d.addEventListener("wheel", fim, { passive: true }); d.addEventListener("touchstart", fim, { passive: true });
       setTimeout(fim, 1500);
@@ -5676,7 +5679,7 @@ const ehVideoArq = f => /^video\//.test(f.type) || /\.(mov|mp4|m4v|webm|avi|mkv|
 const mb = n => (n / 1048576).toFixed(n < 10 * 1048576 ? 1 : 0).replace(".", ",") + " MB";
 // .mov do iPhone (muitas vezes HEVC), outros formatos e MP4 grande vão para o servidor converter (a conversão no
 // navegador falha no iPhone e no app). Só arquivos acima do limite de envio ainda passam pela conversão aqui.
-const LIMITE_CONVERSAO_SERVIDOR = 300 * 1024 * 1024;
+const LIMITE_CONVERSAO_SERVIDOR = 1536 * 1024 * 1024; // igual ao limite da rota /video
 const TIPO_VIDEO_EXT = { mov: "video/quicktime", qt: "video/quicktime", m4v: "video/x-m4v", webm: "video/webm", "3gp": "video/3gpp", mkv: "video/x-matroska", mp4: "video/mp4" };
 const tipoVideoServidor = f => { const ext = (String(f.name || "").match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase(); return Object.values(TIPO_VIDEO_EXT).includes(f.type) ? f.type : TIPO_VIDEO_EXT[ext] || "video/quicktime"; };
 // Envia o arquivo inteiro (sem base64) para a rota /video, com a porcentagem do envio; devolve o id no banco.
