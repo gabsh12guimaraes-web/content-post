@@ -1089,7 +1089,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
-<link rel="stylesheet" href="assets/painel.css?v=20261022-area-segura">
+<link rel="stylesheet" href="assets/painel.css?v=20261023-blocos">
 <link rel="stylesheet" href="assets/sinsalabim.css?v=20261023-personalizar">
 <link rel="stylesheet" href="assets/splash.css?v=20261021-liquido">
 <script defer src="assets/splash.js?v=20261021-inspire"></script>
@@ -1208,7 +1208,7 @@ function deIdeia(r) {
 function dePost(r) {
   let slides = [];
   try {
-    slides = JSON.parse(r.Slides || "[]").map((s, i) => ({ n: Number(s.n) || i + 1, t: s.titulo || s.visual || "", x: s.texto || s.fala_ou_texto || "", img: !!s.usa_imagem }));
+    slides = JSON.parse(r.Slides || "[]").map((s, i) => ({ n: Number(s.n) || i + 1, t: s.titulo || s.visual || "", x: s.texto || s.fala_ou_texto || "", img: !!s.usa_imagem, blocos: blocosValidos(s.blocos) }));
   } catch (e) {}
   return {
     id: r.id, origem: r.Origem || "ia", titulo: r.Titulo || "", data: r.DataPublicacao || null, rede: nomeSel(r.Rede), formato: nomeSel(r.Formato), pilar: nomeSel(r.Pilar),
@@ -2736,6 +2736,73 @@ function linhasRicas(ctx, partes, largura, fonteN, fonteD) {
   return { linhas, espaco };
 }
 // Desenha um título rico ajustando o tamanho até caber na caixa (largura x altura máxima).
+// Blocos de texto da composição livre (até 8 por imagem). Posição e tamanho em % da arte, como a API guarda.
+const TIPOS_BLOCO = ["destaque", "apoio", "selo"];
+function blocosValidos(v) {
+  if (!Array.isArray(v) || !v.length) return null;
+  const n = (x, p, a, b) => Number.isFinite(Number(x)) ? Math.max(a, Math.min(b, Number(x))) : p;
+  return v.slice(0, 8).filter(b => b && typeof b === "object").map((b, i) => {
+    const x = n(b.x, 7, 5, 80), y = n(b.y, 12 + i * 18, 8, 86);
+    return { texto: String(b.texto || "").slice(0, 600), tipo: TIPOS_BLOCO.includes(b.tipo) ? b.tipo : "destaque", x, y, largura: n(b.largura, 86, 15, 95 - x), altura: n(b.altura, 16, 6, 94 - y), tamanho: n(b.tamanho, 1, 0.6, 1.6),
+      alinhar: ["esquerda", "centro", "direita"].includes(b.alinhar) ? b.alinhar : "esquerda", cor: b.cor === "destaque" ? "destaque" : "texto", caixa: b.caixa === true };
+  });
+}
+// Claro ou escuro embaixo do bloco: decide a cor do texto em qualquer modelo (foto, fundo liso, editorial).
+function luminanciaRegiao(ctx, x, y, w, h) {
+  try {
+    const px = ctx.getImageData(Math.max(0, x | 0), Math.max(0, y | 0), Math.max(1, w | 0), Math.max(1, h | 0)).data;
+    let soma = 0, n = 0;
+    for (let k = 0; k < px.length; k += 4 * 23) { soma += (0.2126 * px[k] + 0.7152 * px[k + 1] + 0.0722 * px[k + 2]) / 255; n++; }
+    return n ? soma / n : 0;
+  } catch (e) { return 0; }
+}
+function medirRico(ctx, texto, { largura, alturaMax, tamanho, minimo, fonte, fonteDestaque, entrelinha }) {
+  const partes = partesTexto(texto);
+  let tam = tamanho, r;
+  for (let k = 0; k < 16; k++) {
+    r = linhasRicas(ctx, partes, largura, fonte(tam), fonteDestaque(tam));
+    if (r.linhas.length * tam * entrelinha <= alturaMax || tam <= minimo) break;
+    tam = Math.max(minimo, tam * 0.92);
+  }
+  r = linhasRicas(ctx, partes, largura, fonte(tam), fonteDestaque(tam));
+  return { tam, linhas: r.linhas.length, larg: Math.max(0, ...r.linhas.map(l => l.larg)) };
+}
+function desenharBlocos(cv, blocos, cores, diag) {
+  const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, U = W / 100, F = fonteTitulo(diag || {});
+  // Um texto que cresceu (mais linhas) empurra para baixo o que vem logo abaixo dele, em vez de passar por cima.
+  const ocupados = [];
+  for (const b of [...blocos].sort((a, c) => a.y - c.y)) {
+    if (!String(b.texto || "").trim()) continue;
+    const x = b.x * W / 100, w = b.largura * W / 100, h = b.altura * H / 100, al = canvasAl(b.alinhar);
+    let y = b.y * H / 100;
+    for (const o of ocupados) if (x < o.x2 && x + w > o.x1 && y < o.y2 + 1.5 * U && y + h > o.y1) y = Math.max(y, o.y2 + 1.5 * U);
+    const selo = b.tipo === "selo", apoio = b.tipo === "apoio";
+    const texto = selo || (!apoio && F.upper) ? String(b.texto).toUpperCase() : String(b.texto);
+    const fonte = selo ? t => `700 ${t}px Poppins, sans-serif` : apoio ? t => `500 ${t}px Poppins, sans-serif` : fonteDe(F);
+    const fonteD = selo ? fonte : apoio ? t => `800 ${t}px Poppins, sans-serif` : fonteDe(F);
+    const entrelinha = apoio ? 1.3 : selo ? 1.15 : 1.05, pad = (selo ? 2.2 : 2.6) * U;
+    const caixa = b.caixa || selo, base = (selo ? 3.6 : apoio ? 4.6 : 9.5) * U * b.tamanho;
+    const larguraTexto = Math.max(4 * U, w - (caixa ? pad * 2 : 0));
+    const m = medirRico(ctx, texto, { largura: larguraTexto, alturaMax: Math.max(base, h - (caixa ? pad * 2 : 0)), tamanho: base, minimo: base * 0.45, fonte, fonteDestaque: fonteD, entrelinha });
+    const altTexto = m.linhas * m.tam * entrelinha;
+    let tinta = luminanciaRegiao(ctx, x, y, w, Math.max(altTexto, 2 * U)) > 0.55 ? "#111111" : "#FFFFFF", acc = cores.acc;
+    if (caixa) {
+      const bw = Math.min(w, m.larg + pad * 2), bh = altTexto + pad * 2 - m.tam * 0.2;
+      const bx = al === "center" ? x + (w - bw) / 2 : al === "right" ? x + w - bw : x;
+      const fundo = selo && b.cor === "destaque" ? cores.acc : tinta === "#FFFFFF" ? "rgba(0,0,0,.58)" : "rgba(255,255,255,.86)";
+      ctx.fillStyle = fundo; ctx.beginPath(); ctx.roundRect(bx, y, bw, bh, selo ? bh / 2 : 2.2 * U); ctx.fill();
+      ocupados.push({ x1: bx, x2: bx + bw, y1: y, y2: y + bh });
+      if (selo && b.cor === "destaque") { tinta = luminanciaHex(cores.acc) > 0.55 ? "#111111" : "#FFFFFF"; acc = tinta; }
+    }
+    // "cor: destaque" pinta o bloco na cor da marca; as *palavras* marcadas ficam na cor do texto (e vice-versa).
+    const corBase = b.cor === "destaque" && !selo ? acc : tinta, corMarca = b.cor === "destaque" && !selo ? tinta : acc;
+    // Texto solto sobre foto ganha uma sombra leve para continuar legível.
+    if (!caixa && tinta === "#FFFFFF") { ctx.shadowColor = "rgba(0,0,0,.38)"; ctx.shadowBlur = 1.6 * U; ctx.shadowOffsetY = 0.3 * U; }
+    const fimTexto = tituloRico(ctx, texto, { x: x + (caixa ? pad : 0), y: y + (caixa ? pad - m.tam * 0.1 : 0), largura: larguraTexto, alturaMax: 1e9, tamanho: m.tam, minimo: m.tam, fonte, fonteDestaque: fonteD, upper: false, cor: corBase, corDestaque: corMarca, alinhar: al, entrelinha, maxLinhas: 20 }).fim;
+    ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    if (!caixa) ocupados.push({ x1: x, x2: x + w, y1: y, y2: fimTexto });
+  }
+}
 function tituloRico(ctx, texto, { x, y, largura, alturaMax, tamanho, minimo, fonte, fonteDestaque, upper, cor, corDestaque, alinhar = "left", entrelinha = 1.02, maxLinhas = 6 }) {
   const t = upper ? String(texto || "").toUpperCase() : texto;
   const partes = partesTexto(t);
@@ -3049,6 +3116,12 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
     if (sp) desenharMoldura(cv, sp);
     return cv;
   }
+  // Composição livre: o modelo desenha fundo, foto, véu e logo; os blocos (vários títulos, apoio, selo) vão por cima.
+  if (sl.blocos && sl.blocos.length) {
+    const cv = desenharSlide({ ...sl, t: "", x: "", blocos: null }, i, total, foto, logos, cores, nome, alvo, diag);
+    desenharBlocos(cv, sl.blocos, cores, diag);
+    return cv;
+  }
   if (MODELOS_NOVOS.includes(diag.modelo)) return desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag);
   if (MODELOS_ED.includes(diag.modelo)) return desenharEditorial(sl, i, total, foto, logos, cores, nome, alvo, diag);
   const cv = alvo || document.createElement("canvas");
@@ -3100,8 +3173,8 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   let y = pos === "base" ? H - 10 * U - altura - (L.baixo ? 8 * U : 0) : pos === "meio" ? (H - altura) / 2 : (foto ? 16 : 22) * U + (L.baixo ? -6 * U : 0);
   const xTxt = al === "centro" ? W / 2 : al === "direita" ? W - 6 * U : esq;
   const xBarra = al === "centro" ? W / 2 - 6 * U : al === "direita" ? W - 18 * U : esq;
-  ctx.fillStyle = cta ? tinta : cores.acc;
-  ctx.beginPath(); ctx.roundRect(xBarra, y, 12 * U, altBarra, altBarra / 2); ctx.fill();
+  // sem título (composição livre por cima) a barrinha não aparece sozinha
+  if (sl.t || sl.x) { ctx.fillStyle = cta ? tinta : cores.acc; ctx.beginPath(); ctx.roundRect(xBarra, y, 12 * U, altBarra, altBarra / 2); ctx.fill(); }
   y += altBarra + gap;
   y = tituloRico(ctx, sl.t, { x: esq, y, largura: largTit, alturaMax: 1e9, tamanho: tit.tam, minimo: tit.tam, fonte: fonteDe(F), fonteDestaque: fonteDe(F), upper: F.upper, cor: tinta, corDestaque: cta ? tinta : cores.acc, alinhar: alC, entrelinha: 1.05 }).fim;
   if (linhasTxt.length) {
@@ -3312,7 +3385,7 @@ function desenharVertical(sl, foto, logos, cores, nome, cv, diag, t) {
   diag = diagramacaoSlide(diag, sl.n);
   if (ehModeloVideo(diag)) return desenharCena(cv.getContext("2d"), cv.width, cv.height, foto, [sl.t, sl.x].filter(Boolean).join(" · "), logos, cores, nome, t, diag, sl.n);
   // vídeo e story não têm contador nem "arraste": cada cena é desenhada como um slide único
-  return desenharSlide({ n: sl.n, t: sl.t || "", x: sl.x || "" }, 0, 1, foto, logos, cores, nome, cv, diag);
+  return desenharSlide({ n: sl.n, t: sl.t || "", x: sl.x || "", blocos: sl.blocos || null }, 0, 1, foto, logos, cores, nome, cv, diag);
 }
 async function gerarVideoFinal(p, logo, cores, nome) {
   // Cada cena usa o clipe dela; cena trocada por uma foto do banco entra como imagem parada de 3 s.
@@ -3500,6 +3573,55 @@ function mudarDiagramacao(p, k, v, op = {}) {
 }
 let gerandoArtes = null, aprovando = null, ajusteAberto = null, revisando = null, timersRevisao = [], textoAberto = null, salvandoTexto = null;
 // Salva título e texto de cada slide, a legenda e as hashtags. As artes precisam ser geradas de novo.
+// Editor da composição livre (aba Textos): vários títulos, apoio e selo na mesma imagem. A prévia muda enquanto edita.
+const TAMANHOS_BLOCO = [[0.7, "P"], [1, "M"], [1.25, "G"], [1.5, "GG"]];
+const ALTURA_BLOCO = { destaque: 18, apoio: 12, selo: 7 };
+const rascunhoBlocos = {};
+function editorBlocos(p, sl) {
+  const bl = sl.blocos || [], attr = i => `data-i="${i}" data-n="${sl.n}" data-post="${p.id}"`;
+  const sel = (campo, i, ops, atual, rot) => `<select data-bl="${campo}" ${attr(i)} aria-label="${rot}">${ops.map(([v, t]) => `<option value="${v}" ${String(atual) === String(v) ? "selected" : ""}>${t}</option>`).join("")}</select>`;
+  if (!bl.length) return `<div class="blocos-ed vazio"><p class="small">Quer mais de um título nesta imagem ou outras frases em destaque? <button type="button" class="link" data-act="blocos-iniciar" data-id="${p.id}" data-v="${sl.n}">Montar composição livre</button></p></div>`;
+  const tam = v => TAMANHOS_BLOCO.reduce((a, b) => Math.abs(b[0] - v) < Math.abs(a[0] - v) ? b : a)[0];
+  return `<div class="blocos-ed"><p class="small"><b>Composição livre</b> · até 8 textos nesta imagem. Use *palavra* para destacar em qualquer um.</p>
+    ${bl.map((b, i) => `<div class="bloco-ed">
+      <div class="bloco-top">${sel("tipo", i, [["destaque", "Título"], ["apoio", "Apoio"], ["selo", "Selo"]], b.tipo, "Tipo do texto")}${sel("tamanho", i, TAMANHOS_BLOCO, tam(b.tamanho), "Tamanho")}${sel("alinhar", i, [["esquerda", "Esquerda"], ["centro", "Centro"], ["direita", "Direita"]], b.alinhar, "Alinhamento")}
+        <button type="button" class="mini-btn" data-act="bloco-subir" data-id="${p.id}" data-v="${sl.n}" data-i="${i}" aria-label="Subir na lista" ${i ? "" : "disabled"}>↑</button><button type="button" class="mini-btn" data-act="bloco-tirar" data-id="${p.id}" data-v="${sl.n}" data-i="${i}" aria-label="Tirar este texto">✕</button></div>
+      <textarea data-bl="texto" ${attr(i)} rows="2" maxlength="600" aria-label="Texto ${i + 1}">${esc(b.texto)}</textarea>
+      <div class="bloco-pos"><label class="small">Altura na arte<input type="range" data-bl="y" ${attr(i)} min="8" max="86" step="1" value="${Math.round(b.y)}"></label>
+        <label class="check-tratar"><input type="checkbox" data-bl="cor" ${attr(i)} ${b.cor === "destaque" ? "checked" : ""}> Cor da marca</label>
+        <label class="check-tratar"><input type="checkbox" data-bl="caixa" ${attr(i)} ${b.caixa || b.tipo === "selo" ? "checked" : ""} ${b.tipo === "selo" ? "disabled" : ""}> Fundo atrás</label></div></div>`).join("")}
+    <div class="actions">${bl.length < 8 ? ["destaque", "apoio", "selo"].map(t => `<button type="button" class="btn quiet" data-act="bloco-novo" data-id="${p.id}" data-v="${sl.n}" data-tipo="${t}">+ ${({ destaque: "Título", apoio: "Texto de apoio", selo: "Selo" })[t]}</button>`).join("") : ""}
+      <button type="button" class="btn quiet" data-act="blocos-limpar" data-id="${p.id}" data-v="${sl.n}">Voltar ao título único</button></div></div>`;
+}
+// Guarda como os blocos estavam antes de editar, para o "Cancelar".
+function guardarRascunhoBlocos(p) { if (!(p.id in rascunhoBlocos)) rascunhoBlocos[p.id] = JSON.stringify(p.slides.map(x => x.blocos || null)); }
+function blocoDoCampo(el) {
+  const p = state.posts.find(x => x.id === el.dataset.post), sl = p && p.slides.find(x => x.n === Number(el.dataset.n));
+  return sl && sl.blocos ? { p, sl, b: sl.blocos[Number(el.dataset.i)] } : {};
+}
+let quadroBlocos = 0;
+function editarBloco(el) {
+  const { p, sl, b } = blocoDoCampo(el); if (!b) return false;
+  guardarRascunhoBlocos(p);
+  const c = el.dataset.bl;
+  if (c === "texto") b.texto = el.value;
+  else if (c === "y") { b.y = Number(el.value); b.altura = Math.min(b.altura, 94 - b.y); }
+  else if (c === "tamanho") b.tamanho = Number(el.value);
+  else if (c === "cor") b.cor = el.checked ? "destaque" : "texto";
+  else if (c === "caixa") b.caixa = el.checked;
+  else if (c === "tipo") { b.tipo = el.value; b.altura = Math.min(94 - b.y, Math.max(b.altura, ALTURA_BLOCO[b.tipo])); }
+  else if (c === "alinhar") { b.alinhar = el.value; }
+  sl.blocos = blocosValidos(sl.blocos);
+  cancelAnimationFrame(quadroBlocos); quadroBlocos = requestAnimationFrame(() => pintarPrevias());
+  return c === "tipo";
+}
+function mudarBlocos(p, n, fn) {
+  const sl = p.slides.find(x => x.n === n); if (!sl) return;
+  guardarRascunhoBlocos(p);
+  const novos = fn((sl.blocos || []).map(b => ({ ...b })), sl);
+  sl.blocos = blocosValidos(novos);
+  render();
+}
 async function salvarTextos(p) {
   const val = sel => [...document.querySelectorAll(sel)];
   const brutos = p.slidesBrutos.length ? p.slidesBrutos.map(x => ({ ...x })) : p.slides.length ? p.slides.map(sl => ({ n: sl.n, titulo: sl.t, texto: sl.x })) : [{ n: 1, titulo: "", texto: "" }];
@@ -3507,6 +3629,11 @@ async function salvarTextos(p) {
     const n = Number(el.dataset.n), alvo = brutos.find((x, i) => (Number(x.n) || i + 1) === n);
     if (alvo) alvo[el.dataset.et === "t" ? "titulo" : "texto"] = el.value.trim();
   }
+  // Composição livre: manda os blocos do slide (ou [] para voltar ao título único, se antes havia).
+  brutos.forEach((x, i) => {
+    const sl = p.slides.find(s => s.n === (Number(x.n) || i + 1)); if (!sl) return;
+    if (sl.blocos && sl.blocos.length) x.blocos = sl.blocos; else if (Array.isArray(x.blocos) && x.blocos.length) x.blocos = [];
+  });
   const legenda = (document.getElementById("et-leg-" + p.id)?.value || "").trim();
   const hashtags = (document.getElementById("et-tags-" + p.id)?.value || "").trim();
   salvandoTexto = p.id; render();
@@ -3518,7 +3645,8 @@ async function salvarTextos(p) {
       await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.cal.table, records: [{ id: p.id, fields: f }] });
     }
     p.slidesBrutos = brutos; p.legenda = legenda; p.hashtags = hashtags;
-    p.slides = brutos.map((x, i) => ({ n: Number(x.n) || i + 1, t: x.titulo || x.visual || "", x: x.texto || x.fala_ou_texto || "", img: !!x.usa_imagem }));
+    p.slides = brutos.map((x, i) => ({ n: Number(x.n) || i + 1, t: x.titulo || x.visual || "", x: x.texto || x.fala_ou_texto || "", img: !!x.usa_imagem, blocos: blocosValidos(x.blocos) }));
+    delete rascunhoBlocos[p.id];
     // Só a legenda mudou: o servidor mantém as artes (ou o vídeo) prontas.
     const tinha = p.artesProntas; p.artesProntas = M.modo === "web" ? r.artesProntas === true : false; textoAberto = null; abaRev[p.id] = "visual";
     toast(tinha && !p.artesProntas ? (ehVideoFmt(p) ? "Textos salvos. Grave o vídeo de novo para aplicar." : "Textos salvos. Gere as artes finais de novo para aplicar.") : "Textos salvos.");
@@ -3753,6 +3881,9 @@ function valorFonte(p, slides) {
   const misto = vs.some(v => v !== vs[0]);
   return { valor: misto ? vs.reduce((a, b) => a + b, 0) / vs.length : vs[0], misto };
 }
+// Campos da composição livre: texto e altura atualizam a prévia enquanto digita; tipo muda o formulário.
+document.addEventListener("input", e => { if (e.target.dataset && e.target.dataset.bl && e.target.dataset.bl !== "tipo") editarBloco(e.target); });
+document.addEventListener("change", e => { if (e.target.dataset && ["tipo", "tamanho", "alinhar", "cor", "caixa"].includes(e.target.dataset.bl) && editarBloco(e.target)) render(); });
 document.addEventListener("input", e => {
   const r = e.target.closest("[data-fonte-range]"); if (!r) return;
   const p = state.posts.find(x => x.id === r.dataset.fonteRange); if (!p) return;
@@ -3935,8 +4066,8 @@ function cardRev(p) {
   else if (podeEditar) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post${ajuda("textos")}</span>
       ${soLegenda ? `<p class="small" style="margin:0">O vídeo vai como você enviou, sem texto por cima. Para pôr texto na tela, escolha uma diagramação na aba Visual.</p>` : slides.map((sl, i) => `<fieldset><legend>${ehVideo ? "Cena " + (i + 1) : slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
         ${ehVideo ? "" : `<div class="bi-slide">${mapa[sl.n] ? `<img src="${esc(mapa[sl.n])}" alt="">` : `<span class="small">Sem foto</span>`}<button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">${mapa[sl.n] ? "Trocar pela do banco" : "Pôr uma foto do banco"}</button></div>`}
-        <label class="field"><span>${ehVideo ? "Texto na tela" : "Título"} (use *palavra* para destacar)</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
-        <label class="field"><span>${ehVideo ? "Texto de apoio" : "Texto"}</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label></fieldset>`).join("")}
+        ${sl.blocos && sl.blocos.length && !ehVideo ? "" : `<label class="field"><span>${ehVideo ? "Texto na tela" : "Título"} (use *palavra* para destacar)</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
+        <label class="field"><span>${ehVideo ? "Texto de apoio" : "Texto"}</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label>`}${ehVideo ? "" : editorBlocos(p, sl)}</fieldset>`).join("")}
       <label class="field"><span>Legenda (descrição do post)</span><textarea id="et-leg-${p.id}" rows="5" maxlength="2200">${esc(p.legenda || "")}</textarea></label>
       <label class="field"><span>Hashtags</span><input id="et-tags-${p.id}" maxlength="600" value="${esc(p.hashtags || "")}"></label>
       <div class="actions"><button class="btn primary" data-act="textos-salvar" data-id="${p.id}">Salvar textos</button><button class="btn quiet" data-act="textos-cancelar" data-id="${p.id}">Cancelar</button></div></div>`;
@@ -4318,7 +4449,25 @@ document.addEventListener("click", e => {
     return revisarPost(post, "ajustar", prefixo + txt, { slide, novaImagem });
   }
   if (act === "textos-editar" && post) { textoAberto = id; return render(); }
-  if (act === "textos-cancelar" && post) { textoAberto = null; abaRev[post.id] = "visual"; return render(); }
+  if (act === "textos-cancelar" && post) {
+    if (post.id in rascunhoBlocos) { const antes = JSON.parse(rascunhoBlocos[post.id]); post.slides.forEach((x, i) => { x.blocos = antes[i] || null; }); delete rascunhoBlocos[post.id]; }
+    textoAberto = null; abaRev[post.id] = "visual"; return render();
+  }
+  if (act === "blocos-iniciar" && post) return mudarBlocos(post, Number(b.dataset.v), (_, sl) => {
+    // Começa pelo que já existe: o título vira o primeiro destaque e o texto vira apoio, onde o modelo costuma pôr.
+    const comFoto = !!imagensDoPost(post).mapa[sl.n], y0 = comFoto ? 56 : 18;
+    return [{ texto: sl.t || "Seu *título*", tipo: "destaque", x: 7, y: y0, largura: 86, altura: 20 }, ...(sl.x ? [{ texto: sl.x, tipo: "apoio", x: 7, y: y0 + 22, largura: 86, altura: 12 }] : [])];
+  });
+  if (act === "bloco-novo" && post) return mudarBlocos(post, Number(b.dataset.v), l => {
+    // Entra no primeiro espaço livre da arte (de cima para baixo); se não houver, logo abaixo do último.
+    const tipo = b.dataset.tipo, alt = ALTURA_BLOCO[tipo], livre = y => l.every(o => y + alt + 2 <= o.y || y >= o.y + o.altura + 2);
+    let y = null; for (let k = 12; k <= 86 - alt; k += 2) if (livre(k)) { y = k; break; }
+    if (y === null) { const ultimo = l[l.length - 1]; y = ultimo ? Math.min(86 - alt, ultimo.y + ultimo.altura + 2) : 20; }
+    return [...l, { texto: tipo === "selo" ? "Novidade" : tipo === "apoio" ? "Um texto de apoio" : "Outro *título*", tipo, x: 7, y, largura: tipo === "selo" ? 40 : 86, altura: ALTURA_BLOCO[tipo], cor: tipo === "selo" ? "destaque" : "texto" }];
+  });
+  if (act === "bloco-tirar" && post) return mudarBlocos(post, Number(b.dataset.v), l => l.filter((_, i) => i !== Number(b.dataset.i)));
+  if (act === "bloco-subir" && post) return mudarBlocos(post, Number(b.dataset.v), l => { const i = Number(b.dataset.i); if (i > 0) [l[i - 1], l[i]] = [l[i], l[i - 1]]; return l; });
+  if (act === "blocos-limpar" && post) return mudarBlocos(post, Number(b.dataset.v), (l, sl) => { if (!sl.t && l[0]) sl.t = l[0].texto; return []; });
   if (act === "textos-salvar" && post) return salvarTextos(post);
   if (act === "recarregar-pauta") { pauta.erro = null; render(); return M.modo === "web" ? carregarPauta() : recarregar(); }
   if (act === "aprovar" && ideia) return abrirAgenda(ideia);
