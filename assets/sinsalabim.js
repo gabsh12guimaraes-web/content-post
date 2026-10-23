@@ -65,6 +65,7 @@ function desenharSinsalabim(){
   document.querySelector('.sinsa-chat')?.scrollTo({top:99999});
   if(p)ligarPreviaSinsa();
   if(faseSinsa())progressoSinsa(null,null);
+  if(d.escolhendo)modalBancoSinsa();
   if(d.rolarPreview){d.rolarPreview=false;const alvo=document.querySelector('.sinsa-preview');if(alvo)alvo.scrollIntoView({block:'start'});}
 }
 // Personalizar à mão, sem IA: estilo da legenda, fontes, textos, destaques e imagens de apoio.
@@ -85,10 +86,6 @@ function chipsSinsa(campo,atual,bloq){
 }
 function personalizarSinsa(p,bloq){
   const banco=SINSA.edicao?.apoios||[],imagem=id=>banco.find(b=>b.id===id),dis=bloq?'disabled':'';
-  const escolhendo=SINSA.escolhendo;
-  // Qualquer imagem do banco (fotos, acervo e as geradas pela IA), com busca pelo nome ou descrição.
-  const termo=SINSA.buscaBanco||'',nt=normalizarBusca(termo);
-  const seletor=escolhendo?`<div class="sinsa-banco-escolha"><p class="small">${escolhendo.novo?`Escolha a imagem que entra em ${fmtSinsa(escolhendo.inicio)}:`:'Escolha a nova imagem:'}</p>${banco.length?`${barraBusca({id:'sinsa-busca-banco',placeholder:'Buscar pelo nome ou descrição',valor:termo,rotulo:'Pesquisar no banco'})}<p class="small">${banco.length} ${banco.length===1?'imagem':'imagens'} no banco</p><div class="sinsa-banco">${banco.map(b=>{const chave=normalizarBusca([b.nome,b.descricao].filter(Boolean).join(' '));return `<button type="button" data-sinsa="escolher-img" data-id="${esc(b.id)}" data-busca="${esc(chave)}" ${nt&&!chave.includes(nt)?'hidden':''} aria-label="${esc(b.nome||'Imagem do banco')}" title="${esc(b.nome||'')}" ${dis}><img src="${esc(b.url)}" alt="" loading="lazy">${b.origem==='ia'?'<span>IA</span>':''}</button>`;}).join('')}</div><p class="small sinsa-banco-vazio" ${nt&&!banco.some(b=>normalizarBusca([b.nome,b.descricao].join(' ')).includes(nt))?'':'hidden'}>Nenhuma imagem com esse nome ou descrição.</p>`:'<p class="small">Seu banco ainda não tem imagens. Envie fotos do produto no Banco de imagens para usá-las no vídeo.</p>'}<button type="button" class="btn quiet" data-sinsa="cancelar-img">Cancelar</button></div>`:'';
   const opc=(lista,atual)=>lista.map(([v,r])=>`<option value="${v}" ${String(atual)===String(v)?'selected':''}>${r}</option>`).join('');
   return `<details class="sinsa-personalizar"${SINSA.persAberto?' open':''}><summary>Personalizar <small>fonte, legenda, destaques e imagens</small></summary>
   <p class="sinsa-pers-status small" role="status" aria-live="polite">${esc(SINSA.persStatus||'')}</p>
@@ -104,8 +101,8 @@ function personalizarSinsa(p,bloq){
     ${(p.destaques||[]).length?`<ul class="sinsa-pers-lista">${p.destaques.map((d,i)=>`<li><button type="button" class="sinsa-tempo-btn" data-sinsa="ir" data-t="${d.inicio}" aria-label="Ver na prévia">${fmtSinsa(d.inicio)}</button><input class="sinsa-dest-texto" data-i="${i}" value="${esc(d.texto)}" maxlength="28" aria-label="Palavra em destaque" ${dis}><input class="sinsa-dest-apoio" data-i="${i}" value="${esc(d.apoio||'')}" maxlength="60" placeholder="Linha de apoio" aria-label="Linha de apoio" ${dis}><button type="button" class="sinsa-x" data-sinsa="dest-tirar" data-i="${i}" aria-label="Tirar destaque ${esc(d.texto)}" ${dis}>✕</button></li>`).join('')}</ul>`:'<p class="small">Nenhuma palavra em destaque. Peça na conversa para a IA escolher.</p>'}
   </section>
   <section><h4>Imagens de destaque</h4>
-    ${p.apoios.length?`<ul class="sinsa-pers-lista">${p.apoios.map((a,i)=>{const b=imagem(a.banco);return `<li class="apoio"><button type="button" class="sinsa-mini" data-sinsa="apoio-trocar" data-i="${i}" aria-label="Trocar imagem" ${dis}>${b?`<img src="${esc(b.url)}" alt="">`:''}<span>Trocar</span></button><button type="button" class="sinsa-tempo-btn" data-sinsa="ir" data-t="${a.inicio}" aria-label="Ver na prévia">${fmtSinsa(a.inicio)}</button><select class="sinsa-apoio-layout" data-i="${i}" aria-label="Posição da imagem" ${dis}>${opc(LAYOUTS_SINSA,a.layout)}</select><select class="sinsa-apoio-dur" data-i="${i}" aria-label="Duração" ${dis}>${opc(DURACOES_SINSA.filter(x=>a.layout!=='tela'||x<=1.5).map(x=>[x,String(x).replace('.',',')+' s']),a.duracao)}</select><button type="button" class="sinsa-x" data-sinsa="apoio-tirar" data-i="${i}" aria-label="Tirar imagem" ${dis}>✕</button></li>`;}).join('')}</ul>`:'<p class="small">Nenhuma imagem no vídeo.</p>'}
-    ${seletor||`<button type="button" class="btn" data-sinsa="apoio-novo" ${dis}>+ Imagem em ${fmtSinsa(SINSA.tempo||0)}</button><p class="small">Pause a prévia no momento em que a imagem deve entrar. Ela entra e sai com fade.</p>`}
+    ${p.apoios.length?`<ul class="sinsa-pers-lista">${p.apoios.map((a,i)=>{const b=imagem(a.banco);return `<li class="apoio"><button type="button" class="sinsa-mini" data-sinsa="apoio-trocar" data-i="${i}" aria-label="Trocar imagem" ${dis}>${b?`<img src="${esc(b.url)}" alt="">`:''}<span>Trocar</span></button><input class="sinsa-apoio-inicio" data-i="${i}" value="${fmtSinsa(a.inicio)}" inputmode="decimal" autocomplete="off" aria-label="Minutagem em que a imagem entra (minutos:segundos)" title="Entra em (ex.: 0:12,5)" ${dis}><select class="sinsa-apoio-layout" data-i="${i}" aria-label="Posição da imagem" ${dis}>${opc(LAYOUTS_SINSA,a.layout)}</select><select class="sinsa-apoio-dur" data-i="${i}" aria-label="Duração" ${dis}>${opc(DURACOES_SINSA.filter(x=>a.layout!=='tela'||x<=1.5).map(x=>[x,String(x).replace('.',',')+' s']),a.duracao)}</select><button type="button" class="sinsa-x" data-sinsa="apoio-tirar" data-i="${i}" aria-label="Tirar imagem" ${dis}>✕</button></li>`;}).join('')}</ul>`:'<p class="small">Nenhuma imagem no vídeo.</p>'}
+    <button type="button" class="btn" data-sinsa="apoio-novo" ${dis}>+ Imagem do banco</button><p class="small">Escolha a imagem e digite a minutagem em que ela entra (ex.: 0:12,5). Ela entra e sai com fade.</p>
   </section>
   <section><h4>Abertura e final</h4>
     <label class="field"><span>Título de abertura</span><input id="sinsa-titulo-tela" value="${esc(p.tituloTela||'')}" maxlength="60" ${dis}></label>
@@ -113,6 +110,42 @@ function personalizarSinsa(p,bloq){
     <div class="sinsa-pers-linha"><span>Cor do vídeo</span>${chipsSinsa('visual',p.visual||'natural',bloq)}</div>
   </section></details>`;
 }
+// Minutagem digitada: "1:05,3", "0:12", "12,5" ou "12" (segundos). Devolve NaN se não entender.
+function lerTempoSinsa(v){const m=String(v||'').trim().replace(',','.').match(/^(?:(\d+):)?(\d+(?:\.\d+)?)$/);return m?Number(m[1]||0)*60+Number(m[2]):NaN;}
+// Uma imagem por vez: diz se [inicio, inicio+dur) cruza com outra imagem (fora a de índice "fora").
+const cruzaApoio=(l,inicio,dur,fora)=>l.some((a,k)=>k!==fora&&inicio<a.inicio+a.duracao-0.01&&inicio+dur>a.inicio+0.01);
+// Pop-up do banco: todas as imagens, busca, e a minutagem, duração e posição de entrada.
+function modalBancoSinsa(){
+  document.querySelector('.sinsa-modal')?.remove();
+  const pedido=SINSA.escolhendo,p=SINSA.edicao?.plano;if(!pedido||!p)return;
+  const banco=SINSA.edicao.apoios||[],atual=pedido.novo?null:p.apoios[pedido.i];
+  const inicio=atual?atual.inicio:Math.min(SINSA.tempo||0,Math.max(0,p.duracao-1)),dur=atual?(DURACOES_SINSA.includes(atual.duracao)?atual.duracao:2):2,layout=atual?atual.layout:'topo';
+  const termo=SINSA.buscaBanco||'',nt=normalizarBusca(termo);
+  const opc=(lista,v)=>lista.map(([a,r])=>`<option value="${a}" ${String(a)===String(v)?'selected':''}>${r}</option>`).join('');
+  const el=document.createElement('div');el.className='sinsa-modal';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','sinsa-modal-titulo');
+  // Mesmo visual do pop-up do dia no calendário: cabeçalho, chips de resumo e grade de cartões.
+  const nIa=banco.filter(b=>b.origem==='ia').length,nAcervo=banco.filter(b=>b.origem==='acervo').length,nSuas=banco.length-nIa-nAcervo;
+  const ORIGEM={ia:'Gerada pela IA',acervo:'Acervo'};
+  el.innerHTML=`<div class="sinsa-modal-caixa cal-dia-dlg">
+    <div class="cal-dia-cab"><div><span class="home-kicker">Banco de imagens · ${banco.length} ${banco.length===1?'imagem':'imagens'}</span><h2 id="sinsa-modal-titulo">${pedido.novo?'Incluir imagem no vídeo':'Trocar a imagem'}</h2></div><button type="button" class="btn quiet" data-sinsa="cancelar-img" aria-label="Fechar">✕</button></div>
+    ${banco.length?`<div class="cal-dia-resumo">${nSuas?`<span class="cal-dia-chip">${nSuas} suas</span>`:''}${nAcervo?`<span class="cal-dia-chip">${nAcervo} do acervo</span>`:''}${nIa?`<span class="cal-dia-chip">${nIa} da IA</span>`:''}</div>`:''}
+    <div class="sinsa-modal-campos">
+      <label class="field"><span>Entra em</span><input id="sinsa-modal-inicio" value="${fmtSinsa(inicio)}" inputmode="decimal" autocomplete="off" aria-describedby="sinsa-modal-dica"></label>
+      <label class="field"><span>Duração</span><select id="sinsa-modal-dur">${opc(DURACOES_SINSA.map(x=>[x,String(x).replace('.',',')+' s']),dur)}</select></label>
+      <label class="field"><span>Posição</span><select id="sinsa-modal-layout">${opc(LAYOUTS_SINSA,layout)}</select></label>
+    </div>
+    <p class="small" id="sinsa-modal-dica">Minutos:segundos do vídeo editado (0:00 a ${fmtSinsa(p.duracao)}). Ex.: 0:12,5. <button type="button" class="link" data-sinsa="modal-agora">Usar o ponto da prévia (${fmtSinsa(SINSA.tempo||0)})</button></p>
+    <p class="msg erro sinsa-modal-erro" role="alert" hidden></p>
+    ${banco.length?`${barraBusca({id:'sinsa-busca-banco',placeholder:'Buscar pelo nome ou descrição',valor:termo,rotulo:'Pesquisar no banco'})}
+    <div class="cal-dia-grade sinsa-modal-grade">${banco.map(b=>{const chave=normalizarBusca([b.nome,b.descricao].filter(Boolean).join(' '));return `<button type="button" class="cal-dia-post" data-sinsa="escolher-img" data-id="${esc(b.id)}" data-busca="${esc(chave)}" ${nt&&!chave.includes(nt)?'hidden':''} ${atual&&atual.banco===b.id?'aria-current="true"':''}><span class="mini" style="background-image:url('${esc(b.url)}')" role="img" aria-label="${esc(b.nome||'Imagem do banco')}"></span><span class="cal-dia-info"><span class="pm">${esc(ORIGEM[b.origem]||'Sua imagem')}${atual&&atual.banco===b.id?' · no vídeo agora':''}</span><span class="pt">${esc(b.nome||'Sem nome')}</span></span></button>`;}).join('')}</div>
+    <p class="small sinsa-banco-vazio" hidden>Nenhuma imagem com esse nome ou descrição.</p>`:'<p class="small">Seu banco ainda não tem imagens. Envie fotos no Banco de imagens para usá-las no vídeo.</p>'}
+  </div>`;
+  dlg().appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('aberto'));
+  el.querySelector('#sinsa-modal-inicio')?.focus({preventScroll:true});
+}
+function fecharModalBancoSinsa(){SINSA.escolhendo=null;SINSA.buscaBanco='';const el=document.querySelector('.sinsa-modal');if(!el)return;el.classList.remove('aberto');setTimeout(()=>el.remove(),180);document.querySelector('[data-sinsa="apoio-novo"]')?.focus({preventScroll:true});}
+function erroModalSinsa(t){const el=document.querySelector('.sinsa-modal-erro');if(el){el.textContent=t;el.hidden=!t;}}
 // Aplica na hora, sem redesenhar a janela (o vídeo segue no mesmo ponto, tocando ou não).
 // As mudanças vão ao servidor em fila, uma de cada vez, cada uma sobre a versão devolvida pela anterior.
 function aplicarLocalPers(p,m){
@@ -261,7 +294,7 @@ function agendarSinsa(){
 }
 document.addEventListener('input',e=>{
   if(e.target.id==='sinsa-busca-banco'){SINSA.buscaBanco=e.target.value;const t=normalizarBusca(e.target.value);let n=0;
-    for(const b of document.querySelectorAll('.sinsa-banco [data-busca]')){const ok=!t||b.dataset.busca.includes(t);b.hidden=!ok;if(ok)n++;}
+    for(const b of document.querySelectorAll('.sinsa-modal-grade [data-busca]')){const ok=!t||b.dataset.busca.includes(t);b.hidden=!ok;if(ok)n++;}
     const v=document.querySelector('.sinsa-banco-vazio');if(v)v.hidden=!!n;return;}
   if(e.target.id==='sinsa-texto')SINSA.texto=e.target.value;
   if(e.target.id==='sinsa-tempo')sinsaIrPara(Number(e.target.value));
@@ -272,6 +305,10 @@ document.addEventListener('change',e=>{
   if(alvo.id==='sinsa-titulo-tela')return salvarPersSinsa({tituloTela:alvo.value});
   if(alvo.id==='sinsa-chamada')return salvarPersSinsa({chamada:alvo.value});
   if(alvo.matches?.('.sinsa-dest-texto,.sinsa-dest-apoio')){const l=destaquesSinsa();if(!l[i])return;if(alvo.matches('.sinsa-dest-texto')){if(!alvo.value.trim())return;l[i].texto=alvo.value;}else l[i].apoio=alvo.value;return salvarPersSinsa({destaques:l});}
+  if(alvo.matches?.('.sinsa-apoio-inicio')){const l=apoiosSinsa(),p=SINSA.edicao?.plano,a=l[i];if(!a||!p)return;const t=lerTempoSinsa(alvo.value);
+    if(!Number.isFinite(t)||t<0||t>p.duracao-0.5){statusPersSinsa('Minutagem inválida: use 0:12 ou 0:12,5, dentro do vídeo.');alvo.value=fmtSinsa(a.inicio);return;}
+    const d=Math.min(a.duracao,p.duracao-t);if(cruzaApoio(l,t,d,i)){statusPersSinsa('Nesse momento já aparece outra imagem.');alvo.value=fmtSinsa(a.inicio);return;}
+    a.inicio=+t.toFixed(2);a.duracao=+d.toFixed(2);return salvarPersSinsa({apoios:l});}
   if(alvo.matches?.('.sinsa-apoio-layout,.sinsa-apoio-dur')){const l=apoiosSinsa();if(!l[i])return;if(alvo.matches('.sinsa-apoio-layout')){l[i].layout=alvo.value;if(alvo.value==='tela')l[i].duracao=Math.min(1.5,l[i].duracao);}else l[i].duracao=Number(alvo.value);return salvarPersSinsa({apoios:l});}
   if(e.target.id==='sinsa-historico'){if(e.target.value)carregarEdicaoSinsa(e.target.value);else abrirSinsalabim();}
   if(e.target.id==='sinsa-arquivo'&&!SINSA.ocupado){
@@ -282,6 +319,9 @@ document.addEventListener('change',e=>{
     desenharSinsalabim();
   }
 });
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.sinsa-modal')){e.preventDefault();e.stopPropagation();fecharModalBancoSinsa();}},true);
+document.addEventListener('click',e=>{if(e.target.classList?.contains('sinsa-modal'))fecharModalBancoSinsa();});
+document.addEventListener('cancel',e=>{if(e.target===dlg()&&document.querySelector('.sinsa-modal'))e.preventDefault();},true);
 document.addEventListener('toggle',e=>{if(e.target.matches?.('.sinsa-personalizar'))SINSA.persAberto=e.target.open;},true);
 document.addEventListener('submit',e=>{if(e.target.matches('.sinsa-enviar')){e.preventDefault();e.target.querySelector('[data-sinsa="enviar"]:not([disabled])')?.click();}});
 document.addEventListener('click',async e=>{
@@ -297,14 +337,20 @@ document.addEventListener('click',async e=>{
   if(acao==='legendas-onoff')return salvarPersSinsa({legendas:SINSA.edicao?.plano?.legendas===false});
   if(acao==='dest-tirar'){const l=destaquesSinsa();l.splice(Number(b.dataset.i),1);return salvarPersSinsa({destaques:l});}
   if(acao==='apoio-tirar'){const l=apoiosSinsa();l.splice(Number(b.dataset.i),1);return salvarPersSinsa({apoios:l});}
-  if(acao==='apoio-novo'){SINSA.escolhendo={novo:true,inicio:SINSA.tempo||0};SINSA.buscaBanco='';return refrescarPersSinsa();}
-  if(acao==='apoio-trocar'){SINSA.escolhendo={i:Number(b.dataset.i)};SINSA.buscaBanco='';return refrescarPersSinsa();}
-  if(acao==='cancelar-img'){SINSA.escolhendo=null;return refrescarPersSinsa();}
+  if(acao==='apoio-novo'){videosSinsa().forEach(x=>x.pause());SINSA.escolhendo={novo:true};SINSA.buscaBanco='';return modalBancoSinsa();}
+  if(acao==='apoio-trocar'){videosSinsa().forEach(x=>x.pause());SINSA.escolhendo={i:Number(b.dataset.i)};SINSA.buscaBanco='';return modalBancoSinsa();}
+  if(acao==='cancelar-img')return fecharModalBancoSinsa();
+  if(acao==='modal-agora'){const el=document.getElementById('sinsa-modal-inicio');if(el)el.value=fmtSinsa(SINSA.tempo||0);return;}
   if(acao==='escolher-img'&&SINSA.escolhendo){const l=apoiosSinsa(),p=SINSA.edicao.plano,pedido=SINSA.escolhendo;
-    if(pedido.novo){const dur=Math.min(1.8,Math.max(0.8,p.duracao-0.3)),inicio=Math.max(0,Math.min(pedido.inicio,p.duracao-dur));
-      // Uma imagem por vez: a que já estava naquele momento dá lugar à nova.
-      const livres=l.filter(a=>a.inicio+a.duracao<=inicio||a.inicio>=inicio+dur);livres.push({banco:b.dataset.id,inicio:+inicio.toFixed(2),duracao:dur,layout:'topo'});return salvarPersSinsa({apoios:livres});}
-    if(!l[pedido.i])return;l[pedido.i].banco=b.dataset.id;return salvarPersSinsa({apoios:l});}
+    const layout=document.getElementById('sinsa-modal-layout')?.value||'topo',dur=Math.min(layout==='tela'?1.5:4,Number(document.getElementById('sinsa-modal-dur')?.value)||1.8);
+    const inicio=lerTempoSinsa(document.getElementById('sinsa-modal-inicio')?.value);
+    if(!Number.isFinite(inicio))return erroModalSinsa('Digite a minutagem como 0:12 ou 0:12,5.');
+    if(inicio<0||inicio+Math.min(dur,0.8)>p.duracao)return erroModalSinsa(`A imagem precisa entrar entre 0:00 e ${fmtSinsa(Math.max(0,p.duracao-0.8))}.`);
+    const d=Math.min(dur,p.duracao-inicio),fora=pedido.novo?-1:pedido.i;
+    if(cruzaApoio(l,inicio,d,fora))return erroModalSinsa('Nesse momento já aparece outra imagem. Escolha outra minutagem ou tire a outra imagem.');
+    const nova={banco:b.dataset.id,inicio:+inicio.toFixed(2),duracao:+d.toFixed(2),layout};
+    if(pedido.novo)l.push(nova);else if(l[pedido.i])l[pedido.i]=nova;else return;
+    fecharModalBancoSinsa();return salvarPersSinsa({apoios:l});}
   if(acao==='comando'){const lista=b.dataset.ajuste?SINSA_AJUSTES:SINSA_COMANDOS,[,texto,receita]=lista[Number(b.dataset.i)]||[];if(!texto)return;
     const atual=SINSA.texto.trim();SINSA.texto=receita?texto:(atual.includes(texto)?atual:(atual?atual+' ':'')+texto);
     if(receita&&!SINSA.edicao)SINSA.estilo='dinamico';
