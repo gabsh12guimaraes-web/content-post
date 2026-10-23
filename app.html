@@ -5273,6 +5273,13 @@ function listaContas(contas, pode) {
     ${pode ? `<button class="btn quiet" data-u="rede-desconectar" data-id="${esc(c.id)}">Desconectar</button>` : ""}</div>`).join("")}</div>`;
 }
 // O Zernio devolve a pessoa para app.html?redes=1&connected=instagram... (ou &error=...&error_message=...).
+let esperandoConexaoRede = false;
+// O app avisa quando a pessoa fecha o navegador da conexão: recarrega as redes para mostrar a conta nova.
+window.addEventListener("contentpost:navegador-fechado", () => {
+  if (!esperandoConexaoRede) return;
+  esperandoConexaoRede = false; redesCarregadas = false; carregarRedes();
+  if (dlg().open && dlg().dataset.integracoes) abrirIntegracoes();
+});
 async function voltouDaConexao() {
   let q; try { q = new URLSearchParams(location.search); } catch (e) { return; }
   if (!q.has("redes")) return;
@@ -5470,7 +5477,17 @@ document.addEventListener("click", async e => {
     const pedido = INT.pedido; if (!integracoesAtuais(pedido)) return;
     INT.erro = "";
     b.disabled = true;
-    try { const r = await api({ acao: "conectarRede", rede: id, voltar: location.origin + location.pathname + "?redes=1" }); if (!integracoesAtuais(pedido)) return; location.href = r.url; return; }
+    // No app, o login da rede abre no navegador do iPhone (com a sessão do Safari): dentro do app
+    // o Instagram trava em telas de verificação. A volta cai numa página do site que manda tocar em OK.
+    const nativo = window.ContentPostNative && window.ContentPostNative.ativo;
+    try {
+      const r = await api({ acao: "conectarRede", rede: id, voltar: nativo ? "https://easycontentpost.com.br/conectado.html" : location.origin + location.pathname + "?redes=1" });
+      if (!integracoesAtuais(pedido)) return;
+      if (!nativo) { location.href = r.url; return; }
+      esperandoConexaoRede = true; b.disabled = false;
+      await window.ContentPostNative.abrirURL(r.url);
+      return;
+    }
     catch (err) { if (!integracoesAtuais(pedido)) return; INT.erro = textoErro(err); b.disabled = false; }
     return desenharIntegracoes();
   }

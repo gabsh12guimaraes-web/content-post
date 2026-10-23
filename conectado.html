@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Conexão de rede · Content Post</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0A0C15">
+<link rel="icon" type="image/png" href="marca/content-post-icone.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #0A0C15; --card: #121522; --line: rgba(255,255,255,.09); --soft: rgba(255,255,255,.74); --red: #F8395A; --ok: #3ddc97; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) 20px 24px; background: var(--bg); color: #fff; font: 400 15px/1.6 Poppins, system-ui, sans-serif; }
+main { width: 100%; max-width: 420px; padding: 32px 26px; border: 1px solid var(--line); border-radius: 22px; background: var(--card); text-align: center; }
+.selo { width: 56px; height: 56px; margin: 0 auto 16px; display: grid; place-items: center; border-radius: 50%; font-size: 26px; font-weight: 800; background: rgba(61,220,151,.14); color: var(--ok); }
+.erro .selo { background: rgba(248,57,90,.14); color: var(--red); }
+h1 { margin: 0 0 8px; font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
+p { margin: 0; color: var(--soft); }
+.dica { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13.5px; }
+a { color: var(--red); }
+</style>
+</head>
+<body>
+<main id="caixa">
+  <div class="selo" aria-hidden="true">✓</div>
+  <h1 id="titulo">Conexão concluída</h1>
+  <p id="texto">Toque em <b>OK</b> no canto da tela para voltar ao aplicativo.</p>
+  <p class="dica" id="dica" hidden></p>
+</main>
+<script>
+// O Zernio devolve para cá quando a conexão começou no app (navegador do iPhone).
+(function () {
+  var q = new URLSearchParams(location.search), nomes = { instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", twitter: "X", threads: "Threads" };
+  var rede = nomes[q.get("connected") || q.get("platform")] || "Sua rede";
+  var $ = function (id) { return document.getElementById(id); };
+  if (q.get("error")) {
+    $("caixa").className = "erro"; document.querySelector(".selo").textContent = "!";
+    $("titulo").textContent = "Não deu para conectar o " + rede;
+    $("texto").textContent = q.get("error_message") || q.get("error");
+    $("dica").hidden = false;
+    $("dica").innerHTML = "Se o Instagram pediu verificação de segurança, abra o app do Instagram, confirme que foi você e tente de novo. Depois toque em <b>OK</b> para voltar.";
+  } else if (q.get("connected")) {
+    $("titulo").textContent = rede + " conectado" + (q.get("username") ? " (@" + q.get("username") + ")" : "");
+  }
+})();
+</script>
+</body>
+</html>
