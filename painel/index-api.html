@@ -3502,7 +3502,7 @@ let gerandoArtes = null, aprovando = null, ajusteAberto = null, revisando = null
 // Salva título e texto de cada slide, a legenda e as hashtags. As artes precisam ser geradas de novo.
 async function salvarTextos(p) {
   const val = sel => [...document.querySelectorAll(sel)];
-  const brutos = p.slidesBrutos.length ? p.slidesBrutos.map(x => ({ ...x })) : p.slides.map(sl => ({ n: sl.n, titulo: sl.t, texto: sl.x }));
+  const brutos = p.slidesBrutos.length ? p.slidesBrutos.map(x => ({ ...x })) : p.slides.length ? p.slides.map(sl => ({ n: sl.n, titulo: sl.t, texto: sl.x })) : [{ n: 1, titulo: "", texto: "" }];
   for (const el of val(`[data-et][data-post="${p.id}"]`)) {
     const n = Number(el.dataset.n), alvo = brutos.find((x, i) => (Number(x.n) || i + 1) === n);
     if (alvo) alvo[el.dataset.et === "t" ? "titulo" : "texto"] = el.value.trim();
@@ -3511,15 +3511,17 @@ async function salvarTextos(p) {
   const hashtags = (document.getElementById("et-tags-" + p.id)?.value || "").trim();
   salvandoTexto = p.id; render();
   try {
-    if (M.modo === "web") await api({ acao: "salvarTextos", id: p.id, slides: brutos, legenda, hashtags });
+    let r = {};
+    if (M.modo === "web") r = await api({ acao: "salvarTextos", id: p.id, slides: brutos, legenda, hashtags }) || {};
     else {
       const f = { [AT.cal.f.Slides]: JSON.stringify(brutos), [AT.cal.f.Legenda]: legenda, [AT.cal.f.Hashtags]: hashtags, [AT.cal.f.ArtesProntas]: false };
       await M.mcp.callTool(AT.server, "update_records_for_table", { baseId: AT.base, tableId: AT.cal.table, records: [{ id: p.id, fields: f }] });
     }
     p.slidesBrutos = brutos; p.legenda = legenda; p.hashtags = hashtags;
     p.slides = brutos.map((x, i) => ({ n: Number(x.n) || i + 1, t: x.titulo || x.visual || "", x: x.texto || x.fala_ou_texto || "", img: !!x.usa_imagem }));
-    const tinha = p.artesProntas; p.artesProntas = false; textoAberto = null; abaRev[p.id] = "visual";
-    toast(tinha ? "Textos salvos. Gere as artes finais de novo para aplicar." : "Textos salvos.");
+    // Só a legenda mudou: o servidor mantém as artes (ou o vídeo) prontas.
+    const tinha = p.artesProntas; p.artesProntas = M.modo === "web" ? r.artesProntas === true : false; textoAberto = null; abaRev[p.id] = "visual";
+    toast(tinha && !p.artesProntas ? (ehVideoFmt(p) ? "Textos salvos. Grave o vídeo de novo para aplicar." : "Textos salvos. Gere as artes finais de novo para aplicar.") : "Textos salvos.");
   } catch (e) { toast("Não deu para salvar os textos: " + textoErro(e)); }
   salvandoTexto = null; render();
 }
@@ -3925,14 +3927,16 @@ function cardRev(p) {
       <p class="small" style="margin:0">${semMidias ? "Escolha uma imagem ou vídeo do banco para cada cena. Falta mídia na" + (fontesVideo.faltantes.length > 1 ? "s cenas " : " cena ") + fontesVideo.faltantes.map(c => c.n).join(", ") + "." : prontas ? "Vai para a fila e publica em " + fmtData(p.data) + "." : "As " + (ehVideo ? "cenas" : "artes") + " são montadas com a diagramação escolhida e o post vai para a fila de " + fmtData(p.data) + "."}</p>`;
   }
   const diag = p.status === "Ajustes" ? "" : htmlDiagramacao(p, { ehVideo, cores, slides });
-  const podeEditar = !ehVideo && p.status !== "Ajustes";
+  const podeEditar = p.status !== "Ajustes";
+  // Vídeo enviado pronto (sem diagramação) não tem texto por cena: só legenda e hashtags.
+  const soLegenda = ehVideo && p.diag.modelo === "original";
   let textos = "";
   if (podeEditar && salvandoTexto === p.id) textos = `<div class="working"><span class="dot"></span>Salvando os textos…</div>`;
   else if (podeEditar) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post${ajuda("textos")}</span>
-      ${slides.map((sl, i) => `<fieldset><legend>${slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
-        <div class="bi-slide">${mapa[sl.n] ? `<img src="${esc(mapa[sl.n])}" alt="">` : `<span class="small">Sem foto</span>`}<button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">${mapa[sl.n] ? "Trocar pela do banco" : "Pôr uma foto do banco"}</button></div>
-        <label class="field"><span>Título (use *palavra* para destacar)</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
-        <label class="field"><span>Texto</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label></fieldset>`).join("")}
+      ${soLegenda ? `<p class="small" style="margin:0">O vídeo vai como você enviou, sem texto por cima. Para pôr texto na tela, escolha uma diagramação na aba Visual.</p>` : slides.map((sl, i) => `<fieldset><legend>${ehVideo ? "Cena " + (i + 1) : slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
+        ${ehVideo ? "" : `<div class="bi-slide">${mapa[sl.n] ? `<img src="${esc(mapa[sl.n])}" alt="">` : `<span class="small">Sem foto</span>`}<button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">${mapa[sl.n] ? "Trocar pela do banco" : "Pôr uma foto do banco"}</button></div>`}
+        <label class="field"><span>${ehVideo ? "Texto na tela" : "Título"} (use *palavra* para destacar)</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
+        <label class="field"><span>${ehVideo ? "Texto de apoio" : "Texto"}</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label></fieldset>`).join("")}
       <label class="field"><span>Legenda (descrição do post)</span><textarea id="et-leg-${p.id}" rows="5" maxlength="2200">${esc(p.legenda || "")}</textarea></label>
       <label class="field"><span>Hashtags</span><input id="et-tags-${p.id}" maxlength="600" value="${esc(p.hashtags || "")}"></label>
       <div class="actions"><button class="btn primary" data-act="textos-salvar" data-id="${p.id}">Salvar textos</button><button class="btn quiet" data-act="textos-cancelar" data-id="${p.id}">Cancelar</button></div></div>`;
