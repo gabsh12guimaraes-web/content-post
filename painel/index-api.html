@@ -1089,7 +1089,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 .check-tratar { display: flex !important; align-items: flex-start; gap: 10px; line-height: 1.4; }
 </style>
 
-<link rel="stylesheet" href="assets/painel.css?v=20261023-busca">
+<link rel="stylesheet" href="assets/painel.css?v=20261023-textos">
 <link rel="stylesheet" href="assets/sinsalabim.css?v=20261023-fundo">
 <link rel="stylesheet" href="assets/splash.css?v=20261021-liquido">
 <script defer src="assets/splash.js?v=20261021-inspire"></script>
@@ -1341,7 +1341,7 @@ function conferirDisparos() {
   }
   salvarDisparos();
   const ativo = disparos.ideias || Object.keys(disparos.posts).length;
-  if (ativo && !timerDisparos && M.modo === "web") timerDisparos = setInterval(() => carregarPauta(), 45000);
+  if (ativo && !timerDisparos && M.modo === "web") timerDisparos = setInterval(() => { if (!document.hidden) carregarPauta(); }, 45000);
   if (!ativo && timerDisparos) { clearInterval(timerDisparos); timerDisparos = null; }
 }
 async function disparar(corpo, aoComecar) {
@@ -2768,7 +2768,7 @@ function medirRico(ctx, texto, { largura, alturaMax, tamanho, minimo, fonte, fon
   r = linhasRicas(ctx, partes, largura, fonte(tam), fonteDestaque(tam));
   return { tam, linhas: r.linhas.length, larg: Math.max(0, ...r.linhas.map(l => l.larg)) };
 }
-function desenharBlocos(cv, blocos, cores, diag) {
+function desenharBlocos(cv, blocos, cores, diag, escala = 1) {
   const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, U = W / 100, F = fonteTitulo(diag || {});
   // Um texto que cresceu (mais linhas) empurra para baixo o que vem logo abaixo dele, em vez de passar por cima.
   const ocupados = [];
@@ -2782,7 +2782,7 @@ function desenharBlocos(cv, blocos, cores, diag) {
     const fonte = selo ? t => `700 ${t}px Poppins, sans-serif` : apoio ? t => `500 ${t}px Poppins, sans-serif` : fonteDe(F);
     const fonteD = selo ? fonte : apoio ? t => `800 ${t}px Poppins, sans-serif` : fonteDe(F);
     const entrelinha = apoio ? 1.3 : selo ? 1.15 : 1.05, pad = (selo ? 2.2 : 2.6) * U;
-    const caixa = b.caixa || selo, base = (selo ? 3.6 : apoio ? 4.6 : 9.5) * U * b.tamanho;
+    const caixa = b.caixa || selo, base = (selo ? 3.6 : apoio ? 4.6 : 9.5) * U * b.tamanho * escala;
     const larguraTexto = Math.max(4 * U, w - (caixa ? pad * 2 : 0));
     const m = medirRico(ctx, texto, { largura: larguraTexto, alturaMax: Math.max(base, h - (caixa ? pad * 2 : 0)), tamanho: base, minimo: base * 0.45, fonte, fonteDestaque: fonteD, entrelinha });
     const altTexto = m.linhas * m.tam * entrelinha;
@@ -3081,7 +3081,13 @@ async function pintarPrevias() {
     if (cvs.length) {
       await Promise.all([document.fonts.load(`400 40px Anton`), document.fonts.load(`500 40px 'IBM Plex Mono'`), document.fonts.load(`500 40px Poppins`), document.fonts.load(`400 40px 'Bebas Neue'`), document.fonts.load(`400 40px 'Archivo Black'`), document.fonts.load(`800 40px 'Playfair Display'`), document.fonts.load(`italic 500 40px 'Playfair Display'`), document.fonts.load(`400 40px 'DM Serif Display'`), document.fonts.load(`italic 400 40px 'DM Serif Display'`), document.fonts.load(`800 40px Poppins`)]).catch(() => {});
       const logos = await logosDaPrevia(), cores = coresMarca(), nome = (M.marca && M.marca.Nome) || "Sua marca";
+      // A imagem que está na tela é desenhada primeiro; entre uma arte e outra o navegador respira (a tela não trava).
+      const naTela = cv => { const r = cv.getBoundingClientRect(); return r.width > 0 && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight ? 1 : 0; };
+      cvs.sort((a, b) => naTela(b) - naTela(a));
+      let desenhou = false;
       for (const cv of cvs) {
+        if (desenhou) { desenhou = false; await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0))); }
+        if (!cv.isConnected) continue;
         const post = state.posts.find(x => x.id === cv.dataset.previa); if (!post) continue;
         const slides = post.slides.length ? post.slides : [{ n: 1, t: post.titulo, x: "" }];
         const i = Number(cv.dataset.i), sl = slides[i]; if (!sl) continue;
@@ -3098,13 +3104,13 @@ async function pintarPrevias() {
           const clipe = clipesDoPost(post)[sl.n];
           const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : clipe ? await quadroCache(clipe) : null;
           desenharVertical(ehVideoFmt(post) ? { n: sl.n, t: sl.x || sl.t } : sl, foto, logos, cores, nome, cv, post.diag, 1000);
-          guardarPrevia(chave, cv);
+          guardarPrevia(chave, cv); desenhou = true;
           continue;
         }
         const clipe = clipesDoPost(post)[sl.n];
         const foto = mapa[sl.n] ? await imgCache(mapa[sl.n]) : clipe ? await quadroCache(clipe) : null;
         desenharSlide(sl, i, slides.length, foto, logos, cores, nome, cv, post.diag);
-        guardarPrevia(chave, cv);
+        guardarPrevia(chave, cv); desenhou = true;
       }
     }
   } finally { pintando = false; if (pintarDeNovo) { pintarDeNovo = false; pintarPrevias(); } }
@@ -3120,7 +3126,7 @@ function desenharSlide(sl, i, total, foto, logos, cores, nome, alvo, diag) {
   // Composição livre: o modelo desenha fundo, foto, véu e logo; os blocos (vários títulos, apoio, selo) vão por cima.
   if (sl.blocos && sl.blocos.length) {
     const cv = desenharSlide({ ...sl, t: "", x: "", blocos: null }, i, total, foto, logos, cores, nome, alvo, diag);
-    desenharBlocos(cv, sl.blocos, cores, diag);
+    desenharBlocos(cv, sl.blocos, cores, diag, escalaTexto(diag, sl.n));
     return cv;
   }
   if (MODELOS_NOVOS.includes(diag.modelo)) return desenharModeloNovo(sl, i, total, foto, logos, cores, nome, alvo, diag);
@@ -3595,7 +3601,7 @@ function editorBlocos(p, sl) {
       <button type="button" class="btn quiet" data-act="blocos-limpar" data-id="${p.id}" data-v="${sl.n}">Voltar ao título único</button></div></div>`;
 }
 // Guarda como os blocos estavam antes de editar, para o "Cancelar".
-function guardarRascunhoBlocos(p) { if (!(p.id in rascunhoBlocos)) rascunhoBlocos[p.id] = JSON.stringify(p.slides.map(x => x.blocos || null)); }
+function guardarRascunhoBlocos(p) { if (!(p.id in rascunhoBlocos)) rascunhoBlocos[p.id] = JSON.stringify({ slides: p.slides.map(x => ({ t: x.t, x: x.x, blocos: x.blocos || null })), legenda: p.legenda, hashtags: p.hashtags }); }
 function blocoDoCampo(el) {
   const p = state.posts.find(x => x.id === el.dataset.post), sl = p && p.slides.find(x => x.n === Number(el.dataset.n));
   return sl && sl.blocos ? { p, sl, b: sl.blocos[Number(el.dataset.i)] } : {};
@@ -3626,17 +3632,20 @@ function mudarBlocos(p, n, fn) {
 async function salvarTextos(p) {
   const val = sel => [...document.querySelectorAll(sel)];
   const brutos = p.slidesBrutos.length ? p.slidesBrutos.map(x => ({ ...x })) : p.slides.length ? p.slides.map(sl => ({ n: sl.n, titulo: sl.t, texto: sl.x })) : [{ n: 1, titulo: "", texto: "" }];
-  for (const el of val(`[data-et][data-post="${p.id}"]`)) {
-    const n = Number(el.dataset.n), alvo = brutos.find((x, i) => (Number(x.n) || i + 1) === n);
-    if (alvo) alvo[el.dataset.et === "t" ? "titulo" : "texto"] = el.value.trim();
+  // O rascunho fica no estado (p.slides, p.legenda): vale também para as imagens que não estão abertas na tela.
+  for (const [i, x] of brutos.entries()) {
+    const sl = p.slides.find(s => s.n === (Number(x.n) || i + 1)); if (!sl) continue;
+    // Só grava o que mudou (em cenas, o texto pode vir de "visual" e "fala_ou_texto").
+    const t = String(sl.t || "").trim(), tx = String(sl.x || "").trim();
+    if (t !== String(x.titulo || x.visual || "").trim()) x.titulo = t;
+    if (tx !== String(x.texto || x.fala_ou_texto || "").trim()) x.texto = tx;
   }
   // Composição livre: manda os blocos do slide (ou [] para voltar ao título único, se antes havia).
   brutos.forEach((x, i) => {
     const sl = p.slides.find(s => s.n === (Number(x.n) || i + 1)); if (!sl) return;
     if (sl.blocos && sl.blocos.length) x.blocos = sl.blocos; else if (Array.isArray(x.blocos) && x.blocos.length) x.blocos = [];
   });
-  const legenda = (document.getElementById("et-leg-" + p.id)?.value || "").trim();
-  const hashtags = (document.getElementById("et-tags-" + p.id)?.value || "").trim();
+  const legenda = String(p.legenda || "").trim(), hashtags = String(p.hashtags || "").trim();
   salvandoTexto = p.id; render();
   try {
     let r = {};
@@ -3857,23 +3866,34 @@ function midiasRev(p) {
       return `<div class="rev-midia"><button type="button" class="th" data-act="slide-selecionar" data-id="${p.id}" data-v="${sl.n}" aria-pressed="${sel === sl.n}" aria-label="Editar ${nomeItem.toLowerCase()} ${i + 1}">${c ? `<video src="${esc(c)}#t=0.1" muted playsinline preload="metadata"></video><i>▶</i>` : f ? `<img src="${esc(f)}" alt="" loading="lazy">` : "Só texto"}</button>
         <span class="small">${nomeItem}${slides.length > 1 ? " " + (i + 1) : ""}</span>
         <button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">Trocar pelo banco</button></div>`; }).join("")}</div>
-    <p class="small" style="margin:0">${slides.length > 1 ? `Toque em uma ${nomeItem.toLowerCase()} para ajustar sua diagramação e texto. ` : ""}Use “Trocar pelo banco” para escolher outra mídia.</p>${fonteRev(p)}</div>`;
+    <p class="small" style="margin:0">${slides.length > 1 ? `Toque em uma ${nomeItem.toLowerCase()} para ajustar só a diagramação dela. ` : ""}Use “Trocar pelo banco” para escolher outra mídia. O tamanho do texto fica na aba Textos.</p></div>`;
 }
 // A mesma seleção de imagem controla a diagramação, o tamanho do texto e a prévia.
 const slideSel = {}, cardPendente = {};
-function fonteRev(p) {
-  if (M.modo !== "web" || ["Ajustes", "Publicando", "Publicado"].includes(p.status)) return "";
-  const slides = p.slides.length ? p.slides : [{ n: 1, t: p.titulo, x: "" }];
-  const sel = slideSelecionado(p);
-  const nomeItem = ehVideoFmt(p) ? "cena" : "imagem";
-  const { valor, misto } = valorFonte(p, slides);
-  const idx = sel ? slides.findIndex(sl => sl.n === sel) + 1 : 0;
+// Aba Textos: qual imagem (ou a legenda) está aberta. Segue a imagem escolhida na diagramação.
+const alvoTextosRev = {};
+function alvoTextos(p, slides) {
+  const a = alvoTextosRev[p.id];
+  if (a === "legenda") return "legenda";
+  const sel = typeof a === "number" ? a : slideSelecionado(p);
+  return slides.some(sl => sl.n === sel) ? sel : slides[0].n;
+}
+function seletorTextos(p, slides, alvo, video, mapa) {
+  const clipes = clipesDoPost(p), nomeItem = video ? "Cena" : "Imagem";
+  const mini = sl => { const c = clipes[sl.n], f = mapa[sl.n]; return c ? `<video src="${esc(c)}#t=0.1" muted playsinline preload="metadata"></video>` : f ? `<img src="${esc(f)}" alt="" loading="lazy">` : `<span class="th-vazio">${esc(String(sl.t || "").replace(/\*/g, "").slice(0, 24) || "Sem foto")}</span>`; };
+  return `<div class="rev-textos-alvo" role="group" aria-label="O que editar">${slides.map((sl, i) => `<button type="button" class="th" data-act="textos-alvo" data-id="${p.id}" data-v="${sl.n}" aria-pressed="${alvo === sl.n}" aria-label="Editar o texto ${video ? "da cena" : "da imagem"} ${i + 1}">${mini(sl)}<span class="th-n">${slides.length > 1 ? i + 1 : nomeItem}</span></button>`).join("")}
+    <button type="button" class="th th-legenda" data-act="textos-alvo" data-id="${p.id}" data-v="legenda" aria-pressed="${alvo === "legenda"}"><span class="th-vazio">Aa<br>#</span><span class="th-n">Legenda</span></button></div>
+    <p class="small" style="margin:0">${slides.length > 1 ? `Escolha ${video ? "a cena" : "a imagem"} para editar o texto, o tamanho e a composição. As mudanças das outras ficam guardadas até salvar.` : "Edite o texto da imagem ou a legenda do post."}</p>`;
+}
+// Tamanho do texto da imagem aberta (vale também para a composição livre, que escala junto).
+function tamanhoTextoRev(p, sl, slides, video) {
+  const valor = escalaTexto(p.diag, sl.n), nome = video ? "cena" : "imagem";
   return `<div class="rev-fonte-bloco" data-fonte-bloco="${p.id}"><span class="lbl">Tamanho do texto</span>
     <div class="fonte-barra"><span class="a-menor" aria-hidden="true">A</span>
-      <input type="range" min="60" max="160" step="5" value="${Math.round(valor * 100)}" data-fonte-range="${p.id}" aria-label="Tamanho do texto ${sel ? `da ${nomeItem} ${idx}` : slides.length > 1 ? `de todas as ${nomeItem}s` : ""}">
-      <span class="a-maior" aria-hidden="true">A</span><output data-fonte-out>${misto ? "Misto" : Math.round(valor * 100) + "%"}</output>
-      <button type="button" class="btn quiet" data-act="fonte-padrao" data-id="${p.id}" title="Voltar ao tamanho padrão">Padrão</button></div>
-    <p class="small" style="margin:0" data-fonte-dica>${slides.length < 2 ? "Arraste para diminuir ou aumentar." : sel ? `O tamanho muda só ${nomeItem === "cena" ? "na cena" : "na imagem"} ${idx}.` : "O tamanho muda em todas as imagens."}</p></div>`;
+      <input type="range" min="60" max="160" step="5" value="${Math.round(valor * 100)}" data-fonte-range="${p.id}" data-n="${sl.n}" aria-label="Tamanho do texto desta ${nome}">
+      <span class="a-maior" aria-hidden="true">A</span><output data-fonte-out>${Math.round(valor * 100)}%</output>
+      <button type="button" class="btn quiet" data-act="fonte-padrao" data-id="${p.id}" data-v="${sl.n}" title="Voltar ao tamanho do modelo">Padrão</button></div>
+    ${slides.length > 1 ? `<button type="button" class="link" data-act="fonte-todas" data-id="${p.id}" data-v="${sl.n}">Usar este tamanho em todas as ${nome}s</button>` : ""}</div>`;
 }
 function valorFonte(p, slides) {
   const sel = slideSelecionado(p);
@@ -3884,12 +3904,20 @@ function valorFonte(p, slides) {
 }
 // Campos da composição livre: texto e altura atualizam a prévia enquanto digita; tipo muda o formulário.
 document.addEventListener("input", e => { if (e.target.dataset && e.target.dataset.bl && e.target.dataset.bl !== "tipo") editarBloco(e.target); });
+// Título e texto de cada imagem, legenda e hashtags: ficam no rascunho (trocar de imagem não perde nada) e a prévia acompanha.
+document.addEventListener("input", e => {
+  const el = e.target, id = el.dataset && (el.dataset.post || el.dataset.etPost); if (!id || !(el.dataset.et || el.dataset.etPost)) return;
+  const p = state.posts.find(x => x.id === id); if (!p) return;
+  guardarRascunhoBlocos(p);
+  if (el.dataset.et) { const sl = p.slides.find(x => x.n === Number(el.dataset.n)); if (!sl) return; sl[el.dataset.et === "t" ? "t" : "x"] = el.value; cancelAnimationFrame(quadroBlocos); quadroBlocos = requestAnimationFrame(() => pintarPrevias()); }
+  else if (el.id === "et-leg-" + id) p.legenda = el.value; else if (el.id === "et-tags-" + id) p.hashtags = el.value;
+});
 document.addEventListener("change", e => { if (e.target.dataset && ["tipo", "tamanho", "alinhar", "cor", "caixa"].includes(e.target.dataset.bl) && editarBloco(e.target)) render(); });
 document.addEventListener("input", e => {
   const r = e.target.closest("[data-fonte-range]"); if (!r) return;
   const p = state.posts.find(x => x.id === r.dataset.fonteRange); if (!p) return;
   const slides = p.slides.length ? p.slides : [{ n: 1 }];
-  const v = Math.round(Number(r.value)) / 100, sel = slideSelecionado(p);
+  const v = Math.round(Number(r.value)) / 100, sel = r.dataset.n ? Number(r.dataset.n) : slideSelecionado(p);
   const escalas = { ...(p.diag.escalas || {}) };
   for (const n of sel ? [sel] : slides.map(sl => sl.n)) { if (v === 1) delete escalas[n]; else escalas[n] = v; }
   mudarDiagramacao(p, "escalas", escalas, { leve: true });
@@ -4064,15 +4092,22 @@ function cardRev(p) {
   const soLegenda = ehVideo && p.diag.modelo === "original";
   let textos = "";
   if (podeEditar && salvandoTexto === p.id) textos = `<div class="working"><span class="dot"></span>Salvando os textos…</div>`;
-  else if (podeEditar) textos = `<div class="diag editor-textos"><span class="lbl">Textos do post${ajuda("textos")}</span>
-      ${soLegenda ? `<p class="small" style="margin:0">O vídeo vai como você enviou, sem texto por cima. Para pôr texto na tela, escolha uma diagramação na aba Visual.</p>` : slides.map((sl, i) => `<fieldset><legend>${ehVideo ? "Cena " + (i + 1) : slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
-        ${ehVideo ? "" : `<div class="bi-slide">${mapa[sl.n] ? `<img src="${esc(mapa[sl.n])}" alt="">` : `<span class="small">Sem foto</span>`}<button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">${mapa[sl.n] ? "Trocar pela do banco" : "Pôr uma foto do banco"}</button></div>`}
+  else if (podeEditar) {
+    // Como na diagramação: escolhe a imagem (ou a legenda) e edita só ela.
+    const alvoT = alvoTextos(p, slides), sl = slides.find(x => x.n === alvoT), i = slides.indexOf(sl);
+    const corpo = alvoT === "legenda" || soLegenda ? `<label class="field"><span>Legenda (descrição do post)</span><textarea id="et-leg-${p.id}" data-et-post="${p.id}" rows="6" maxlength="2200">${esc(p.legenda || "")}</textarea></label>
+      <label class="field"><span>Hashtags</span><input id="et-tags-${p.id}" data-et-post="${p.id}" maxlength="600" value="${esc(p.hashtags || "")}"></label>`
+      : `<fieldset><legend>${ehVideo ? "Cena " + (i + 1) : slides.length > 1 ? "Slide " + (i + 1) : "Imagem"}</legend>
+        ${ehVideo ? "" : `<div class="bi-slide"><button type="button" class="btn quiet" data-act="trocar-foto" data-id="${p.id}" data-v="${sl.n}">${mapa[sl.n] ? "Trocar a foto pela do banco" : "Pôr uma foto do banco"}</button></div>`}
         ${sl.blocos && sl.blocos.length && !ehVideo ? "" : `<label class="field"><span>${ehVideo ? "Texto na tela" : "Título"} (use *palavra* para destacar)</span><input data-et="t" data-n="${sl.n}" data-post="${p.id}" maxlength="300" value="${esc(sl.t)}"></label>
-        <label class="field"><span>${ehVideo ? "Texto de apoio" : "Texto"}</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label>`}${ehVideo ? "" : editorBlocos(p, sl)}</fieldset>`).join("")}
-      <label class="field"><span>Legenda (descrição do post)</span><textarea id="et-leg-${p.id}" rows="5" maxlength="2200">${esc(p.legenda || "")}</textarea></label>
-      <label class="field"><span>Hashtags</span><input id="et-tags-${p.id}" maxlength="600" value="${esc(p.hashtags || "")}"></label>
+        <label class="field"><span>${ehVideo ? "Texto de apoio" : "Texto"}</span><textarea data-et="x" data-n="${sl.n}" data-post="${p.id}" rows="2" maxlength="1500">${esc(sl.x)}</textarea></label>`}
+        ${tamanhoTextoRev(p, sl, slides, ehVideo)}
+        ${ehVideo ? "" : editorBlocos(p, sl)}</fieldset>`;
+    textos = `<div class="diag editor-textos"><span class="lbl">Textos do post${ajuda("textos")}</span>
+      ${soLegenda ? `<p class="small" style="margin:0">O vídeo vai como você enviou, sem texto por cima. Para pôr texto na tela, escolha uma diagramação na aba Visual.</p>` : seletorTextos(p, slides, alvoT, ehVideo, mapa)}
+      ${corpo}
       <div class="actions"><button class="btn primary" data-act="textos-salvar" data-id="${p.id}">Salvar textos</button><button class="btn quiet" data-act="textos-cancelar" data-id="${p.id}">Cancelar</button></div></div>`;
-
+  }
   const aba = podeEditar && (abaRev[p.id] === "textos" || textoAberto === p.id) ? "textos" : "visual";
   const abas = podeEditar ? `<div class="seg abas-rev" role="tablist" aria-label="Editar"><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="visual" aria-selected="${aba === "visual"}" aria-pressed="${aba === "visual"}">Visual</button><button role="tab" data-act="aba-rev" data-id="${p.id}" data-v="textos" aria-selected="${aba === "textos"}" aria-pressed="${aba === "textos"}">Textos</button></div>` : "";
   const acoes = p.status === "Ajustes"
@@ -4413,7 +4448,14 @@ document.addEventListener("click", e => {
   }
   if (act === "slide-selecionar" && post) { slideSel[post.id] = Number(b.dataset.v); return atualizarCard(post, b); }
   if (act === "slide-todas" && post) { slideSel[post.id] = null; return atualizarCard(post, b); }
-  if (act === "fonte-padrao" && post) { const alvo = slideSelecionado(post); const escalas = { ...(post.diag.escalas || {}) }; if (alvo) delete escalas[alvo]; else for (const k of Object.keys(escalas)) delete escalas[k]; return mudarDiagramacao(post, "escalas", escalas); }
+  if (act === "fonte-todas" && post) { const v = escalaTexto(post.diag, Number(b.dataset.v)), escalas = {}; if (v !== 1) for (const sl of post.slides) escalas[sl.n] = v; mudarDiagramacao(post, "escalas", escalas); toast("Tamanho aplicado em todas."); return; }
+  if (act === "textos-alvo" && post) { const v = b.dataset.v; if (v === "legenda") alvoTextosRev[post.id] = "legenda"; else alvoTextosRev[post.id] = Number(v);
+    atualizarCard(post, b);
+    // A prévia vai até a imagem escolhida (a diagramação continua com a seleção dela).
+    const i = post.slides.findIndex(sl => sl.n === Number(v)), trilho = document.querySelector(`[data-trilho="${post.id}"]`);
+    if (i >= 0 && trilho?.clientWidth) { trilho.scrollLeft = Math.min(i, trilho.children.length - 1) * trilho.clientWidth; trilho.dispatchEvent(new Event("scroll")); }
+    return; }
+  if (act === "fonte-padrao" && post) { const alvo = b.dataset.v ? Number(b.dataset.v) : slideSelecionado(post); const escalas = { ...(post.diag.escalas || {}) }; if (alvo) delete escalas[alvo]; else for (const k of Object.keys(escalas)) delete escalas[k]; return mudarDiagramacao(post, "escalas", escalas); }
   if (act === "fonte" && post) {
     const n = b.dataset.v, nova = Math.round(Math.min(1.6, Math.max(0.6, escalaTexto(post.diag, n) + Number(b.dataset.d) * 0.1)) * 10) / 10;
     const escalas = { ...(post.diag.escalas || {}) };
@@ -4451,7 +4493,7 @@ document.addEventListener("click", e => {
   }
   if (act === "textos-editar" && post) { textoAberto = id; return render(); }
   if (act === "textos-cancelar" && post) {
-    if (post.id in rascunhoBlocos) { const antes = JSON.parse(rascunhoBlocos[post.id]); post.slides.forEach((x, i) => { x.blocos = antes[i] || null; }); delete rascunhoBlocos[post.id]; }
+    if (post.id in rascunhoBlocos) { const antes = JSON.parse(rascunhoBlocos[post.id]); post.slides.forEach((x, i) => { Object.assign(x, antes.slides[i] || {}); }); post.legenda = antes.legenda; post.hashtags = antes.hashtags; delete rascunhoBlocos[post.id]; }
     textoAberto = null; abaRev[post.id] = "visual"; return render();
   }
   if (act === "blocos-iniciar" && post) return mudarBlocos(post, Number(b.dataset.v), (_, sl) => {
