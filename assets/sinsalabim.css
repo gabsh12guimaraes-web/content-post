@@ -1,5 +1,8 @@
 /* Fontes da prévia = fontes do vídeo final (Montserrat e Pacifico, SIL OFL), servidas junto com o site */
 @font-face { font-family:SinsaForte; font-weight:100 900; font-display:swap; src:url(fontes/montserrat-latin.woff2) format('woff2'); }
+@font-face { font-family:SinsaCondensada; font-display:swap; src:url(fontes/anton-latin.woff2) format('woff2'); }
+@font-face { font-family:SinsaRedonda; font-weight:800; font-display:swap; src:url(fontes/poppins-800-latin.woff2) format('woff2'); }
+@font-face { font-family:SinsaElegante; font-weight:800; font-style:italic; font-display:swap; src:url(fontes/playfair-italico-latin.woff2) format('woff2'); }
 @font-face { font-family:SinsaScript; font-display:swap; src:url(fontes/pacifico-latin.woff2) format('woff2'); }
 .cal-creation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 24px; }
 .cal-creation-card { position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; min-width: 0; min-height: 240px; padding: 28px; border: 1px solid #694351; border-radius: 18px; background: radial-gradient(ellipse at 90% 0%,#b23e6b65,transparent 65%),linear-gradient(130deg,#30202f,#17131e); text-align: left; transition: transform .2s,border-color .2s; }
@@ -36,7 +39,8 @@
 .sinsa-content { display:grid; grid-template-columns:minmax(210px,.8fr) minmax(0,1.4fr); gap:24px; }
 .sinsa-preview { position:relative; width:100%; max-width:300px; aspect-ratio:9/16; background:#0a0c15; border:1px solid var(--line); border-radius:15px; overflow:hidden; margin:auto; container-type:inline-size; }
 .sinsa-preview video, .sinsa-apoio { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
-.sinsa-preview .sinsa-apoio[hidden] { display:none; }
+.sinsa-preview .sinsa-apoio { opacity:0; transition:opacity .35s ease; pointer-events:none; }
+.sinsa-preview .sinsa-apoio.on { opacity:1; }
 .sinsa-preview.versao-final video { position:relative; }
 .sinsa-preview .sinsa-v { opacity:0; transition:none; }
 .sinsa-preview .sinsa-v.ativo { opacity:1; }
@@ -145,3 +149,58 @@
 .sinsa-lista-acoes button:hover:not(:disabled) { border-color:var(--pink,#f8395a); color:#fff; }
 .sinsa-lista-acoes button:disabled { opacity:.35; cursor:not-allowed; }
 .sinsa-lista-dica { margin:0 0 4px; color:var(--ink-soft,#8a8d9c); font-size:11px; }
+
+/* Estilo escolhido à mão: as mesmas fontes, posições e tamanhos do vídeo final */
+.sinsa-preview { --tam:1; }
+.sinsa-preview[data-tam="p"] { --tam:.84; } .sinsa-preview[data-tam="g"] { --tam:1.2; }
+.sinsa-preview .sinsa-preview-caption { font-size:calc(7.2cqw * var(--tam)); }
+.sinsa-preview .sinsa-preview-caption.unica { font-size:calc(9.6cqw * var(--tam)); }
+.sinsa-preview[data-pos="meio"] .sinsa-preview-caption { top:50%; } .sinsa-preview[data-pos="alto"] .sinsa-preview-caption { top:29%; }
+.sinsa-preview[data-fl="condensada"] :is(.sinsa-preview-caption,.sinsa-preview-card,.sinsa-preview-destaque small) { font-family:SinsaCondensada,Arial,sans-serif; font-weight:400; }
+.sinsa-preview[data-fl="condensada"] .sinsa-preview-caption { font-size:calc(8.1cqw * var(--tam)); }
+.sinsa-preview[data-fl="redonda"] :is(.sinsa-preview-caption,.sinsa-preview-card,.sinsa-preview-destaque small) { font-family:SinsaRedonda,Arial,sans-serif; font-weight:800; }
+.sinsa-preview[data-fd="elegante"] .sinsa-preview-destaque b { font:italic 800 13.9cqw/1.15 SinsaElegante,serif; }
+.sinsa-preview:is([data-fd="forte"],[data-fd="condensada"],[data-fd="redonda"]) .sinsa-preview-destaque b { font-size:13cqw; line-height:1.05; text-transform:uppercase; -webkit-text-stroke:.93cqw #000; text-shadow:0 .9cqw 0 #0004; }
+.sinsa-preview[data-fd="forte"] .sinsa-preview-destaque b { font-family:SinsaForte,sans-serif; font-weight:900; }
+.sinsa-preview[data-fd="condensada"] .sinsa-preview-destaque b { font-family:SinsaCondensada,sans-serif; font-weight:400; font-size:15.7cqw; }
+.sinsa-preview[data-fd="redonda"] .sinsa-preview-destaque b { font-family:SinsaRedonda,sans-serif; font-weight:800; }
+.sinsa-preview .sinsa-apoio[data-layout="topo"], .sinsa-preview .sinsa-apoio[data-layout="janela"] { box-shadow:0 2cqw 6cqw #0008; }
+
+/* Painel Personalizar */
+.sinsa-personalizar { max-width:300px; margin:14px auto 0; border:1px solid var(--line); border-radius:12px; background:var(--card); }
+.sinsa-personalizar > summary { padding:12px 14px; cursor:pointer; font-weight:700; font-size:13px; list-style:none; display:flex; flex-wrap:wrap; gap:2px 8px; align-items:baseline; }
+.sinsa-personalizar > summary::-webkit-details-marker { display:none; }
+.sinsa-personalizar > summary::after { content:'▾'; margin-left:auto; color:var(--ink-soft); }
+.sinsa-personalizar[open] > summary::after { content:'▴'; }
+.sinsa-personalizar > summary small { font-weight:400; color:var(--ink-soft); font-size:11px; }
+.sinsa-personalizar section { padding:10px 14px 14px; border-top:1px solid var(--line); display:grid; gap:9px; }
+.sinsa-personalizar h4 { margin:0; font:600 10px/1.4 var(--mono,monospace); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); }
+.sinsa-personalizar .field { margin:0; }
+.sinsa-pers-linha { display:grid; grid-template-columns:62px minmax(0,1fr); gap:8px; align-items:center; font-size:11px; color:var(--ink-soft); }
+.sinsa-pers-linha:has(#sinsa-cor) { grid-template-columns:62px 44px auto; justify-content:start; }
+.sinsa-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.sinsa-chips button { padding:6px 10px; border:1px solid var(--line-strong); border-radius:99px; background:transparent; color:var(--ink-body); font:500 11px/1.2 inherit; font-family:inherit; cursor:pointer; }
+.sinsa-chips button[aria-pressed="true"] { border-color:var(--pink); background:#f8395a26; color:#fff; }
+.sinsa-chips button:disabled, .sinsa-personalizar :is(input,select,.btn,.sinsa-x,.sinsa-mini):disabled { opacity:.5; cursor:not-allowed; }
+.sinsa-chips [data-fonte="forte"] { font-family:SinsaForte,sans-serif; font-weight:900; } .sinsa-chips [data-fonte="condensada"] { font-family:SinsaCondensada,sans-serif; letter-spacing:.02em; }
+.sinsa-chips [data-fonte="redonda"] { font-family:SinsaRedonda,sans-serif; font-weight:800; } .sinsa-chips [data-fonte="cursiva"] { font-family:SinsaScript,cursive; }
+.sinsa-chips [data-fonte="elegante"] { font-family:SinsaElegante,serif; font-style:italic; font-weight:800; }
+#sinsa-cor { width:44px; height:30px; padding:2px; border:1px solid var(--line-strong); border-radius:8px; background:transparent; cursor:pointer; }
+.sinsa-pers-linha .btn { min-height:30px; padding:5px 10px; font-size:11px; }
+.sinsa-pers-lista { list-style:none; margin:0; padding:0; display:grid; gap:6px; }
+.sinsa-pers-lista li { display:grid; grid-template-columns:auto minmax(0,1fr) minmax(0,1fr) auto; gap:5px; align-items:center; }
+.sinsa-pers-lista li.apoio { grid-template-columns:auto auto minmax(0,1fr) auto auto; }
+.sinsa-pers-lista :is(input,select) { min-width:0; width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--card-soft); color:#fff; font:inherit; font-size:12px; }
+.sinsa-tempo-btn { padding:4px 6px; border:0; border-radius:6px; background:#ffffff12; color:var(--ink-soft); font:500 10px/1 var(--mono,monospace); cursor:pointer; }
+.sinsa-x { width:26px; height:26px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--ink-soft); cursor:pointer; }
+.sinsa-x:hover { border-color:var(--pink); color:#fff; }
+.sinsa-mini { position:relative; width:40px; height:40px; padding:0; border:1px solid var(--line-strong); border-radius:8px; overflow:hidden; background:#000; cursor:pointer; }
+.sinsa-mini img { width:100%; height:100%; object-fit:cover; display:block; }
+.sinsa-mini span { position:absolute; inset:auto 0 0; padding:1px 0; background:#000a; color:#fff; font-size:8px; text-align:center; }
+.sinsa-banco { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; max-height:220px; overflow:auto; }
+.sinsa-banco button { aspect-ratio:1; padding:0; border:2px solid transparent; border-radius:8px; overflow:hidden; background:#000; cursor:pointer; }
+.sinsa-banco button:hover, .sinsa-banco button:focus-visible { border-color:var(--pink); }
+.sinsa-banco img { width:100%; height:100%; object-fit:cover; display:block; }
+.sinsa-banco-escolha { display:grid; gap:8px; }
+.sinsa-personalizar .small { margin:0; font-size:11px; color:var(--ink-soft); line-height:1.5; }
+@media (max-width:719px) { .sinsa-personalizar { max-width:none; } }
