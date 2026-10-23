@@ -204,3 +204,17 @@
 .sinsa-banco-escolha { display:grid; gap:8px; }
 .sinsa-personalizar .small { margin:0; font-size:11px; color:var(--ink-soft); line-height:1.5; }
 @media (max-width:719px) { .sinsa-personalizar { max-width:none; } }
+/* Seletor de imagens do banco: busca e selo "IA" nas imagens geradas */
+.sinsa-banco button { position:relative; }
+.sinsa-banco button[hidden] { display:none; }
+.sinsa-banco button span { position:absolute; top:4px; left:4px; padding:1px 5px; border-radius:6px; background:#000b; color:#fff; font:600 9px/1.4 var(--mono,monospace); letter-spacing:.06em; }
+.sinsa-banco { max-height:300px; }
+.sinsa-banco-escolha .busca-abrir { min-height:38px; padding:0 16px; font-size:12px; }
+.sinsa-banco-escolha .busca-pilula { min-height:40px; padding:0 14px; }
+.sinsa-banco-escolha .busca-fechar { width:38px; height:38px; }
+.sinsa-pers-status:empty { display:none; }
+.sinsa-pers-status { padding:0 14px 8px; }
+/* Seletores compactos nas listas do Personalizar */
+.sinsa-pers-lista .seletor-botao, .sinsa-historico .seletor-botao { min-height:34px; padding:6px 12px 6px 14px; font-size:12px; }
+.sinsa-personalizar section > *, .sinsa-banco-escolha > * { min-width:0; }
+.sinsa-banco-escolha { min-width:0; }
