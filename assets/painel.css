@@ -396,3 +396,18 @@ input[type="file"]:disabled::file-selector-button { opacity: .5; cursor: not-all
   .mtop-logo { position: absolute; left: 50%; top: calc(50% + env(safe-area-inset-top, 0px) / 2); transform: translate(-50%, -50%); display: grid; place-items: center; padding: 4px; border: 0; background: none; cursor: pointer; }
   .mtop-logo:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; border-radius: 6px; }
 }
+
+/* Composição livre na aba Textos: vários títulos, apoio e selo na mesma imagem */
+.blocos-ed { display: grid; gap: 8px; margin-top: 4px; padding-top: 10px; border-top: 1px dashed var(--line-strong); }
+.blocos-ed.vazio { border-top: 0; padding-top: 0; }
+.blocos-ed .small { margin: 0; }
+.bloco-ed { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.02); }
+.bloco-top { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.bloco-top select { flex: 1 1 90px; min-width: 0; padding: 7px 26px 7px 9px; border: 1px solid var(--line); border-radius: 6px; background-color: var(--card-soft); color: #fff; font: inherit; font-size: 12px; }
+.bloco-top .mini-btn { flex: none; }
+.bloco-ed textarea { width: 100%; min-height: 54px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--card-soft); color: #fff; font: inherit; font-size: 13px; resize: vertical; }
+.bloco-pos { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.bloco-pos label.small { display: grid; gap: 2px; flex: 1 1 150px; color: var(--ink-soft); }
+.bloco-pos input[type="range"] { width: 100%; accent-color: var(--red); }
+.blocos-ed .actions { flex-wrap: wrap; gap: 6px; }
+.blocos-ed .actions .btn { min-height: 34px; padding: 6px 10px; font-size: 12px; }
