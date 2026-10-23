@@ -1010,7 +1010,14 @@ body { background: var(--bg); font-size: 13px; color: var(--ink); }
 .field input:focus, .field textarea:focus, .field select:focus, .reason input:focus, textarea:focus { border-color: var(--red); }
 .field select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%), linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 30px; }
 .field select option { background: var(--card-soft); }
-.field input[type="date"], .field input[type="time"] { color-scheme: dark; font-family: var(--mono); }
+/* Data e horário: no iPhone esses campos têm largura mínima própria (passavam da borda) e texto centralizado */
+.field input[type="date"], .field input[type="time"] { color-scheme: dark; font-family: inherit; -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; min-height: 42px; text-align: left; }
+.field input[type="date"]::-webkit-date-and-time-value, .field input[type="time"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+/* O seletor de arquivos fica dentro da área tracejada: sem a caixa (e a borda vermelha de foco) dos outros campos */
+.field input[type="file"] { width: 100%; border: 0; background: none; padding: 6px 0 0; border-radius: 0; }
+.field input[type="file"]:focus { border: 0; }
+.field > small { color: var(--ink-soft); font-size: 11px; line-height: 1.5; }
+.field input[type="file"]:focus-visible::file-selector-button { border-color: var(--red); }
 .toggles button { border: 1px solid var(--line); background: var(--card-soft); border-radius: 6px; color: var(--ink-soft); font-weight: 600; }
 .toggles button[aria-pressed="true"] { background: rgba(248, 57, 90, .12); border-color: var(--red); color: var(--red); }
 .switch { width: 40px; height: 22px; background: var(--card-soft); border: 1px solid var(--line); }
