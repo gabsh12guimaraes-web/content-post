@@ -4,7 +4,7 @@ function cardsCriacaoCalendario(){return `<div class="cal-creation" aria-label="
   <button type="button" class="cal-creation-card self" data-post-pronto><span class="home-kicker">Você cria. A gente conecta.</span><span class="cal-creation-name">Self-<em>creation</em></span><p>Seu post já está pronto?<br>A IA prepara a legenda. Você dá o toque final.</p><span class="cal-creation-cta">Enviar meu conteúdo ${iconeMenu('seta',16)}</span><span class="cal-creation-art" aria-hidden="true"><img src="assets/home/conexao.webp" alt=""><img src="assets/home/reels.webp" alt=""><i>↑</i></span></button>
   <button type="button" class="cal-creation-card sinsa" data-sinsalabim><span class="home-kicker">Um pedido. Um pouco de mágica.</span><span class="cal-creation-name">Sinsa<em>labim</em></span><p>Seu vídeo bruto vira conteúdo.<br>Conte no chat como quer a edição.</p><span class="cal-creation-cta">Transformar meu vídeo ${iconeMenu('seta',16)}</span><span class="cal-creation-art" aria-hidden="true"><span class="cal-sinsa-reel"><img src="assets/home/reels.webp" alt=""><b>Do bruto<br>ao <em>uau.</em></b></span><span class="cal-sinsa-track"><i></i><i></i><i></i><i></i><i></i></span><i>✦</i></span></button>
 </div>`;}
-function resetSinsalabim(){SINSA.serie++;SINSA.escolhendo=null;SINSA.salvandoPers=false;clearTimeout(SINSA.timer);SINSA.timer=null;if(SINSA.url)URL.revokeObjectURL(SINSA.url);SINSA.url=null;SINSA.arquivo=null;SINSA.banco=null;SINSA.arquivos=[];SINSA.bancos=[];SINSA.prog=null;clearInterval(SINSA.progTimer);SINSA.progTimer=null;SINSA.edicao=null;SINSA.verFinal=false;SINSA.revisando=false;SINSA.org=null;SINSA.token=null;}
+function resetSinsalabim(){SINSA.serie++;SINSA.escolhendo=null;SINSA.persPendentes=0;SINSA.persStatus='';SINSA.buscaBanco='';SINSA.cadeiaPers=null;clearTimeout(SINSA.timer);SINSA.timer=null;if(SINSA.url)URL.revokeObjectURL(SINSA.url);SINSA.url=null;SINSA.arquivo=null;SINSA.banco=null;SINSA.arquivos=[];SINSA.bancos=[];SINSA.prog=null;clearInterval(SINSA.progTimer);SINSA.progTimer=null;SINSA.edicao=null;SINSA.verFinal=false;SINSA.revisando=false;SINSA.org=null;SINSA.token=null;}
 const sinsaAtual=s=>s===SINSA.serie&&SINSA.org===U.organizacao?.id&&SINSA.token===U.token;
 async function abrirSinsalabim(){
   if(M.modo!=='web'||!U.organizacao)return;
@@ -51,7 +51,7 @@ function desenharSinsalabim(){
   ${erro?`<div class="msg erro" role="alert">${esc(erro)}</div>`:''}
   ${d.semClaude&&d.configurado?`<div class="msg erro" role="alert">O Sinsalabim usa o Claude para montar a edição, e esta organização ainda não tem a chave. Cadastre a chave do Claude (Anthropic) em Integrações e volte aqui.</div>`:''}
   ${!d.configurado&&!d.ocupado?`<div class="msg">Esta ferramenta está sendo preparada. ${d.admin?'Configure as integrações Groq e Shotstack no serviço da API para liberar o editor.':'Volte em breve para começar a editar seus vídeos.'}</div>`:''}
-  <div class="sinsa-content"><div>${preview}${p&&!(final&&d.verFinal)?personalizarSinsa(p,bloqueado||!!ativo||d.salvandoPers):''}</div><div class="sinsa-conversa"><div class="sinsa-chat" role="log" aria-label="Conversa de edição">${conversa.map(sinsaMensagem).join('')}</div>
+  <div class="sinsa-content"><div>${preview}${p&&!(final&&d.verFinal)?personalizarSinsa(p,bloqueado||!!ativo):''}</div><div class="sinsa-conversa"><div class="sinsa-chat" role="log" aria-label="Conversa de edição">${conversa.map(sinsaMensagem).join('')}</div>
   ${analisando?'<div class="working" role="status"><span class="dot"></span>Entendendo seu vídeo e preparando a edição… Você pode fechar e voltar depois.</div>':`<form class="sinsa-enviar" onsubmit="return false">${!e?`<label class="field up-drop"><span>${(d.arquivos||[]).length?'Seus vídeos':'Quais vídeos vamos transformar?'}</span><input id="sinsa-arquivo" type="file" multiple accept="video/*,.mov,.mp4,.m4v" ${bloqueado||(d.arquivos||[]).length>=6?'disabled':''}><small>${(d.arquivos||[]).length?'Toque de novo para somar mais vídeos (até 6).':'Um ou vários vídeos em MP4 ou MOV, somando até 5 minutos (até 1,5 GB cada).'}</small></label>${listaArquivosSinsa(bloqueado)}<div class="sinsa-estilos" role="group" aria-label="Estilo da edição">${[['clean','Clean'],['dinamico','Dinâmico'],['comercial','Comercial']].map(([v,t])=>`<button type="button" class="btn quiet" data-sinsa="estilo" data-estilo="${v}" aria-pressed="${d.estilo===v}" ${bloqueado?'disabled':''}>${t}</button>`).join('')}</div>`:''}${comandosSinsa(!!e,bloqueado)}<label class="field"><span>${e?'O que vamos ajustar?':'Como você quer a edição?'}</span><textarea id="sinsa-texto" rows="3" maxlength="2000" placeholder="${e?'Ex.: Mais ritmo e destaque a palavra resultado.':'Ex.: Toque em ✦ Entrega acima da média ou conte do seu jeito.'}" ${bloqueado?'disabled':''}>${esc(d.texto)}</textarea></label><div class="actions"><button type="submit" class="btn primary" data-sinsa="enviar" ${bloqueado||!d.configurado?'disabled':''}>${d.ocupado?'Aguarde…':e?'Aplicar meu ajuste ✦':'Criar minha prévia ✦'}</button></div></form>`}
   ${d.ocupado&&!faseSinsa()?`<p class="sinsa-live sinsa-progresso" role="status">${esc(d.progresso||'Preparando…')}</p>`:''}
   ${p?.avisos?.length?`<div class="msg">${p.avisos.map(esc).join('<br>')}</div>`:''}
@@ -86,10 +86,12 @@ function chipsSinsa(campo,atual,bloq){
 function personalizarSinsa(p,bloq){
   const banco=SINSA.edicao?.apoios||[],imagem=id=>banco.find(b=>b.id===id),dis=bloq?'disabled':'';
   const escolhendo=SINSA.escolhendo;
-  const seletor=escolhendo?`<div class="sinsa-banco-escolha"><p class="small">${escolhendo.novo?`Escolha a imagem que entra em ${fmtSinsa(escolhendo.inicio)}:`:'Escolha a nova imagem:'}</p>${banco.length?`<div class="sinsa-banco">${banco.map(b=>`<button type="button" data-sinsa="escolher-img" data-id="${esc(b.id)}" aria-label="${esc(b.nome||'Imagem do banco')}" ${dis}><img src="${esc(b.url)}" alt="" loading="lazy"></button>`).join('')}</div>`:'<p class="small">Seu banco ainda não tem fotos. Envie fotos do produto no Banco de imagens para usá-las no vídeo.</p>'}<button type="button" class="btn quiet" data-sinsa="cancelar-img">Cancelar</button></div>`:'';
+  // Qualquer imagem do banco (fotos, acervo e as geradas pela IA), com busca pelo nome ou descrição.
+  const termo=SINSA.buscaBanco||'',nt=normalizarBusca(termo);
+  const seletor=escolhendo?`<div class="sinsa-banco-escolha"><p class="small">${escolhendo.novo?`Escolha a imagem que entra em ${fmtSinsa(escolhendo.inicio)}:`:'Escolha a nova imagem:'}</p>${banco.length?`${barraBusca({id:'sinsa-busca-banco',placeholder:'Buscar pelo nome ou descrição',valor:termo,rotulo:'Pesquisar no banco'})}<p class="small">${banco.length} ${banco.length===1?'imagem':'imagens'} no banco</p><div class="sinsa-banco">${banco.map(b=>{const chave=normalizarBusca([b.nome,b.descricao].filter(Boolean).join(' '));return `<button type="button" data-sinsa="escolher-img" data-id="${esc(b.id)}" data-busca="${esc(chave)}" ${nt&&!chave.includes(nt)?'hidden':''} aria-label="${esc(b.nome||'Imagem do banco')}" title="${esc(b.nome||'')}" ${dis}><img src="${esc(b.url)}" alt="" loading="lazy">${b.origem==='ia'?'<span>IA</span>':''}</button>`;}).join('')}</div><p class="small sinsa-banco-vazio" ${nt&&!banco.some(b=>normalizarBusca([b.nome,b.descricao].join(' ')).includes(nt))?'':'hidden'}>Nenhuma imagem com esse nome ou descrição.</p>`:'<p class="small">Seu banco ainda não tem imagens. Envie fotos do produto no Banco de imagens para usá-las no vídeo.</p>'}<button type="button" class="btn quiet" data-sinsa="cancelar-img">Cancelar</button></div>`:'';
   const opc=(lista,atual)=>lista.map(([v,r])=>`<option value="${v}" ${String(atual)===String(v)?'selected':''}>${r}</option>`).join('');
   return `<details class="sinsa-personalizar"${SINSA.persAberto?' open':''}><summary>Personalizar <small>fonte, legenda, destaques e imagens</small></summary>
-  ${SINSA.salvandoPers?'<p class="sinsa-live small" role="status">Aplicando…</p>':''}
+  <p class="sinsa-pers-status small" role="status" aria-live="polite">${esc(SINSA.persStatus||'')}</p>
   <section><h4>Legenda</h4>
     <div class="sinsa-pers-linha"><span>Estilo</span>${chipsSinsa('legendaEstilo',p.legendaEstilo||'captions',bloq)}</div>
     <div class="sinsa-pers-linha"><span>Fonte</span>${chipsSinsa('fonteLegenda',p.fonteLegenda||'forte',bloq)}</div>
@@ -111,13 +113,56 @@ function personalizarSinsa(p,bloq){
     <div class="sinsa-pers-linha"><span>Cor do vídeo</span>${chipsSinsa('visual',p.visual||'natural',bloq)}</div>
   </section></details>`;
 }
-async function salvarPersSinsa(mudancas){
-  const e=SINSA.edicao;if(!e?.plano||SINSA.salvandoPers||SINSA.ocupado)return;
-  const serie=SINSA.serie,tempo=SINSA.tempo;SINSA.salvandoPers=true;SINSA.erro='';SINSA.voltarPara=tempo;
-  videosSinsa().forEach(x=>x.pause());desenharSinsalabim();
-  try{const r=await api({acao:'personalizarSinsalabim',id:e.id,versao:e.versao,mudancas});if(!sinsaAtual(serie))return;SINSA.edicao=r.edicao;SINSA.cota=r.cota;SINSA.escolhendo=null;}
-  catch(err){if(sinsaAtual(serie))SINSA.erro=textoErro(err);}
-  finally{if(sinsaAtual(serie)){SINSA.salvandoPers=false;SINSA.voltarPara=tempo;desenharSinsalabim();}}
+// Aplica na hora, sem redesenhar a janela (o vídeo segue no mesmo ponto, tocando ou não).
+// As mudanças vão ao servidor em fila, uma de cada vez, cada uma sobre a versão devolvida pela anterior.
+function aplicarLocalPers(p,m){
+  const q={...p};
+  for(const k of ['cor','legendaEstilo','fonteLegenda','fonteDestaque','posicaoLegenda','tamanhoLegenda','visual','tituloTela','chamada'])if(m[k]!=null)q[k]=m[k];
+  if(typeof m.legendas==='boolean')q.legendas=m.legendas;
+  if(m.destaques)q.destaques=m.destaques.map(d=>{const o=(p.destaques||[])[d.indice];return o&&{...o,texto:d.texto,apoio:d.apoio};}).filter(Boolean);
+  if(m.apoios)q.apoios=m.apoios.map(a=>({...a})).sort((a,b)=>a.inicio-b.inicio);
+  return q;
+}
+const bloqueadoPers=()=>SINSA.ocupado||SINSA.edicao?.status==='analisando'||!!sinsaExportando();
+function refrescarPersSinsa(){
+  const p=SINSA.edicao?.plano,root=document.querySelector('.sinsa-preview');
+  if(!p||!root||root.classList.contains('versao-final')||!videoSinsa())return desenharSinsalabim();
+  root.style.setProperty('--sinsa-cor',p.cor);root.classList.toggle('vibrante',p.visual==='vibrante');
+  Object.assign(root.dataset,{fl:p.fonteLegenda||'forte',fd:p.fonteDestaque||'cursiva',pos:p.posicaoLegenda||'baixo',tam:p.tamanhoLegenda||'m'});
+  const cap=root.querySelector('.sinsa-preview-caption');if(cap)cap.className='sinsa-preview-caption '+(p.legendaEstilo||'captions');
+  PREVIA.grupos=gruposSinsa(p);PREVIA.grupo=null;atualizarPreviaSinsa(SINSA.tempo||0);
+  const det=document.querySelector('.sinsa-personalizar');
+  if(det){
+    // Mantém o foco e a rolagem de quem está mexendo no painel.
+    const ativo=document.activeElement,chave=ativo&&det.contains(ativo)?(ativo.id?'#'+CSS.escape(ativo.id):ativo.dataset.sinsa?`[data-sinsa="${ativo.dataset.sinsa}"]${['campo','v','i','id'].filter(k=>ativo.dataset[k]!=null).map(k=>`[data-${k}="${CSS.escape(ativo.dataset[k])}"]`).join('')}`:''):'';
+    const t=document.createElement('div');t.innerHTML=personalizarSinsa(p,bloqueadoPers());const novo=t.firstElementChild;det.replaceWith(novo);
+    if(chave)novo.querySelector(chave)?.focus({preventScroll:true});
+  }
+  const exp=document.querySelector('[data-sinsa="exportar"]');if(exp&&SINSA.persPendentes)exp.disabled=true;
+}
+function statusPersSinsa(texto){SINSA.persStatus=texto;const el=document.querySelector('.sinsa-pers-status');if(el)el.textContent=texto;}
+function salvarPersSinsa(mudancas){
+  const e=SINSA.edicao;if(!e?.plano||bloqueadoPers())return;
+  const serie=SINSA.serie,id=e.id;
+  e.plano=aplicarLocalPers(e.plano,mudancas);SINSA.escolhendo=null;SINSA.buscaBanco='';SINSA.erro='';
+  SINSA.persPendentes=(SINSA.persPendentes||0)+1;SINSA.persStatus='Salvando…';refrescarPersSinsa();
+  SINSA.cadeiaPers=(SINSA.cadeiaPers||Promise.resolve()).then(async()=>{
+    if(!sinsaAtual(serie)||SINSA.edicao?.id!==id)return;
+    try{
+      const r=await api({acao:'personalizarSinsalabim',id,versao:SINSA.edicao.versao,mudancas});
+      if(!sinsaAtual(serie)||SINSA.edicao?.id!==id)return;
+      SINSA.edicao.versao=r.edicao.versao;SINSA.cota=r.cota;
+      // Na última da fila vale o plano do servidor (que valida e pode ajustar, por exemplo, imagens sobrepostas).
+      if(SINSA.persPendentes===1){SINSA.edicao={...r.edicao};}
+      statusPersSinsa(SINSA.persPendentes===1?'Salvo.':'Salvando…');
+    }catch(err){
+      if(!sinsaAtual(serie))return;
+      statusPersSinsa('Não deu para salvar: '+textoErro(err));
+      try{const r=await api({acao:'obterSinsalabim',id});if(sinsaAtual(serie)&&SINSA.edicao?.id===id)SINSA.edicao=r.edicao;}catch(e2){}
+    }finally{
+      if(sinsaAtual(serie)){SINSA.persPendentes--;if(!SINSA.persPendentes){const msg=SINSA.persStatus;refrescarPersSinsa();statusPersSinsa(msg);const exp=document.querySelector('[data-sinsa="exportar"]');if(exp)exp.disabled=!SINSA.cota?.restantes||bloqueadoPers();}}
+    }
+  });
 }
 const destaquesSinsa=()=>(SINSA.edicao?.plano?.destaques||[]).map((d,i)=>({indice:i,texto:d.texto,apoio:d.apoio||''}));
 const apoiosSinsa=()=>(SINSA.edicao?.plano?.apoios||[]).map(a=>({...a}));
@@ -215,6 +260,9 @@ function agendarSinsa(){
   },3000);
 }
 document.addEventListener('input',e=>{
+  if(e.target.id==='sinsa-busca-banco'){SINSA.buscaBanco=e.target.value;const t=normalizarBusca(e.target.value);let n=0;
+    for(const b of document.querySelectorAll('.sinsa-banco [data-busca]')){const ok=!t||b.dataset.busca.includes(t);b.hidden=!ok;if(ok)n++;}
+    const v=document.querySelector('.sinsa-banco-vazio');if(v)v.hidden=!!n;return;}
   if(e.target.id==='sinsa-texto')SINSA.texto=e.target.value;
   if(e.target.id==='sinsa-tempo')sinsaIrPara(Number(e.target.value));
 });
@@ -244,14 +292,14 @@ document.addEventListener('click',async e=>{
     if(!PREVIA.liberado){PREVIA.liberado=true;for(const x of videosSinsa())if(x!==v){x.muted=true;x.play().then(()=>{x.pause();prepararProximoSinsa();}).catch(()=>{});}}
     v.muted=false;v.play().catch(()=>{});}else videosSinsa().forEach(x=>x.pause());}return;}
   if(acao==='ir'){sinsaIrPara(Number(b.dataset.t)+0.05);document.querySelector('.sinsa-preview')?.scrollIntoView({block:'nearest'});return;}
-  if(SINSA.ocupado||SINSA.salvandoPers)return;
+  if(SINSA.ocupado)return;
   if(acao==='pers')return salvarPersSinsa({[b.dataset.campo]:b.dataset.v});
   if(acao==='legendas-onoff')return salvarPersSinsa({legendas:SINSA.edicao?.plano?.legendas===false});
   if(acao==='dest-tirar'){const l=destaquesSinsa();l.splice(Number(b.dataset.i),1);return salvarPersSinsa({destaques:l});}
   if(acao==='apoio-tirar'){const l=apoiosSinsa();l.splice(Number(b.dataset.i),1);return salvarPersSinsa({apoios:l});}
-  if(acao==='apoio-novo'){SINSA.escolhendo={novo:true,inicio:SINSA.tempo||0};return desenharSinsalabim();}
-  if(acao==='apoio-trocar'){SINSA.escolhendo={i:Number(b.dataset.i)};return desenharSinsalabim();}
-  if(acao==='cancelar-img'){SINSA.escolhendo=null;return desenharSinsalabim();}
+  if(acao==='apoio-novo'){SINSA.escolhendo={novo:true,inicio:SINSA.tempo||0};SINSA.buscaBanco='';return refrescarPersSinsa();}
+  if(acao==='apoio-trocar'){SINSA.escolhendo={i:Number(b.dataset.i)};SINSA.buscaBanco='';return refrescarPersSinsa();}
+  if(acao==='cancelar-img'){SINSA.escolhendo=null;return refrescarPersSinsa();}
   if(acao==='escolher-img'&&SINSA.escolhendo){const l=apoiosSinsa(),p=SINSA.edicao.plano,pedido=SINSA.escolhendo;
     if(pedido.novo){const dur=Math.min(1.8,Math.max(0.8,p.duracao-0.3)),inicio=Math.max(0,Math.min(pedido.inicio,p.duracao-dur));
       // Uma imagem por vez: a que já estava naquele momento dá lugar à nova.
@@ -266,6 +314,7 @@ document.addEventListener('click',async e=>{
   if(acao==='mover'||acao==='tirar'){const i=Number(b.dataset.i),a=SINSA.arquivos||[];if(acao==='tirar')a.splice(i,1);else{const j=i+Number(b.dataset.d);if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];}SINSA.bancos=[];return desenharSinsalabim();}
   if(acao==='novo')return abrirSinsalabim();
   if(acao==='estilo'){SINSA.estilo=b.dataset.estilo;return desenharSinsalabim();}
+  if(acao==='exportar'&&SINSA.persPendentes)return;
   if(acao==='exportar'){SINSA.confirmar=true;desenharSinsalabim();document.querySelector('.sinsa-confirmacao')?.scrollIntoView({block:'nearest'});return;}
   if(acao==='cancelar-exportacao'){SINSA.confirmar=false;return desenharSinsalabim();}
   if(acao==='preparar-revisao'){const d=new Date();d.setDate(d.getDate()+1);SINSA.data=ymd(d);SINSA.revisando=true;return desenharSinsalabim();}

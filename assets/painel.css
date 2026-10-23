@@ -411,3 +411,55 @@ input[type="file"]:disabled::file-selector-button { opacity: .5; cursor: not-all
 .bloco-pos input[type="range"] { width: 100%; accent-color: var(--red); }
 .blocos-ed .actions { flex-wrap: wrap; gap: 6px; }
 .blocos-ed .actions .btn { min-height: 34px; padding: 6px 10px; font-size: 12px; }
+
+/* Busca e seleção (assets/seletor.js): pílula escura, lupa rosa, borda rosa ao abrir e lista que se abre com animação */
+.busca { display: flex; align-items: center; gap: 10px; width: 100%; }
+.busca-lupa { flex: none; color: var(--red); }
+.busca-abrir { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 20px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card-soft); color: var(--ink-body); font: 600 13px/1 inherit; font-family: inherit; cursor: pointer; transition: border-color .2s, color .2s; }
+.busca-abrir:hover { border-color: var(--pink); color: #fff; }
+.busca-campo { display: none; }
+.busca.aberta .busca-abrir { display: none; }
+.busca.aberta .busca-campo { display: flex; flex: 1; min-width: 0; gap: 10px; align-items: center; }
+.busca-pilula { flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px; min-height: 46px; padding: 0 18px; border: 1px solid var(--red); border-radius: 999px; background: var(--card-soft); box-shadow: 0 0 0 3px #f8395a1c; cursor: text; animation: busca-abre .32s cubic-bezier(.2, .9, .3, 1) both; }
+.busca-pilula input { flex: 1; min-width: 0; padding: 12px 0; border: 0; background: none; color: #fff; font: inherit; font-size: 14px; outline: none; }
+.busca-pilula input::placeholder { color: var(--ink-soft); }
+.busca-pilula input::-webkit-search-cancel-button { display: none; }
+.busca-fechar { flex: none; width: 44px; height: 44px; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--card-soft); color: var(--ink-body); font-size: 14px; cursor: pointer; animation: busca-x .3s .1s cubic-bezier(.2, .9, .3, 1.3) both; }
+.busca-fechar:hover { border-color: var(--pink); color: #fff; }
+@keyframes busca-abre { from { opacity: .3; clip-path: inset(0 72% 0 0 round 999px); } to { opacity: 1; clip-path: inset(0 0 0 0 round 999px); } }
+@keyframes busca-x { from { opacity: 0; transform: scale(.5) rotate(-90deg); } }
+
+.seletor { position: relative; display: inline-flex; min-width: 0; max-width: 100%; vertical-align: middle; }
+.seletor > select.seletor-nativo { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; opacity: 0; pointer-events: none; }
+.field .seletor, .sinsa-pers-lista .seletor, .sinsa-historico .seletor { display: flex; width: 100%; }
+.bloco-top .seletor { flex: 1 1 90px; }
+.seletor-botao { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; min-height: 42px; padding: 9px 16px 9px 18px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card-soft); color: #fff; font: inherit; font-size: 13px; line-height: 1.25; text-align: left; cursor: pointer; transition: border-color .2s, box-shadow .2s; }
+.seletor-botao:hover { border-color: var(--pink); }
+.seletor-botao:focus-visible, .seletor.aberto .seletor-botao { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px #f8395a1c; }
+.seletor-valor { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seletor-seta { flex: none; width: 7px; height: 7px; margin: -3px 2px 0 0; border-right: 2px solid var(--ink-soft); border-bottom: 2px solid var(--ink-soft); transform: rotate(45deg); transition: transform .2s, border-color .2s; }
+.seletor.aberto .seletor-seta { margin-top: 3px; border-color: var(--red); transform: rotate(-135deg); }
+.seletor.desligado .seletor-botao { opacity: .5; cursor: not-allowed; }
+.seletor-lista { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 60; min-width: min(240px, 90vw); max-height: 320px; display: flex; flex-direction: column; border: 1px solid var(--red); border-radius: 20px; background: #13151e; box-shadow: 0 18px 44px #000a, 0 0 0 3px #f8395a14; overflow: hidden; transform-origin: top center; animation: seletor-abre .2s cubic-bezier(.2, .9, .3, 1.15) both; }
+.seletor.acima .seletor-lista { top: auto; bottom: calc(100% + 6px); transform-origin: bottom center; }
+.seletor-lista.saindo { animation: seletor-fecha .14s ease-in both; pointer-events: none; }
+@keyframes seletor-abre { from { opacity: 0; transform: translateY(-6px) scale(.96); } }
+@keyframes seletor-fecha { to { opacity: 0; transform: translateY(-4px) scale(.97); } }
+.seletor-busca { flex: none; display: flex; align-items: center; gap: 9px; margin: 8px 8px 4px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card-soft); }
+.seletor-busca:focus-within { border-color: var(--red); }
+.seletor-busca input { flex: 1; min-width: 0; padding: 9px 0; border: 0; background: none; color: #fff; font: inherit; font-size: 13px; outline: none; }
+.seletor-busca input::-webkit-search-cancel-button { display: none; }
+.seletor-opcoes { overflow: auto; padding: 4px 6px 6px; overscroll-behavior: contain; }
+.seletor-op { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px; border: 0; border-radius: 12px; background: none; color: var(--ink-body); font: inherit; font-size: 13px; line-height: 1.3; text-align: left; cursor: pointer; }
+.seletor-op[hidden] { display: none; }
+.seletor-op:hover, .seletor-op:focus-visible { outline: none; background: #ffffff0d; color: #fff; }
+.seletor-op[aria-selected="true"] { background: #f8395a24; color: #fff; }
+.seletor-op[aria-selected="true"]::after { content: "✓"; margin-left: auto; color: var(--red); font-weight: 700; }
+.seletor-op:disabled { opacity: .45; cursor: not-allowed; }
+.seletor-grupo { display: block; padding: 9px 12px 4px; color: var(--ink-soft); font: 600 10px/1.3 var(--mono, monospace); letter-spacing: .12em; text-transform: uppercase; }
+@media (max-width: 719px) { .seletor-botao, .seletor-op, .busca-pilula input { font-size: 15px; } }
+@media (prefers-reduced-motion: reduce) { .busca-pilula, .busca-fechar, .seletor-lista, .seletor-lista.saindo { animation: none; } }
+.bloco-top .seletor-botao { min-height: 34px; padding: 6px 12px 6px 14px; font-size: 12px; }
+.busca, .busca-campo { min-width: 0; max-width: 100%; }
+.busca-pilula input { width: 100%; }
+.seletor-botao, .seletor-op, .busca-abrir, .busca-pilula input { font-weight: 500; text-transform: none; letter-spacing: normal; }
