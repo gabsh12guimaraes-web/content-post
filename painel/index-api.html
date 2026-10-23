@@ -1141,7 +1141,7 @@ input[type="checkbox"], input[type="radio"] { width: 16px !important; height: 16
 
 <script src="assets/mega-brain.js?v=20261021-filtro-ideias"></script>
 <script src="assets/conta.js?v=20261021-loops"></script>
-<script src="assets/sinsalabim.js?v=20261023-progresso"></script>
+<script src="assets/sinsalabim.js?v=20261023-claude"></script>
 <script>
 const KEY = "pauta-painel-v3";
 
@@ -5252,7 +5252,7 @@ function secaoRedes() {
     <div><b>Redes conectadas${ajuda("redesConectadas")}</b><div class="small">Conecte as contas onde os posts serão publicados. Você autoriza na própria rede; não precisa criar conta em nenhum outro serviço.</div></div>
     ${r.aviso ? `<div class="msg erro">${esc(r.aviso)}</div>` : ""}
     ${listaContas(r.contas, r.podeGerir)}
-    ${r.podeGerir ? `<div class="redes-lista">${r.redes.map(n => `<button class="rede-chip ${tem.has(n) ? "on" : ""}" data-u="rede-conectar" data-id="${esc(n)}"><i>${ICONE_REDE[n] || ""}</i>${tem.has(n) ? "Conectar outra conta do " : "Conectar "}${esc(n)}</button>`).join("")}</div>`
+    ${r.podeGerir ? `<div class="redes-lista">${r.redes.map(n => `<button class="rede-chip ${tem.has(n) ? "on" : ""}" data-u="rede-conectar" data-id="${esc(n)}"><i>${ICONE_REDE[n] || ""}</i>${tem.has(n) ? "Conectar outra conta do " : "Conectar "}${esc(n)}</button>`).join("")}</div>${r.redes.includes("Instagram") ? `<p class="hint" style="margin:8px 0 0">O Instagram não abriu ou mostrou erro? <button type="button" class="link" data-u="rede-conectar" data-id="Instagram" data-via="facebook">Conectar pelo Facebook</button> (para contas profissionais ligadas a uma Página).</p>` : ""}`
       : `<p class="hint" style="margin:0">Só donos e administradores podem conectar redes.</p>`}
     ${botaoVincularRedes(r)}
   </div>`;
@@ -5473,7 +5473,7 @@ document.addEventListener("click", async e => {
     // o Instagram trava em telas de verificação. A volta cai numa página do site que manda tocar em OK.
     const nativo = window.ContentPostNative && window.ContentPostNative.ativo;
     try {
-      const r = await api({ acao: "conectarRede", rede: id, voltar: nativo ? "https://easycontentpost.com.br/conectado.html" : location.origin + location.pathname + "?redes=1" });
+      const r = await api({ acao: "conectarRede", rede: id, via: b.dataset.via || undefined, voltar: nativo ? "https://easycontentpost.com.br/conectado.html" : location.origin + location.pathname + "?redes=1" });
       if (!integracoesAtuais(pedido)) return;
       if (!nativo) { location.href = r.url; return; }
       esperandoConexaoRede = true; b.disabled = false;
