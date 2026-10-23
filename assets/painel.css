@@ -290,7 +290,6 @@ body.travado { overflow: hidden; }
   body.menu-recolhido .side-brand { flex: none; }
   body.menu-recolhido .side-brand .cp-logo-img { display: none; }
   body.menu-recolhido .side-brand .side-symbol { display: block; width: 34px; height: 34px; object-fit: contain; }
-  body.menu-recolhido .side-toggle svg { transform: rotate(180deg); }
   body.menu-recolhido .side .name, body.menu-recolhido .side .grupo, body.menu-recolhido .side .side-label, body.menu-recolhido .side .org-sel, body.menu-recolhido .side-org > .btn { display: none; }
   body.menu-recolhido .side-org { padding: 14px 18px; }
   body.menu-recolhido .side-org .org-mini { display: grid; place-items: center; width: 38px; height: 36px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--card); font-size: 12px; font-weight: 600; color: var(--pink-soft); }
