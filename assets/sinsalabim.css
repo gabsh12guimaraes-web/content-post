@@ -1,3 +1,6 @@
+/* Fontes da prévia = fontes do vídeo final (Montserrat e Pacifico, SIL OFL), servidas junto com o site */
+@font-face { font-family:SinsaForte; font-weight:100 900; font-display:swap; src:url(fontes/montserrat-latin.woff2) format('woff2'); }
+@font-face { font-family:SinsaScript; font-display:swap; src:url(fontes/pacifico-latin.woff2) format('woff2'); }
 .cal-creation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 24px; }
 .cal-creation-card { position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; min-width: 0; min-height: 240px; padding: 28px; border: 1px solid #694351; border-radius: 18px; background: radial-gradient(ellipse at 90% 0%,#b23e6b65,transparent 65%),linear-gradient(130deg,#30202f,#17131e); text-align: left; transition: transform .2s,border-color .2s; }
 .cal-creation-card:hover { transform: translateY(-3px); border-color: #ff8fa3; }
@@ -35,12 +38,15 @@
 .sinsa-preview video, .sinsa-apoio { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
 .sinsa-preview .sinsa-apoio[hidden] { display:none; }
 .sinsa-preview.versao-final video { position:relative; }
-.sinsa-preview-caption { position:absolute; left:7%; right:7%; bottom:20%; text-align:center; font:800 5.7cqw/1.22 Arial,sans-serif; color:white; text-shadow:0 1px 4px #000,0 0 2px #000; }
-.sinsa-preview-caption.clean { font-size:5cqw; font-weight:700; }
-.sinsa-preview-caption.comercial { padding:2.2cqw; border-radius:2cqw; background:#111827d9; }
-.sinsa-preview-caption span { display:inline-block; }
-.sinsa-preview-caption .ativa { color:var(--sinsa-cor,#ff5478); transform:translateY(-1px); }
-.sinsa-preview-card { position:absolute; left:7%; right:7%; top:11.5%; padding:2.4cqw; border-radius:2cqw; background:#111827e8; border-left:3px solid var(--sinsa-cor,#ff5478); color:white; font:800 5.7cqw/1.15 Arial,sans-serif; text-align:center; }
+.sinsa-preview .sinsa-v { opacity:0; transition:none; }
+.sinsa-preview .sinsa-v.ativo { opacity:1; }
+.sinsa-preview .sinsa-v.perto { transform:scale(1.12); }
+/* Mesmo visual da renderização (estilo Captions): até 3 palavras, letra grossa, a palavra dita acende */
+.sinsa-preview-caption { position:absolute; left:5.5%; right:5.5%; top:66%; text-align:center; font:900 7.2cqw/1.12 SinsaForte,Arial,sans-serif; text-transform:uppercase; letter-spacing:-.01em; color:white; -webkit-text-stroke:1.1cqw #000; paint-order:stroke fill; text-shadow:0 .65cqw 0 #0005; }
+.sinsa-preview-caption span { display:inline-block; padding:0 1.1cqw; margin:0 -.55cqw; border-radius:1.3cqw; transition:transform .08s; }
+.sinsa-preview-caption.unica { font-size:9.6cqw; }
+.sinsa-preview-caption .ativa { color:var(--sinsa-cor,#ff5478); transform:scale(1.12); }
+.sinsa-preview-card { position:absolute; left:50%; top:13%; transform:translateX(-50%); width:max-content; max-width:84%; padding:2cqw 3.2cqw; border-radius:2.4cqw; background:#fff; border-bottom:.9cqw solid var(--sinsa-cor,#ff5478); color:#0b0b0f; font:900 5.6cqw/1.12 SinsaForte,Arial,sans-serif; text-align:center; box-shadow:0 1.3cqw 3.7cqw #0006; }
 .sinsa-preview-card:empty,.sinsa-preview-caption:empty { display:none; }
 .sinsa-preview-vazia { display:grid; place-content:center; height:100%; padding:24px; text-align:center; background:radial-gradient(ellipse,#f8395a26,transparent 70%); }
 .sinsa-preview-vazia > span { color:#ff8fa3; font-size:60px; }
@@ -103,17 +109,18 @@
 .sinsa-comandos button.usado:not(.receita) { border-color:var(--pink); color:var(--pink-soft); }
 .sinsa-comandos button:disabled { opacity:.5; cursor:not-allowed; }
 /* Prévia: palavra em destaque gigante, apoio no topo ou em janela, cor viva e legenda em pílula */
-.sinsa-preview-destaque { position:absolute; left:5%; right:5%; top:55%; text-align:center; pointer-events:none; }
+.sinsa-preview-destaque { position:absolute; left:4%; right:4%; top:52%; text-align:center; pointer-events:none; animation:sinsa-surge .32s cubic-bezier(.2,1.4,.4,1) both; }
 .sinsa-preview-destaque:empty { display:none; }
-.sinsa-preview-destaque b { display:block; font:italic 900 13cqw/1 "Arial Black",Arial,sans-serif; letter-spacing:-.04em; color:var(--sinsa-cor,#f8395a); -webkit-text-stroke:.25cqw #fff; text-shadow:0 .6cqw 0 #0006, 0 0 4cqw color-mix(in srgb,var(--sinsa-cor,#f8395a) 55%,transparent); animation:sinsa-pop .28s cubic-bezier(.2,1.4,.4,1) both; }
-.sinsa-preview-destaque small { display:block; margin-top:1.6cqw; font:800 4.2cqw/1.2 Arial,sans-serif; color:#fff; text-shadow:0 1px 4px #000; }
+.sinsa-preview-destaque b { display:block; font:400 16.3cqw/1.15 SinsaScript,cursive; color:var(--sinsa-cor,#f8395a); -webkit-text-stroke:.46cqw #fff; paint-order:stroke fill; text-shadow:0 0 2.4cqw #fff9, 0 .9cqw 0 #0004; white-space:nowrap; }
+.sinsa-preview-destaque small { display:block; margin-bottom:-.6cqw; font:800 4.3cqw/1.1 SinsaForte,Arial,sans-serif; text-transform:uppercase; color:#fff; -webkit-text-stroke:.75cqw #000; paint-order:stroke fill; }
+@keyframes sinsa-surge { from { opacity:0; transform:scale(.5) rotate(-4deg); } to { opacity:1; transform:none; } }
 @keyframes sinsa-pop { from { opacity:0; transform:scale(.55); } to { opacity:1; transform:none; } }
-.sinsa-preview .sinsa-apoio[data-layout="topo"] { height:50%; bottom:auto; }
-.sinsa-preview .sinsa-apoio[data-layout="janela"] { width:42%; height:auto; aspect-ratio:9/16; left:auto; right:5%; top:8%; inset-inline-start:auto; border-radius:3cqw; box-shadow:0 2cqw 6cqw #0008; }
+.sinsa-preview .sinsa-apoio[data-layout="topo"] { inset:7% auto auto 21%; width:58%; height:auto; max-height:58%; object-fit:contain; border-radius:2.4cqw; }
+.sinsa-preview .sinsa-apoio[data-layout="janela"] { inset:9% 5% auto auto; width:36%; height:auto; max-height:36%; object-fit:contain; border-radius:2.4cqw; }
 .sinsa-preview.vibrante video, .sinsa-preview.vibrante .sinsa-apoio { filter:saturate(1.35) contrast(1.08); }
-.sinsa-preview-caption.pilula { left:auto; right:auto; width:fit-content; max-width:86%; margin-inline:auto; inset-inline:0; padding:1.4cqw 2.6cqw; border-radius:1.6cqw; background:var(--sinsa-cor,#f8395a); color:#111; text-shadow:none; font-size:4.6cqw; }
-.sinsa-preview-caption.pilula .ativa { color:#fff; }
-@media (prefers-reduced-motion: reduce) { .sinsa-preview-destaque b { animation:none; } }
+
+.sinsa-preview-caption.pilula .ativa { color:#fff; background:var(--sinsa-cor,#f8395a); transform:none; box-shadow:0 .55cqw 0 #0004; }
+@media (prefers-reduced-motion: reduce) { .sinsa-preview-destaque { animation:none; } }
 
 /* Carregamento dentro da tela do vídeo: barra com a etapa atual (envio com a porcentagem real) */
 .sinsa-carregando { position:absolute; inset:0; z-index:5; display:grid; place-content:center; justify-items:center; gap:12px; padding:24px; text-align:center; background:radial-gradient(ellipse at 50% 40%,#f8395a2e,transparent 65%),#0a0c15e8; }

@@ -15,9 +15,9 @@ async function abrirSinsalabim(){
   finally{if(sinsaAtual(serie)){SINSA.ocupado=false;desenharSinsalabim();}}
 }
 // Comandos prontos: tocar soma o pedido ao texto; "Entrega acima da média" preenche o pedido completo.
-const SINSA_RECEITA='Quero uma entrega acima da média, no estilo dos Reels de especialista: comece pela frase mais forte nos 2 primeiros segundos, tire pausas, repetições e enrolação, mantenha um ritmo em que algo muda na tela a cada 3 a 5 segundos, coloque as palavras-chave em destaque gigante na cor da marca, mostre o produto com imagens do meu banco na metade de cima enquanto eu falo, use cor vibrante, legendas e uma chamada clara no final.';
-const SINSA_COMANDOS=[['✦ Entrega acima da média',SINSA_RECEITA,true],['Gancho forte','Comece pela frase mais forte ou curiosa do vídeo, sem "oi gente".'],['Tirar pausas','Tire pausas, repetições e frases que não acrescentam.'],['Palavras gigantes','Destaque as palavras-chave em tamanho gigante na cor da marca.'],['Produto no topo','Quando eu falar do produto, mostre imagens do meu banco na metade de cima.'],['Cor vibrante','Deixe a cor mais viva e com mais contraste.'],['Legenda em pílula','Use legendas em caixinha na cor da marca.'],['Transições','Use transições rápidas quando o assunto mudar.'],['Até 30 s','Deixe com no máximo 30 segundos.']];
-const SINSA_AJUSTES=[['Mais ritmo','Deixe mais dinâmico: corte mais pausas e coloque mais mudanças na tela.'],['Mais destaques','Coloque mais palavras em destaque gigante.'],['Menos destaques','Use menos destaques, só nos conceitos principais.'],['Mostrar o produto','Mostre mais imagens do produto do meu banco enquanto eu falo.'],['Gancho mais forte','Comece por uma frase ainda mais forte nos primeiros 2 segundos.'],['Novo título','Crie outro título de abertura, mais curioso.'],['Legenda palavra por palavra','Troque a legenda para acender palavra por palavra.'],['Cor natural','Volte para a cor natural do vídeo.']];
+const SINSA_RECEITA='Quero uma entrega acima da média, no estilo do app Captions e dos Reels de especialista: comece pela frase mais forte nos 2 primeiros segundos, tire pausas, repetições e enrolação, mantenha um ritmo em que algo muda na tela a cada 3 a 5 segundos, use legendas curtas que acendem palavra por palavra, coloque as palavras-chave em destaque na cor da marca, só mostre imagens do meu banco se forem do produto que estou citando, e feche com uma chamada clara.';
+const SINSA_COMANDOS=[['✦ Entrega acima da média',SINSA_RECEITA,true],['Gancho forte','Comece pela frase mais forte ou curiosa do vídeo, sem "oi gente".'],['Tirar pausas','Tire pausas, repetições e frases que não acrescentam.'],['Palavras-chave','Destaque as palavras-chave em letra grande na cor da marca.'],['Produto no topo','Quando eu citar o produto e houver foto dele no banco, mostre-a no alto enquanto eu falo.'],['Cor vibrante','Deixe a cor mais viva e com mais contraste.'],['Legenda em pílula','Use a legenda com caixinha colorida atrás da palavra falada.'],['Uma palavra por vez','Mostre a legenda uma palavra por vez, bem grande.'],['Até 30 s','Deixe com no máximo 30 segundos.']];
+const SINSA_AJUSTES=[['Mais ritmo','Deixe mais dinâmico: corte mais pausas e coloque mais mudanças na tela.'],['Mais destaques','Coloque mais palavras-chave em destaque.'],['Menos destaques','Use menos destaques, só nos conceitos principais.'],['Sem imagens','Tire todas as imagens de apoio.'],['Gancho mais forte','Comece por uma frase ainda mais forte nos primeiros 2 segundos.'],['Novo título','Crie outro título de abertura, mais curioso.'],['Legenda estilo Captions','Use a legenda padrão: até 3 palavras, acendendo a palavra falada.'],['Cor natural','Volte para a cor natural do vídeo.']];
 function comandosSinsa(ajuste,bloqueado){return `<div class="sinsa-comandos" role="group" aria-label="Comandos prontos"><span>${ajuste?'Ajustes rápidos':'Comandos prontos'}</span>${(ajuste?SINSA_AJUSTES:SINSA_COMANDOS).map(([t,,receita],i)=>`<button type="button" class="${receita?'receita':''}" data-sinsa="comando" data-i="${i}" data-ajuste="${ajuste?1:''}" ${bloqueado?'disabled':''}>${esc(t)}</button>`).join('')}</div>`;}
 const FASES_SINSA={enviando:[0,48,'Enviando seus vídeos'],convertendo:[48,60,'Convertendo para o formato certo'],criando:[60,64,'Começando a edição'],juntando:[64,74,'Juntando seus vídeos na ordem'],transcrevendo:[74,82,'Ouvindo e transcrevendo a fala'],planejando:[82,97,'Montando a edição com IA'],pronto:[100,100,'Prévia pronta']};
 // fase atual: a do envio (no navegador) ou a etapa que o servidor informa durante a análise
@@ -40,7 +40,7 @@ function desenharSinsalabim(){
   if(!sinsaAtual(SINSA.serie))return;
   const d=SINSA,e=d.edicao,p=e?.plano,final=exportacaoSinsa(),ativo=sinsaExportando(),analisando=e?.status==='analisando',bloqueado=d.ocupado||analisando||!!ativo;
   const formatoTempo=t=>`${Math.floor((t||0)/60)}:${String(Math.floor((t||0)%60)).padStart(2,'0')}`;
-  const preview=final&&d.verFinal?`<div class="sinsa-preview versao-final"><video src="${esc(final.arquivo.url)}" playsinline controls preload="metadata"></video></div><p class="sinsa-preview-nota">Vídeo final exportado. Pronto para baixar ou enviar à revisão.</p>`:p?`<div class="sinsa-preview ${p.visual==='vibrante'?'vibrante':''}" style="--sinsa-cor:${p.cor}"><video id="sinsa-preview-video" src="${esc(e.arquivo.url)}" playsinline preload="metadata" ${e.arquivo.thumbnails?.large?.url?`poster="${esc(e.arquivo.thumbnails.large.url)}"`:''}></video><img class="sinsa-apoio" hidden alt="Imagem de apoio"><div class="sinsa-preview-card"></div><div class="sinsa-preview-caption ${esc(p.estilo)} ${p.legendaEstilo==='pilula'?'pilula':''}"></div><div class="sinsa-preview-destaque" aria-hidden="true"></div>${faseSinsa()?barraSinsa():''}</div><div class="sinsa-player"><button type="button" class="btn quiet" data-sinsa="play" aria-label="Reproduzir prévia">▶</button><input id="sinsa-tempo" aria-label="Posição na prévia" type="range" min="0" max="${p.duracao}" step="0.01" value="0"><time id="sinsa-tempo-texto">0:00 / ${formatoTempo(p.duracao)}</time></div><p class="sinsa-preview-nota">Prévia da edição, sem gastar exportações. Confira os cortes, textos e enquadramento antes de gerar o MP4.</p>`:`<div class="sinsa-preview">${faseSinsa()?barraSinsa():`<div class="sinsa-preview-vazia"><span aria-hidden="true">✦</span><b>${(d.arquivos||[]).length>1?`${d.arquivos.length} vídeos prontos para virar uma sequência.`:'Seu vídeo tem potencial.<br>Vamos revelar?'}</b><p>Envie o original e conte como você imagina o resultado.</p></div>`}</div>`;
+  const preview=final&&d.verFinal?`<div class="sinsa-preview versao-final"><video src="${esc(final.arquivo.url)}" playsinline controls preload="metadata"></video></div><p class="sinsa-preview-nota">Vídeo final exportado. Pronto para baixar ou enviar à revisão.</p>`:p?`<div class="sinsa-preview ${p.visual==='vibrante'?'vibrante':''}" style="--sinsa-cor:${p.cor}">${[0,1].map(k=>`<video class="sinsa-v${k?'':' ativo'}" src="${esc(e.arquivo.url)}" playsinline preload="auto" ${!k&&e.arquivo.thumbnails?.large?.url?`poster="${esc(e.arquivo.thumbnails.large.url)}"`:''}></video>`).join('')}<img class="sinsa-apoio" hidden alt="Imagem de apoio"><div class="sinsa-preview-card"></div><div class="sinsa-preview-caption ${esc(p.legendaEstilo||'captions')}"></div><div class="sinsa-preview-destaque" aria-hidden="true"></div>${faseSinsa()?barraSinsa():''}</div><div class="sinsa-player"><button type="button" class="btn quiet" data-sinsa="play" aria-label="Reproduzir prévia">▶</button><input id="sinsa-tempo" aria-label="Posição na prévia" type="range" min="0" max="${p.duracao}" step="0.01" value="0"><time id="sinsa-tempo-texto">0:00 / ${formatoTempo(p.duracao)}</time></div><p class="sinsa-preview-nota">Prévia da edição, sem gastar exportações. Confira os cortes, textos e enquadramento antes de gerar o MP4.</p>`:`<div class="sinsa-preview">${faseSinsa()?barraSinsa():`<div class="sinsa-preview-vazia"><span aria-hidden="true">✦</span><b>${(d.arquivos||[]).length>1?`${d.arquivos.length} vídeos prontos para virar uma sequência.`:'Seu vídeo tem potencial.<br>Vamos revelar?'}</b><p>Envie o original e conte como você imagina o resultado.</p></div>`}</div>`;
   const conversa=e?.mensagens?.length?e.mensagens:[{papel:'assistente',texto:'Me mostre seu vídeo e diga o que você quer mudar. Posso fazer cortes, colocar legendas, destacar palavras, aplicar zoom e usar imagens do seu banco.'}];
   const erro=d.erro||e?.erro;
   const ultimaFalha=e?.exportacoes?.find(x=>['erro','incerto'].includes(x.status));
@@ -67,39 +67,78 @@ function desenharSinsalabim(){
   if(faseSinsa())progressoSinsa(null,null);
   if(d.rolarPreview){d.rolarPreview=false;const alvo=document.querySelector('.sinsa-preview');if(alvo)alvo.scrollIntoView({block:'start'});}
 }
+// Prévia fluida: dois players do mesmo vídeo. Enquanto um toca o trecho atual, o outro já espera parado
+// no início do próximo; na virada só troca qual aparece (sem a pausa de buscar no meio do arquivo).
+// A posição é conferida a cada quadro (o "timeupdate" do iPhone vem só 4 vezes por segundo e passava do corte).
+const PREVIA={};
+const videosSinsa=()=>[...document.querySelectorAll('.sinsa-preview .sinsa-v')];
+const videoSinsa=()=>document.querySelector('.sinsa-preview .sinsa-v.ativo');
+function inicioCorteSinsa(p,i){let t=0;for(let k=0;k<i;k++)t+=p.cortes[k].fim-p.cortes[k].inicio;return t;}
+// O próximo trecho continua exatamente de onde este termina? Então o mesmo player segue tocando.
+const emendaSinsa=(a,b)=>b&&Math.abs(b.inicio-a.fim)<0.05;
+function prepararProximoSinsa(){
+  const p=SINSA.edicao?.plano,outro=videosSinsa().find(v=>!v.classList.contains('ativo'));if(!p||!outro)return;
+  let i=SINSA.corte;while(emendaSinsa(p.cortes[i],p.cortes[i+1]))i++;
+  const prox=p.cortes[i+1];PREVIA.proximo=prox?i+1:-1;
+  if(prox&&Math.abs(outro.currentTime-prox.inicio)>0.03){try{outro.currentTime=prox.inicio;}catch(e){}}
+}
+function quadroSinsa(){
+  cancelAnimationFrame(PREVIA.raf);
+  const p=SINSA.edicao?.plano,v=videoSinsa();if(!p||!v||!v.isConnected)return;
+  let c=p.cortes[SINSA.corte];
+  while(c&&emendaSinsa(c,p.cortes[SINSA.corte+1])&&v.currentTime>=c.fim-0.01){SINSA.corte++;c=p.cortes[SINSA.corte];}
+  if(c&&v.currentTime>=c.fim-0.03){
+    const i=PREVIA.proximo;
+    if(i>0){
+      const outro=videosSinsa().find(x=>x!==v);
+      outro.muted=false;outro.play().catch(()=>{});v.pause();
+      outro.classList.add('ativo');v.classList.remove('ativo');SINSA.corte=i;prepararProximoSinsa();
+    }else{v.pause();SINSA.corte=p.cortes.length-1;atualizarPreviaSinsa(p.duracao);return;}
+  }
+  const atual=videoSinsa(),corte=p.cortes[SINSA.corte];
+  atualizarPreviaSinsa(inicioCorteSinsa(p,SINSA.corte)+Math.max(0,Math.min(corte.fim,atual.currentTime)-corte.inicio));
+  if(!atual.paused)PREVIA.raf=requestAnimationFrame(quadroSinsa);
+}
 function ligarPreviaSinsa(){
-  const p=SINSA.edicao?.plano,v=document.getElementById('sinsa-preview-video');if(!p||!v)return;
-  SINSA.corte=0;SINSA.tempo=0;
-  const seek=()=>{if(v.readyState){v.currentTime=p.cortes[0].inicio;atualizarPreviaSinsa(0);}};
-  v.addEventListener('loadedmetadata',seek,{once:true});if(v.readyState)seek();
-  v.addEventListener('timeupdate',()=>{
-    const i=SINSA.corte,c=p.cortes[i];if(!c||!v.isConnected)return;
-    if(v.currentTime>=c.fim-0.04){if(i+1<p.cortes.length){SINSA.corte++;v.currentTime=p.cortes[i+1].inicio;}else{v.pause();atualizarPreviaSinsa(p.duracao);return;}}
-    const anterior=p.cortes.slice(0,SINSA.corte).reduce((t,c)=>t+c.fim-c.inicio,0),atual=p.cortes[SINSA.corte];
-    atualizarPreviaSinsa(anterior+Math.max(0,v.currentTime-atual.inicio));
-  });
-  v.addEventListener('play',()=>{const b=document.querySelector('[data-sinsa="play"]');if(b){b.textContent='Ⅱ';b.setAttribute('aria-label','Pausar prévia');}});
-  v.addEventListener('pause',()=>{const b=document.querySelector('[data-sinsa="play"]');if(b){b.textContent='▶';b.setAttribute('aria-label','Reproduzir prévia');}});
+  const p=SINSA.edicao?.plano,vs=videosSinsa();if(!p||!vs.length)return;
+  SINSA.corte=0;SINSA.tempo=0;PREVIA.grupos=gruposSinsa(p);PREVIA.grupo=null;PREVIA.liberado=false;
+  const [a,b]=vs;b.muted=true;
+  const posicionar=()=>{if(a.readyState){a.currentTime=p.cortes[0].inicio;atualizarPreviaSinsa(0);}};
+  a.addEventListener('loadedmetadata',posicionar,{once:true});if(a.readyState)posicionar();
+  b.addEventListener('loadedmetadata',prepararProximoSinsa,{once:true});if(b.readyState)prepararProximoSinsa();
+  const botao=play=>{const el=document.querySelector('[data-sinsa="play"]');if(el){el.textContent=play?'Ⅱ':'▶';el.setAttribute('aria-label',play?'Pausar prévia':'Reproduzir prévia');}};
+  for(const v of vs){
+    v.addEventListener('play',()=>{if(v.classList.contains('ativo')){botao(true);PREVIA.raf=requestAnimationFrame(quadroSinsa);}});
+    v.addEventListener('pause',()=>{if(v.classList.contains('ativo')&&!videosSinsa().some(x=>!x.paused))botao(false);});
+  }
+}
+// Mesmos blocos da renderização: até 3 palavras (ou 1 no estilo "unica"), quebrando em pausa ou fim de frase.
+function gruposSinsa(p){
+  const max=p.legendaEstilo==='unica'?1:3,grupos=[];let g=[];
+  for(const w of p.palavras||[]){const letras=g.reduce((n,x)=>n+x.texto.length+1,0)+w.texto.length;if(g.length&&(g.length>=max||letras>18||w.inicio-g.at(-1).fim>.45||/[.!?…]$/.test(g.at(-1).texto))){grupos.push(g);g=[];}g.push(w);}
+  if(g.length)grupos.push(g);return grupos;
 }
 function atualizarPreviaSinsa(t){
-  const p=SINSA.edicao?.plano,v=document.getElementById('sinsa-preview-video');if(!p||!v)return;SINSA.tempo=Math.max(0,Math.min(p.duracao,t));
-  const tempo=SINSA.tempo,grupos=[];let grupo=[];
-  for(const w of p.palavras||[]){if(grupo.length&&(grupo.length>=5||w.inicio-grupo.at(-1).fim>.65)){grupos.push(grupo);grupo=[];}grupo.push(w);}if(grupo.length)grupos.push(grupo);
-  const g=p.legendas?grupos.find(g=>tempo>=g[0].inicio&&tempo<=g.at(-1).fim+.08):null;
+  const p=SINSA.edicao?.plano,v=videoSinsa();if(!p||!v)return;SINSA.tempo=Math.max(0,Math.min(p.duracao,t));
+  const tempo=SINSA.tempo,grupos=PREVIA.grupos||(PREVIA.grupos=gruposSinsa(p));
   const dest=(p.destaques||[]).find(d=>tempo>=d.inicio&&tempo<d.inicio+d.duracao),elD=document.querySelector('.sinsa-preview-destaque');
-  if(elD){const html=dest?`<b>${esc(dest.texto)}</b>${dest.apoio?`<small>${esc(dest.apoio)}</small>`:''}`:'';if(elD.innerHTML!==html)elD.innerHTML=html;}
-  document.querySelector('.sinsa-preview-caption').innerHTML=g&&!dest?g.map(w=>`<span class="${tempo>=w.inicio&&tempo<=w.fim?'ativa':''}">${esc(w.texto)}</span>`).join(' '):'';
-  document.querySelector('.sinsa-preview-card').textContent=tempo<Math.min(3,p.duracao/2)?p.tituloTela:tempo>=p.duracao-Math.min(3,p.duracao/2)?p.chamada:'';
+  if(elD){const html=dest?`${dest.apoio?`<small>${esc(dest.apoio)}</small>`:''}<b>${esc(dest.texto)}</b>`:'';if(elD.innerHTML!==html)elD.innerHTML=html;}
+  const g=p.legendas&&!dest?grupos.find(g=>tempo>=g[0].inicio&&tempo<=g.at(-1).fim+.12):null,leg=document.querySelector('.sinsa-preview-caption');
+  if(PREVIA.grupo!==g){PREVIA.grupo=g;leg.innerHTML=g?g.map(w=>`<span>${esc(w.texto)}</span>`).join(' '):'';}
+  if(g)[...leg.children].forEach((el,k)=>el.classList.toggle('ativa',tempo>=g[k].inicio&&tempo<=g[k].fim));
+  const card=document.querySelector('.sinsa-preview-card'),tc=Math.min(2.6,p.duracao/2),texto=tempo<tc?p.tituloTela:tempo>=p.duracao-tc?p.chamada:'';
+  if(card.textContent!==(texto||''))card.textContent=texto||'';
   const apoio=p.apoios.find(a=>tempo>=a.inicio&&tempo<a.inicio+a.duracao),img=document.querySelector('.sinsa-apoio'),origem=SINSA.edicao.apoios?.find(a=>a.id===apoio?.banco);
-  img.hidden=!origem;if(origem&&img.dataset.id!==origem.id){img.src=origem.url;img.dataset.id=origem.id;}img.dataset.layout=apoio?.layout||'tela';
-  const c=p.cortes[SINSA.corte];v.style.transform=c?.zoom?`scale(${1+Math.max(0,(v.currentTime-c.inicio)/(c.fim-c.inicio))*.1})`:'';
+  img.hidden=!origem;if(origem&&img.dataset.id!==origem.id){img.src=origem.url;img.dataset.id=origem.id;}img.dataset.layout=apoio?.layout||'topo';
+  // Zoom fixo (o mesmo do vídeo final): sem crescer devagar.
+  for(const x of videosSinsa())x.classList.toggle('perto',!!p.cortes[SINSA.corte]?.zoom);
   document.getElementById('sinsa-tempo').value=tempo;
   const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;document.getElementById('sinsa-tempo-texto').textContent=`${fmt(tempo)} / ${fmt(p.duracao)}`;
 }
 function sinsaIrPara(t){
-  const p=SINSA.edicao?.plano,v=document.getElementById('sinsa-preview-video');if(!p||!v)return;let antes=0;
+  const p=SINSA.edicao?.plano,v=videoSinsa();if(!p||!v)return;let antes=0;
   for(const [i,c] of p.cortes.entries()){const n=c.fim-c.inicio;if(t<antes+n||i===p.cortes.length-1){SINSA.corte=i;v.currentTime=c.inicio+Math.max(0,Math.min(n-.02,t-antes));break;}antes+=n;}
-  atualizarPreviaSinsa(t);
+  prepararProximoSinsa();atualizarPreviaSinsa(t);
 }
 async function carregarEdicaoSinsa(id){
   clearTimeout(SINSA.timer);const serie=SINSA.serie;SINSA.ocupado=true;SINSA.erro='';SINSA.confirmar=false;SINSA.revisando=false;desenharSinsalabim();
@@ -135,7 +174,10 @@ document.addEventListener('submit',e=>{if(e.target.matches('.sinsa-enviar')){e.p
 document.addEventListener('click',async e=>{
   if(e.target.closest('[data-sinsalabim]'))return abrirSinsalabim();
   const b=e.target.closest('[data-sinsa]');if(!b)return;e.preventDefault();const acao=b.dataset.sinsa;
-  if(acao==='play'){const v=document.getElementById('sinsa-preview-video');if(v){if(v.paused){if(SINSA.tempo>=SINSA.edicao.plano.duracao-.1)sinsaIrPara(0);v.play().catch(()=>{});}else v.pause();}return;}
+  if(acao==='play'){const v=videoSinsa();if(v){if(v.paused){if(SINSA.tempo>=SINSA.edicao.plano.duracao-.1)sinsaIrPara(0);
+    // No iPhone, só um toque libera o som: o player reserva é liberado aqui (toca mudo e para) para assumir depois.
+    if(!PREVIA.liberado){PREVIA.liberado=true;for(const x of videosSinsa())if(x!==v){x.muted=true;x.play().then(()=>{x.pause();prepararProximoSinsa();}).catch(()=>{});}}
+    v.muted=false;v.play().catch(()=>{});}else videosSinsa().forEach(x=>x.pause());}return;}
   if(SINSA.ocupado)return;
   if(acao==='comando'){const lista=b.dataset.ajuste?SINSA_AJUSTES:SINSA_COMANDOS,[,texto,receita]=lista[Number(b.dataset.i)]||[];if(!texto)return;
     const atual=SINSA.texto.trim();SINSA.texto=receita?texto:(atual.includes(texto)?atual:(atual?atual+' ':'')+texto);
